@@ -1,0 +1,5 @@
+INPUT var_0, var_1, var_2
+OUTPUT var_0
+VAR
+var_0, var_1, var_2
+IN
