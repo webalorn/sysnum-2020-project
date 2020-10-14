@@ -5,18 +5,19 @@
 #include <exception>
 
 class UnknownError : public std::exception {
-	const char* what() const throw() {
-		return "Some unknown or undocumented error happened";
-	}
+	const char* what() const throw();
 };
 
 class UsageError : public std::exception {
-	const char* str;
-	const char* what() const throw() {
-		return str;
-	}
+	std::string str;
+	const char* what() const throw();
 public:
-	UsageError(std::string s) : str(s.c_str()) {};
+	std::string get();
+	UsageError(std::string s) : str(s) {};
+};
+
+class IOError : public UsageError {
+	using UsageError::UsageError;
 };
 
 #endif // EXCEPTIONS

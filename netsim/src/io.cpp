@@ -8,7 +8,11 @@
 
 #include "io.hpp"
 #include "netsim/netlist.hpp"
+#include "exceptions.hpp"
 
+/*
+	Read netlists
+*/
 
 bool NetlistParser::isSeparator(char c) {
 	return std::isspace(c) || c == ':' || c == ',' || c == '=';
@@ -35,6 +39,8 @@ Operation NetlistParser::opWordToOp(std::string word) {
 	if (word == "SELECT") return OpSelect;
 	if (word == "SLICE") return OpSlice;
 	if (word == "CONCAT") return OpConcat;
+	if (word == "NOT") return OpNot;
+	if (word == "MUX") return OpMux;
 	return OpConst;
 }
 
@@ -58,32 +64,50 @@ SoftNetlist NetlistParser::parseFrom(std::ifstream& fileStream) {
 
 	// STEP 2 : Input
 	int curWord = 1; // The first word MUST be "INPUT"
+	if (words.empty() || words[0] != "INPUT") {
+		throw UsageError("The first word in a netlist must be 'INPUT'");
+	}
 	std::vector<std::string> inputs, outputs;
 	std::map<std::string, int> sizeOfVars;
 
-	for (auto s : words) {
-		std::cout << "'" << s << "' ";
-	}std::cout << "\n";
-
-	while (words[curWord] != "OUTPUT") {
+	// Read input variables
+	while (curWord < (int)words.size() && words[curWord] != "OUTPUT") {
 		inputs.push_back(words[curWord++]);
 	}
+	if (curWord >= (int)words.size()) {
+		throw UsageError("Missing 'OUTPUT' keyword in the netlist");
+	}
 	curWord++;
+
+	// Read output variables
 	while (words[curWord] != "VAR") {
 		outputs.push_back(words[curWord++]);
 	}
+	if (curWord >= (int)words.size()) {
+		throw UsageError("Missing 'VAR' keyword in the netlist");
+	}
 	curWord++;
-	while (words[curWord] != "IN") { // Read variables
+
+	// Read all variables
+	while (words[curWord] != "IN") {
 		auto varName = words[curWord];
 		int varSize = 1;
-		if (words[curWord + 1] == ":") {
-			varSize = std::stoi(words[curWord + 2]);
+		if (curWord + 2 < (int)words.size() && words[curWord + 1] == ":") {
+			try {
+				varSize = std::stoi(words[curWord + 2]);
+			}
+			catch (std::invalid_argument e) {
+				throw UsageError("Can't convert " + words[curWord + 2] + " to an integer");
+			}
 			curWord += 3;
 		}
 		else {
 			curWord += 1;
 		}
 		sizeOfVars[varName] = varSize;
+	}
+	if (curWord >= (int)words.size()) {
+		throw UsageError("Missing 'IN' keyword in the netlist");
 	}
 	curWord++;
 
@@ -102,20 +126,23 @@ SoftNetlist NetlistParser::parseFrom(std::ifstream& fileStream) {
 			nbArgs = 0;
 			var.args.push_back(Arg(opName)); // Because there is no "operation"
 		}
-		if (var.operation == OpReg) nbArgs = 1;
-		if (var.operation == OpRom) nbArgs = 3;
+		if (var.operation == OpReg || var.operation == OpNot) nbArgs = 1;
+		if (var.operation == OpRom || var.operation == OpMux || var.operation == OpSlice) nbArgs = 3;
 		if (var.operation == OpRam) nbArgs = 6;
 
+		if (curWord + nbArgs > (int)words.size()) {
+			throw UsageError("Missing arguments for the " + opName + " operation");
+		}
 		for (int iArg = 0; iArg < nbArgs; iArg++) {
 			var.args.push_back(Arg(words[curWord++]));
 		}
 		// Int parameters
-		if (var.operation == OpSelect) {
-			var.args[0] = Arg(var.args[0].repr, true);
-		}
-		if (var.operation == OpRom || var.operation == OpRam) {
+		if (var.operation == OpRom || var.operation == OpRam || var.operation == OpSlice) {
 			var.args[0] = Arg(var.args[0].repr, true);
 			var.args[1] = Arg(var.args[1].repr, true);
+		}
+		if (var.operation == OpSelect) {
+			var.args[0] = Arg(var.args[0].repr, true);
 		}
 		variables[varName] = var;
 	}
@@ -134,4 +161,42 @@ SoftNetlist loadNetlistFrom(std::string filePath) {
 	std::ifstream fileStream(filePath);
 
 	return parser.parseFrom(fileStream);
+}
+
+/*
+	Read streams
+*/
+
+
+void readBitsTo(std::ifstream& stream, Memory& mem, int size) {
+	char c;
+	for (int iBit = 0; iBit < size;) {
+		if (stream.get(c)) {
+			if (c == '0' || c == '1') {
+				mem[iBit++] = c == '1';
+			}
+		}
+		else {
+			throw IOError("Can't read bits from stream");
+		}
+	}
+}
+
+void flowBitFrom(std::ifstream& stream, Memory& mem, bool extend) {
+	char c;
+	int iBit = 0;
+	while (stream >> c) {
+		if (c == '0' || c == '1') {
+			if (iBit >= (int)mem.size()) {
+				if (!extend) {
+					break;
+				}
+				mem.push_back(c == '1');
+			}
+			else {
+				mem[iBit] = (c == '1');
+			}
+			iBit++;
+		}
+	}
 }

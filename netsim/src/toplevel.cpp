@@ -5,6 +5,7 @@
 
 #include "io.hpp"
 #include "netsim/netlist.hpp"
+#include "exceptions.hpp"
 
 bool isValidInput(const std::string& str, int size) {
 	for (char c : str) {
@@ -12,7 +13,7 @@ bool isValidInput(const std::string& str, int size) {
 			return false;
 		}
 	}
-	return str.size() == size;
+	return (int)str.size() == size;
 }
 
 std::string removeSpaces(const std::string& str) {
@@ -51,6 +52,10 @@ void topLevelCycles(int maxCycles, NetlistSim& net) {
 				inMem.back().push_back(c == '1');
 			}
 		}
+		if (inputs.empty()) {
+			std::cout << "No input, press [enter] to launch a cycle\n";
+			std::getline(std::cin, line);
+		}
 
 		net.setInputsSplit(inMem);
 		net.cycle();
@@ -58,8 +63,9 @@ void topLevelCycles(int maxCycles, NetlistSim& net) {
 		const auto& outputs = net.getOutputsVar();
 		std::vector<Memory> outVals = net.getOutputsSplit();
 
+
 		std::cout << "\n  --- OUTPUTS ---\n";
-		for (int iOutput = 0; iOutput < outputs.size(); iOutput++) {
+		for (int iOutput = 0; iOutput < (int)outputs.size(); iOutput++) {
 			std::cout << outputs[iOutput].name << " = ";
 			for (bool b : outVals[iOutput]) {
 				std::cout << (int)b;
@@ -70,19 +76,22 @@ void topLevelCycles(int maxCycles, NetlistSim& net) {
 	}
 }
 
-int main() {
+int main(int argc, char* argv[]) {
 	std::ios_base::sync_with_stdio(false);
+	if (argc < 2) {
+		std::cerr << "This command requires one argument : the netlist file (.net)\n";
+		return -1;
+	}
 
-	// std::string source = "../../td/sysnum-2020/tp1/test/cm2.net";
-	// std::string source = "../../td/sysnum-2020/tp1/test/clock_div.net";
-	std::string source = "../../td/sysnum-2020/tp1/test/fulladder.net";
-	SoftNetlist softnet = loadNetlistFrom(source);
-	NetlistSim net(softnet);
+	std::string source(argv[1]);
 
-	std::cout << "\n";
-	std::cout << "Inputs size = " << net.inputSize << "\n";
-	std::cout << "consts = " << net.constants << "\n";
-	// std::cout << net.state << "\n";
+	try {
+		SoftNetlist softnet = loadNetlistFrom(source);
+		NetlistSim net(softnet);
 
-	topLevelCycles(-1, net);
+		topLevelCycles(-1, net);
+	}
+	catch (UsageError e) {
+		std::cerr << "\033[31m[USAGE ERROR] " << e.get() << "\033[0m\n";
+	}
 }

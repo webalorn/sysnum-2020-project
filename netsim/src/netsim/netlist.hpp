@@ -19,13 +19,18 @@ const int FLAG_OP_SELECT = 1 << 9;
 const int FLAG_OP_SLICE = 1 << 10;
 const int FLAG_OP_CONCAT = 1 << 11;
 
+const int FLAG_OP_NOT = 1 << 12;
+const int FLAG_OP_MUX = 1 << 13;
+const int FLAG_RAM_WRITE = 1 << 14;
+
+const int FLAG_PARAM_0_CST = (1 << 20);
 const int FLAG_PARAM_1_CST = (1 << 21);
 const int FLAG_PARAM_2_CST = (1 << 22);
 const int FLAG_PARAM_3_CST = (1 << 23);
 const int FLAG_PARAM_4_CST = (1 << 24);
 const int FLAG_PARAM_5_CST = (1 << 25);
-const int FLAG_PARAM_6_CST = (1 << 26);
 
+const int FLAG_UNARY_OPS = FLAG_OP_REG | FLAG_OP_NOT;
 const int FLAG_BIN_OPS = FLAG_OP_OR | FLAG_OP_XOR | FLAG_OP_AND | FLAG_OP_NAND;
 const int FLAG_BUS_OPS = FLAG_OP_SELECT | FLAG_OP_SLICE | FLAG_OP_CONCAT;
 
@@ -37,10 +42,13 @@ enum Operation {
 	OpNand = FLAG_OP_NAND,
 	OpReg = FLAG_OP_REG,
 	OpRam = FLAG_OP_RAM,
+	OpRamWrite = FLAG_RAM_WRITE | FLAG_OP_RAM,
 	OpRom = FLAG_OP_ROM,
 	OpSelect = FLAG_OP_SELECT,
 	OpSlice = FLAG_OP_SLICE,
 	OpConcat = FLAG_OP_CONCAT,
+	OpNot = FLAG_OP_NOT,
+	OpMux = FLAG_OP_MUX,
 };
 
 enum ArgType { ArgVariable, ArgBool, ArgInt };
@@ -48,9 +56,10 @@ enum ArgType { ArgVariable, ArgBool, ArgInt };
 class Memory : public std::vector<bool> {
 public:
 	using std::vector<bool>::vector;
-	void extend_by(size_t);
-	void set_size_min(size_t);
-	inline Memory submem(size_t, size_t);
+	void extend_by(int);
+	void set_size_min(int);
+	inline Memory submem(int, int);
+	inline int toInt(int pos, int size);
 };
 
 std::ostream& operator<<(std::ostream&, const Memory&);
@@ -62,6 +71,7 @@ struct Arg {
 	ArgType type = ArgVariable;
 
 	Arg(std::string, bool = false);
+	Arg(int);
 };
 
 struct Variable {
@@ -81,6 +91,7 @@ struct SoftNetlist {
 	std::vector<std::string> inputs, outputs;
 	std::map<std::string, Variable> variables;
 
+	void checkVarArgs();
 	std::vector<Variable> sorted();
 };
 
@@ -88,20 +99,21 @@ class NetlistSim {
 	/*
 		All registers are at the begining of the operations vector (and state vector)
 		operations : [Operation | flags] [memory cell (in state)] [parameters....]
-			[block(s) size for SELECT (x1), SLICE (x1) and CONCAT (x2), and ASSIGN / REG (x1)]
+			[block(s) size for REG, MUX (x1) and CONCAT (x2)]
 
 		Parameters can be :
 		- an static integer
 		- Id of a previous operation (id in 'operations')
 		- Id of a constant (id in 'contants'), with a flag set on the operation id
+
+		First parameter for rom / ram : additional parameter for the position in the ram / rom block
 	*/
 protected:
-public: // For debug purposes only. TODO : remove
 	std::vector<HardVariable> inputs, outputs;
-	Memory rom, ram, state, constants;
+	Memory rom, ram, state, constants, registers;
 	int nbRegistersOp, inputSize, outputSize;
 	std::vector<int> operations;
-	std::vector<bool> hasBeenExecuted;
+	// std::vector<bool> hasBeenExecuted;
 
 public:
 	NetlistSim(SoftNetlist&);
@@ -111,9 +123,9 @@ public:
 	const std::vector<HardVariable>& getOutputsVar();
 	Memory getState();
 
-
-	void setInputs(Memory&);
-	void setInputsSplit(std::vector<Memory>&);
+	void writeRom(const Memory&); // Works only if there is only one ROM
+	void setInputs(const Memory&);
+	void setInputsSplit(const std::vector<Memory>&);
 	Memory getOutputs();
 	std::vector<Memory> getOutputsSplit();
 
