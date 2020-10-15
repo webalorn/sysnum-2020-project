@@ -1,10 +1,11 @@
-*__*
+*__/
+*___*
 *.pyc
 *.o
 .DS_Store
 *.dSYM
 .vscode/*
-*.egg-info/*
+*.egg-info/
 
 netsim/toplevel
 netsim/run

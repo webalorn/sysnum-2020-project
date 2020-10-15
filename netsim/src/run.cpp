@@ -43,11 +43,11 @@ int main(int argc, char* argv[]) {
 			net.setInputs(inputMem);
 			net.cycle();
 
-			std::vector<Memory> outVals = net.getOutputsSplit();
-			for (const Memory& m : outVals) {
-				std::cout << m << " ";
-			}
-			std::cout << "\n";
+			// std::vector<Memory> outVals = net.getOutputsSplit();
+			// for (const Memory& m : outVals) {
+			// 	std::cout << m << " ";
+			// }
+			// std::cout << "\n";
 		}
 	}
 	catch (IOError e) {
