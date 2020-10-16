@@ -3,7 +3,7 @@
 
 #include <string>
 #include <fstream>
-#include "netsim/netlist.hpp"
+#include "../netsim/netlist.hpp"
 #include "exceptions.hpp"
 
 
@@ -26,7 +26,7 @@ protected:
 SoftNetlist loadNetlistFrom(std::string);
 
 
-void readBitsTo(std::ifstream& stream, Memory& mem, int size);
+void readBitsTo(std::ifstream& stream, Memory& mem, uint size);
 void flowBitFrom(std::ifstream& stream, Memory& mem, bool extend = true);
 
 

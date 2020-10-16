@@ -3,9 +3,9 @@
 #include <vector>
 #include <cctype>
 
-#include "io.hpp"
+#include "util/io.hpp"
 #include "netsim/netlist.hpp"
-#include "exceptions.hpp"
+#include "util/exceptions.hpp"
 
 bool isValidInput(const std::string& str, int size) {
 	for (char c : str) {

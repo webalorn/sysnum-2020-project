@@ -7,8 +7,6 @@
 #include <map>
 
 #include "io.hpp"
-#include "netsim/netlist.hpp"
-#include "exceptions.hpp"
 
 /*
 	Read netlists
@@ -63,18 +61,18 @@ SoftNetlist NetlistParser::parseFrom(std::ifstream& fileStream) {
 	}
 
 	// STEP 2 : Input
-	int curWord = 1; // The first word MUST be "INPUT"
+	uint curWord = 1; // The first word MUST be "INPUT"
 	if (words.empty() || words[0] != "INPUT") {
 		throw UsageError("The first word in a netlist must be 'INPUT'");
 	}
 	std::vector<std::string> inputs, outputs;
-	std::map<std::string, int> sizeOfVars;
+	std::map<std::string, uint> sizeOfVars;
 
 	// Read input variables
-	while (curWord < (int)words.size() && words[curWord] != "OUTPUT") {
+	while (curWord < words.size() && words[curWord] != "OUTPUT") {
 		inputs.push_back(words[curWord++]);
 	}
-	if (curWord >= (int)words.size()) {
+	if (curWord >= words.size()) {
 		throw UsageError("Missing 'OUTPUT' keyword in the netlist");
 	}
 	curWord++;
@@ -83,7 +81,7 @@ SoftNetlist NetlistParser::parseFrom(std::ifstream& fileStream) {
 	while (words[curWord] != "VAR") {
 		outputs.push_back(words[curWord++]);
 	}
-	if (curWord >= (int)words.size()) {
+	if (curWord >= words.size()) {
 		throw UsageError("Missing 'VAR' keyword in the netlist");
 	}
 	curWord++;
@@ -91,8 +89,8 @@ SoftNetlist NetlistParser::parseFrom(std::ifstream& fileStream) {
 	// Read all variables
 	while (words[curWord] != "IN") {
 		auto varName = words[curWord];
-		int varSize = 1;
-		if (curWord + 2 < (int)words.size() && words[curWord + 1] == ":") {
+		uint varSize = 1;
+		if (curWord + 2 < words.size() && words[curWord + 1] == ":") {
 			try {
 				varSize = std::stoi(words[curWord + 2]);
 			}
@@ -106,7 +104,7 @@ SoftNetlist NetlistParser::parseFrom(std::ifstream& fileStream) {
 		}
 		sizeOfVars[varName] = varSize;
 	}
-	if (curWord >= (int)words.size()) {
+	if (curWord >= words.size()) {
 		throw UsageError("Missing 'IN' keyword in the netlist");
 	}
 	curWord++;
@@ -114,14 +112,14 @@ SoftNetlist NetlistParser::parseFrom(std::ifstream& fileStream) {
 	// Step 3 : Read expressions
 	std::map<std::string, Variable> variables;
 
-	while (curWord < (int)words.size()) { // Read variables
+	while (curWord < words.size()) { // Read variables
 		auto varName = words[curWord++];
 		auto opName = words[curWord++];
 		Variable var = Variable{ varName, opWordToOp(opName),
 			sizeOfVars[varName], 0, std::vector<Arg>() };
 
 
-		int nbArgs = 2;
+		uint nbArgs = 2;
 		if (var.operation == OpConst) {
 			nbArgs = 0;
 			var.args.push_back(Arg(opName)); // Because there is no "operation"
@@ -130,10 +128,10 @@ SoftNetlist NetlistParser::parseFrom(std::ifstream& fileStream) {
 		if (var.operation == OpRom || var.operation == OpMux || var.operation == OpSlice) nbArgs = 3;
 		if (var.operation == OpRam) nbArgs = 6;
 
-		if (curWord + nbArgs > (int)words.size()) {
+		if (curWord + nbArgs > words.size()) {
 			throw UsageError("Missing arguments for the " + opName + " operation");
 		}
-		for (int iArg = 0; iArg < nbArgs; iArg++) {
+		for (uint iArg = 0; iArg < nbArgs; iArg++) {
 			var.args.push_back(Arg(words[curWord++]));
 		}
 		// Int parameters
@@ -168,9 +166,9 @@ SoftNetlist loadNetlistFrom(std::string filePath) {
 */
 
 
-void readBitsTo(std::ifstream& stream, Memory& mem, int size) {
+void readBitsTo(std::ifstream& stream, Memory& mem, uint size) {
 	char c;
-	for (int iBit = 0; iBit < size;) {
+	for (uint iBit = 0; iBit < size;) {
 		if (stream.get(c)) {
 			if (c == '0' || c == '1') {
 				mem[iBit++] = c == '1';
@@ -184,10 +182,10 @@ void readBitsTo(std::ifstream& stream, Memory& mem, int size) {
 
 void flowBitFrom(std::ifstream& stream, Memory& mem, bool extend) {
 	char c;
-	int iBit = 0;
+	uint iBit = 0;
 	while (stream >> c) {
 		if (c == '0' || c == '1') {
-			if (iBit >= (int)mem.size()) {
+			if (iBit >= mem.size()) {
 				if (!extend) {
 					break;
 				}

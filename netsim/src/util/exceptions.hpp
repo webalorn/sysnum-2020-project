@@ -8,6 +8,8 @@ class UnknownError : public std::exception {
 	const char* what() const throw();
 };
 
+class StopCycling : public std::exception {};
+
 class UsageError : public std::exception {
 	std::string str;
 	const char* what() const throw();

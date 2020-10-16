@@ -1,5 +1,5 @@
 CXX=g++ -std=c++17
-CPPFLAGS=-g -pthread -O2 -Wall -Wextra # -fsanitize=address # only on debug
+CPPFLAGS=-g -O2 -Wall -Wextra # -fsanitize=address # only on debug
 LDFLAGS=-g
 LDLIBS=
 SRC_DIR=src

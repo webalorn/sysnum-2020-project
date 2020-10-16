@@ -1,11 +1,10 @@
 #include <string>
 #include <deque>
 #include <algorithm>
-#include <bitset> // For debug
 #include "netlist.hpp"
-#include "../exceptions.hpp"
+#include "../util/exceptions.hpp"
 
-std::string strOfOp(int opFlags) {
+std::string strOfOp(uint opFlags) {
 	if (opFlags & FLAG_OP_CONST) return "ASSIGN";
 	else if (opFlags & FLAG_OP_OR) return "OR";
 	else if (opFlags & FLAG_OP_XOR) return "XOR";
@@ -45,7 +44,7 @@ Arg::Arg(std::string repr, bool isInt) {
 		}
 	}
 }
-Arg::Arg(int n) {
+Arg::Arg(uint n) {
 	this->repr = "";
 	type = ArgInt;
 	intValue = n;
@@ -70,7 +69,7 @@ void SoftNetlist::checkVarArgs() {
 }
 
 std::vector<Variable> SoftNetlist::sorted() {
-	std::map<std::string, int> nbParents;
+	std::map<std::string, uint> nbParents;
 	std::map<std::string, std::vector<std::string>> children;
 	std::vector<Variable> sortedVars;
 	std::deque<std::string> ontop;
@@ -83,7 +82,7 @@ std::vector<Variable> SoftNetlist::sorted() {
 	for (auto& p : variables) {
 		const Variable& var = p.second;
 		nbParents[var.name] = 0;
-		int iArg = 0;
+		uint iArg = 0;
 		for (auto& arg : var.args) {
 			if (var.operation == OpRam && iArg >= 3) {
 				break; // The write part is always done at the end
@@ -127,20 +126,20 @@ std::vector<Variable> SoftNetlist::sorted() {
 	Memory manager
 */
 
-void Memory::extend_by(int n) {
+void Memory::extend_by(uint n) {
 	this->resize(this->size() + n, 0);
 }
 
-void Memory::set_size_min(int n) {
-	if ((int)this->size() < n) {
+void Memory::set_size_min(uint n) {
+	if (this->size() < n) {
 		this->resize(n, 0);
 	}
 }
-inline Memory Memory::submem(int pos, int size) {
+inline Memory Memory::submem(uint pos, uint size) {
 	return Memory(this->begin() + pos, this->begin() + pos + size);
 }
-inline int Memory::toInt(int pos, int size) {
-	int v = 0;
+inline uint Memory::toInt(uint pos, uint size) {
+	uint v = 0;
 	while (size) {
 		v *= 2;
 		v += (*this)[pos];
@@ -152,7 +151,7 @@ inline int Memory::toInt(int pos, int size) {
 
 std::ostream& operator<<(std::ostream& os, const Memory& mem) {
 	for (bool b : mem) {
-		os << (int)b;
+		os << b;
 	}
 	return os;
 }
@@ -162,7 +161,7 @@ std::ostream& operator<<(std::ostream& os, const Memory& mem) {
 	Netlist simulator (~ hard netlist)
 */
 
-inline int sizeOfArg(const Arg& arg, std::map<std::string, int>& idOfVar,
+inline uint sizeOfArg(const Arg& arg, std::map<std::string, uint>& idOfVar,
 	std::vector<Variable>& allvars) {
 	if (arg.type == ArgVariable) {
 		return allvars[idOfVar[arg.repr]].size;
@@ -173,23 +172,47 @@ inline int sizeOfArg(const Arg& arg, std::map<std::string, int>& idOfVar,
 	return arg.repr.size();
 }
 
-inline void copyFrom(const Memory& memFrom, const int ptFrom, Memory& memTo, const int ptTo, const int n) {
+inline void copyFrom(const Memory& memFrom, const uint ptFrom, Memory& memTo, const uint ptTo, const uint n) {
 	std::copy(memFrom.begin() + ptFrom, memFrom.begin() + ptFrom + n, memTo.begin() + ptTo);
 }
 
+inline uint indexOfConst(Memory& state, std::map<std::string, uint>& memPtOfVar,
+	const Memory& boolValue) {
+	std::string boolString = "";
+	for (bool b : boolValue) {
+		boolString.push_back(b ? '1' : '0');
+	}
+	if (memPtOfVar.count(boolString)) {
+		return memPtOfVar[boolString];
+	}
+	uint s = state.size();
+	for (bool b : boolValue) {
+		state.push_back(b);
+	}
+	memPtOfVar[boolString] = s;
+	return s;
+}
+
 NetlistSim::NetlistSim(SoftNetlist& net) {
+	this->init(net);
+}
+NetlistSim::NetlistSim() {}
+
+void NetlistSim::init(SoftNetlist& net) {
 	// Sort all variables
 	net.checkVarArgs();
 	std::vector<Variable> allvars = net.sorted();
-	std::map<std::string, int> memPtOfVar, idOfVar;
+	std::map<std::string, uint> memPtOfVar, idOfVar;
 
 	nbRegistersOp = 0;
-	int iVarInAllVars = 0;
+	uint iVarInAllVars = 0;
 	for (Variable& var : allvars) { // Initialize the memory
 		var.pos = state.size();
 		memPtOfVar[var.name] = var.pos;
 		idOfVar[var.name] = iVarInAllVars++;
-		state.extend_by(var.size);
+		if (var.operation != OpSlice && var.operation != OpSelect) { // TODO : select
+			state.extend_by(var.size);
+		}
 
 		if (var.operation == OpReg) {
 			nbRegistersOp++;
@@ -197,12 +220,12 @@ NetlistSim::NetlistSim(SoftNetlist& net) {
 		}
 		if (var.operation == OpRam) {
 			var.args.insert(var.args.begin(), Arg(ram.size())); // First arg : ram block id
-			int maxSize = (1 << var.args[1].intValue) + var.args[2].intValue;
+			uint maxSize = (1 << var.args[1].intValue) + var.args[2].intValue;
 			ram.extend_by(maxSize);
 		}
 		if (var.operation == OpRom) {
 			var.args.insert(var.args.begin(), Arg(rom.size())); // First arg : rom block id
-			int maxSize = (1 << var.args[1].intValue) + var.args[2].intValue;
+			uint maxSize = (1 << var.args[1].intValue) + var.args[2].intValue;
 			rom.extend_by(maxSize);
 		}
 		// std::cout << var << "\n";
@@ -212,7 +235,7 @@ NetlistSim::NetlistSim(SoftNetlist& net) {
 	std::vector<Variable> ramVars;
 	for (Variable& var : allvars) {
 		if (var.operation == OpRam) {
-			Variable varWrite = Variable{ "", OpRamWrite, 0, (int)state.size(), {} };
+			Variable varWrite = Variable{ "", OpRamWrite, 0, (uint)state.size(), {} };
 			// Create the write operation
 			varWrite.args.push_back(var.args[0]); // ram block starts at
 			varWrite.args.push_back(var.args[1]); // addr_size
@@ -230,12 +253,9 @@ NetlistSim::NetlistSim(SoftNetlist& net) {
 	// Initialize the operation vector
 	allvars.insert(allvars.end(), ramVars.begin(), ramVars.end());
 	for (Variable& var : allvars) {
-		int operationId = (int)var.operation;
-		int iVar = operations.size();
-
 		if (var.operation == OpConst) { // ASSIGN : Store the value and discard the operation
 			if (var.args[0].type == ArgBool) {
-				int pos = var.pos;
+				uint pos = var.pos;
 				for (bool b : var.args[0].boolValue) {
 					state[pos++] = b;
 				}
@@ -251,12 +271,12 @@ NetlistSim::NetlistSim(SoftNetlist& net) {
 		}
 
 		if (var.operation != OpReg) { // Unused for REG operations
-			operations.push_back(0); // Will be replace by the operation flags
+			operations.push_back(var.operation);
 		}
 		operations.push_back(var.pos); // Memory address in 'state' of the variable
 
 		// Store args
-		for (int iArg = 0; iArg < (int)var.args.size(); iArg++) {
+		for (uint iArg = 0; iArg < var.args.size(); iArg++) {
 			auto& arg = var.args[iArg];
 			if (arg.type == ArgVariable) {
 				operations.push_back(memPtOfVar[arg.repr]);
@@ -265,19 +285,32 @@ NetlistSim::NetlistSim(SoftNetlist& net) {
 				operations.push_back(arg.intValue);
 			}
 			else {
-				operations.push_back(constants.size());
-				for (bool b : arg.boolValue) {
-					constants.push_back(b);
-				}
-				operationId |= (FLAG_PARAM_0_CST << iArg);
+				uint i = indexOfConst(state, memPtOfVar, arg.boolValue);
+				operations.push_back(i);
 			}
+		}
+
+		if (var.operation == OpSelect) { // Remove Select operations
+			uint blockPt = operations.back(); operations.pop_back();
+			uint i = operations.back(); operations.pop_back();
+			operations.pop_back(); operations.pop_back(); // id and mem pt
+
+			var.pos = blockPt + i;
+			memPtOfVar[var.name] = var.pos;
+		}
+
+		if (var.operation == OpSlice) { // Remove Select operations
+			uint blockPt = operations.back(); operations.pop_back();
+			operations.pop_back(); // j
+			uint i = operations.back(); operations.pop_back();
+			operations.pop_back(); operations.pop_back(); // id and mem pt
+
+			var.pos = blockPt + i;
+			memPtOfVar[var.name] = var.pos;
 		}
 
 		if (var.operation == OpReg) {
 			operations.push_back(sizeOfArg(var.args[0], idOfVar, allvars));
-		}
-		else {
-			operations[iVar] = operationId; // Set operation flags
 		}
 		if (var.operation == OpConcat) {
 			operations.push_back(sizeOfArg(var.args[0], idOfVar, allvars));
@@ -296,24 +329,24 @@ NetlistSim::NetlistSim(SoftNetlist& net) {
 	inputSize = 0;
 	for (std::string inName : net.inputs) {
 		auto& var = net.variables[inName];
-		int memPt = memPtOfVar[inName];
+		uint memPt = memPtOfVar[inName];
 		inputs.push_back(HardVariable{ inName, var.size, memPt });
 		inputSize += var.size;
 	}
 	outputSize = 0;
 	for (std::string outName : net.outputs) {
 		auto& var = net.variables[outName];
-		int memPt = memPtOfVar[outName];
+		uint memPt = memPtOfVar[outName];
 		outputs.push_back(HardVariable{ outName, var.size, memPt });
 		outputSize += var.size;
 	}
 }
 
 
-int NetlistSim::getInputSize() {
+uint NetlistSim::getInputSize() {
 	return inputSize;
 }
-int NetlistSim::getOutputSize() {
+uint NetlistSim::getOutputSize() {
 	return outputSize;
 }
 const std::vector<HardVariable>& NetlistSim::getInputsVar() {
@@ -332,21 +365,21 @@ void NetlistSim::writeRom(const Memory& mem) {
 }
 
 void NetlistSim::setInputs(const Memory& mem) {
-	int memPt = 0;
+	uint memPt = 0;
 	for (HardVariable& var : inputs) {
 		copyFrom(mem, memPt, state, var.memoryPt, var.size);
 		memPt += var.size;
 	}
 }
 void NetlistSim::setInputsSplit(const std::vector<Memory>& inputValues) {
-	for (int iInput = 0; iInput < (int)inputValues.size(); iInput++) {
+	for (uint iInput = 0; iInput < inputValues.size(); iInput++) {
 		copyFrom(inputValues[iInput], 0, state, inputs[iInput].memoryPt, inputs[iInput].size);
 	}
 }
 
 Memory NetlistSim::getOutputs() {
 	Memory mem(outputSize);
-	int memPt = 0;
+	uint memPt = 0;
 	for (HardVariable& var : outputs) {
 		copyFrom(state, var.memoryPt, mem, memPt, var.size);
 		memPt += var.size;
@@ -355,129 +388,144 @@ Memory NetlistSim::getOutputs() {
 }
 std::vector<Memory> NetlistSim::getOutputsSplit() {
 	std::vector<Memory> outs(outputs.size());
-	for (int iOutput = 0; iOutput < (int)outputs.size(); iOutput++) {
-		int pt = outputs[iOutput].memoryPt;
+	for (uint iOutput = 0; iOutput < outputs.size(); iOutput++) {
+		uint pt = outputs[iOutput].memoryPt;
 		outs[iOutput] = Memory(state.begin() + pt, state.begin() + pt + outputs[iOutput].size);
 	}
 	return outs;
 }
 
+// inline void NetlistSim::onCycleBegin(uint) {
+// 	std::cerr << "BEGIN\n";
+// }
+// inline void NetlistSim::onCycleEnd(uint) {}
+
 /*
 	The simulation
 */
 
-#define FLAG_MEM(flag, N) (flag & (FLAG_PARAM_0_CST << N) ? constants : state)
-const int regOpBlocks = 3;
+const uint regOpBlocks = 3;
 
-void NetlistSim::cycle() {
-	int curOp = nbRegistersOp * regOpBlocks; // Skip the registers
+void NetlistSim::cycle(uint nbCycles) {
+	uint nbOperations = operations.size();
+	for (uint iCycle = 0; iCycle != nbCycles; iCycle++) {
+		this->onCycleBegin(iCycle);
+		uint curOp = nbRegistersOp * regOpBlocks; // Skip the registers
 
-	// for (int v : operations) {
-	// 	std::cout << strOfOp(v) << " " << v << "\n";
-	// }
+		// for (uint v : operations) {
+		// 	std::cout << strOfOp(v) << " " << v << "\n";
+		// }
 
-	// Copy all registers
-	std::copy(registers.begin(), registers.end(), state.begin());
+		// Copy all registers
+		std::copy(registers.begin(), registers.end(), state.begin());
 
-	// Run all other operations
-	while (curOp < (int)operations.size()) {
-		int nbArgs = 0;
-		int opFlags = operations[curOp];
-		int statePt = operations[curOp + 1];
+		// Run all other operations
+		while (curOp < nbOperations) {
+			uint nbArgs = 0;
+			uint opFlags = operations[curOp];
+			uint statePt = operations[curOp + 1];
 
 
-		// std::cout << "\n============ " << curOp << " / " << operations.size() << "  " << strOfOp(opFlags) << "\n";
-		curOp += 2; // [op] [mem cell]
+			// std::cout << "\n============ " << curOp << " / " << operations.size() << "  " << strOfOp(opFlags) << "\n";
+			curOp += 2; // [op] [mem cell]
 
-		if (opFlags & FLAG_BIN_OPS) {
-			nbArgs = 2; // [left] [right]
-			bool b1 = FLAG_MEM(opFlags, 0)[operations[curOp]];
-			bool b2 = FLAG_MEM(opFlags, 1)[operations[curOp + 1]];
+			if (opFlags & FLAG_BIN_OPS) {
+				nbArgs = 2; // [left] [right]
+				bool b1 = state[operations[curOp]];
+				bool b2 = state[operations[curOp + 1]];
 
-			if (opFlags & FLAG_OP_AND) {
-				state[statePt] = b1 && b2;
-			}
-			else if (opFlags & FLAG_OP_NAND) {
-				state[statePt] = !(b1 && b2);
-			}
-			else if (opFlags & FLAG_OP_OR) {
-				state[statePt] = b1 || b2;
-			}
-			else if (opFlags & FLAG_OP_XOR) {
-				state[statePt] = b1 != b2;
-			}
-		}
-		else if (opFlags & FLAG_OP_NOT) {
-			nbArgs = 2; // [operand] [size]
-			state[statePt] = !FLAG_MEM(opFlags, 0)[operations[curOp]];
-		}
-		else if (opFlags & FLAG_BUS_OPS) {
-			if (opFlags & FLAG_OP_SELECT) {
-				nbArgs = 2; // [id (int)] [operand (bus)]
-				state[statePt] = FLAG_MEM(opFlags, 1)[operations[curOp] + operations[curOp + 1]];
-			}
-			else if (opFlags & FLAG_OP_CONCAT) {
-				nbArgs = 4; // [bus 1] [bus 2] [size 1] [size 2]
-				copyFrom(FLAG_MEM(opFlags, 0), operations[curOp + 0], state,
-					statePt, operations[curOp + 2]);
-				copyFrom(FLAG_MEM(opFlags, 1), operations[curOp + 1], state,
-					statePt + operations[curOp + 2], operations[curOp + 3]);
-			}
-			else if (opFlags & FLAG_OP_SLICE) {
-				nbArgs = 3; // [id start] [id end (inclus)] [operand (bus)]
-				copyFrom(FLAG_MEM(opFlags, 2), operations[curOp] + operations[curOp + 2], state,
-					statePt, operations[curOp + 1] - operations[curOp] + 1);
-			}
-		}
-		else if (opFlags & FLAG_OP_MUX) {
-			nbArgs = 4; // [control bit] [left] [right] [size (of left and right)]
-			if (FLAG_MEM(opFlags, 0)[operations[curOp]]) {
-				copyFrom(FLAG_MEM(opFlags, 2), operations[curOp + 2], state,
-					statePt, operations[curOp + 3]);
-			}
-			else {
-				copyFrom(FLAG_MEM(opFlags, 1), operations[curOp + 1], state,
-					statePt, operations[curOp + 3]);
-			}
-		}
-		else if (opFlags & FLAG_OP_RAM) {
-			// nbArgs = 7; // [block start at] [addr_size:int] [word_size:int] [read_addr:bus] [write_enable:bit] [write_addr:bus] [write_data:bus]
-			if (opFlags & FLAG_RAM_WRITE) {
-				nbArgs = 6; // [block start at] [addr_size:int] [word_size:int] [write_enable:bit] [write_addr:bus] [write_data:bus]
+				switch (opFlags)
+				{
+				case FLAG_OP_AND:
+					state[statePt] = b1 && b2;
+					break;
+				case FLAG_OP_NAND:
+					state[statePt] = !(b1 && b2);
+					break;
+				case FLAG_OP_OR:
+					state[statePt] = b1 || b2;
+					break;
+				case FLAG_OP_XOR:
+					state[statePt] = b1 != b2;
+					break;
 
-				if (FLAG_MEM(opFlags, 3)[operations[curOp + 3]]) {
-					int writeAddr = FLAG_MEM(opFlags, 4).toInt(operations[curOp + 4],
-						operations[curOp + 1]);
-
-					copyFrom(FLAG_MEM(opFlags, 5), operations[curOp + 5], ram,
-						operations[curOp] + writeAddr, operations[curOp + 2]);
+				default:
+					break;
 				}
 			}
 			else {
-				nbArgs = 4; // [block start at] [addr_size:int] [word_size:int] [read_addr:bus]
-				int readAddr = FLAG_MEM(opFlags, 3).toInt(operations[curOp + 3],
-					operations[curOp + 1]);
-				copyFrom(ram, operations[curOp] + readAddr, state, statePt, operations[curOp + 2]);
-			}
-		}
-		else if (opFlags & FLAG_OP_ROM) {
-			nbArgs = 4; // [block start at] [addr_size:int] [word_size:int] [read_addr:bus]
-			int readAddr = FLAG_MEM(opFlags, 3).toInt(operations[curOp + 3],
-				operations[curOp + 1]);
-			copyFrom(rom, operations[curOp] + readAddr, state, statePt, operations[curOp + 2]);
-		}
-		else {
-			throw UsageError("Unknown operation");
-		}
-		curOp += nbArgs; //  [args...]
-		// std::cout << "done\n";
-	}
+				uint addr;
+				switch (opFlags) {
+				case FLAG_OP_NOT:
+					nbArgs = 1; // [operand]
+					state[statePt] = !state[operations[curOp]];
+					break;
 
-	// End with registers (for the next cycle). Operations : [flags (unused)] [memory pt] [operand] [size]
-	curOp = 0;
-	for (int iRegister = 0; iRegister < nbRegistersOp; iRegister++, curOp += regOpBlocks) {
-		int statePt = operations[curOp];
-		copyFrom(state, operations[curOp + 1],
-			registers, statePt, operations[curOp + 2]);
+				case FLAG_OP_CONCAT:
+					nbArgs = 4; // [bus 1] [bus 2] [size 1] [size 2]
+					copyFrom(state, operations[curOp + 0], state,
+						statePt, operations[curOp + 2]);
+					copyFrom(state, operations[curOp + 1], state,
+						statePt + operations[curOp + 2], operations[curOp + 3]);
+					break;
+
+				case FLAG_OP_MUX:
+					nbArgs = 4; // [control bit] [left] [right] [size (of left and right)]
+					if (state[operations[curOp]]) {
+						copyFrom(state, operations[curOp + 2], state,
+							statePt, operations[curOp + 3]);
+					}
+					else {
+						copyFrom(state, operations[curOp + 1], state,
+							statePt, operations[curOp + 3]);
+					}
+					break;
+
+				case FLAG_RAM_WRITE:
+					nbArgs = 6; // [block start at] [addr_size:uint] [word_size:uint] [write_enable:bit] [write_addr:bus] [write_data:bus]
+					if (state[operations[curOp + 3]]) {
+						addr = state.toInt(operations[curOp + 4],
+							operations[curOp + 1]);
+
+						copyFrom(state, operations[curOp + 5], ram,
+							operations[curOp] + addr, operations[curOp + 2]);
+					}
+					break;
+
+				case FLAG_OP_RAM:
+					nbArgs = 4; // [block start at] [addr_size:uint] [word_size:uint] [read_addr:bus]
+					addr = state.toInt(operations[curOp + 3],
+						operations[curOp + 1]);
+					copyFrom(ram, operations[curOp] + addr, state, statePt, operations[curOp + 2]);
+					break;
+
+				case FLAG_OP_ROM:
+					nbArgs = 4; // [block start at] [addr_size:uint] [word_size:uint] [read_addr:bus]
+					addr = state.toInt(operations[curOp + 3],
+						operations[curOp + 1]);
+					copyFrom(rom, operations[curOp] + addr, state, statePt, operations[curOp + 2]);
+					break;
+				default:
+					throw UsageError("Unknown operation");
+				}
+			}
+			curOp += nbArgs; //  [args...]
+			// std::cout << "done\n";
+		}
+
+		// End with registers (for the next cycle). Operations : [flags (unused)] [memory pt] [operand] [size]
+		curOp = 0;
+		for (uint iRegister = 0; iRegister < nbRegistersOp; iRegister++, curOp += regOpBlocks) {
+			uint statePt = operations[curOp];
+			copyFrom(state, operations[curOp + 1],
+				registers, statePt, operations[curOp + 2]);
+		}
+
+		try {
+			this->onCycleEnd(iCycle);
+		}
+		catch (StopCycling) {
+			break;
+		}
 	}
 }

@@ -18,6 +18,8 @@ class Chip:
         self.output = generator(*self.input)
         if not is_real_iterable(self.output):
             self.output = [self.output]
+        else:
+            self.output = list(self.output)
 
         for i, b in enumerate(self.output):  # Convert output lists to bits
             if is_real_iterable(b):
@@ -42,19 +44,21 @@ class Chip:
 
     def new_varname(self, varname=None):
         if varname is None:
-            varname = 'var_' + str(len(self.ids_to_varname))
+            varname = 'var_' + str(len(self.varname_to_bits))
         suffix = ''
-        while varname + suffix in self.ids_to_varname:
+        if varname + suffix in self.varname_to_bits and not varname.startswith('var_'):
+            suffix = '_' + str(len(self.varname_to_bits))
+        while varname + suffix in self.varname_to_bits:
             suffix = '_' + \
-                str(random.randint(0, 10 * len(self.ids_to_varname)))
-        return varname
+                str(random.randint(0, 10 * len(self.varname_to_bits)))
+        return varname + suffix
 
     # ---------- Conversion
 
     def to_netlist_repr(self):
         return {
-            'input': [b.name(self) for b in self.input],
-            'output': [b.name(self) for b in self.output],
+            'input': [b.get_name(self) for b in self.input],
+            'output': [b.get_name(self) for b in self.output],
             'var': [b.name_size(self) for b in self.varname_to_bits.values()],
             'operations': [b.operation(self) for b in self.varname_to_bits.values()
                            if b.has_operation()]

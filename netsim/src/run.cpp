@@ -4,9 +4,59 @@
 #include <vector>
 #include <cctype>
 
-#include "io.hpp"
+#include "util/io.hpp"
 #include "netsim/netlist.hpp"
-#include "exceptions.hpp"
+#include "util/exceptions.hpp"
+
+#ifndef BASE_NETSIM
+#define BASE_NETSIM NetlistSim
+#endif
+
+class NetsimRunner : public BASE_NETSIM {
+private:
+	int nbCycles;
+	std::ifstream& memoryStream;
+	Memory inputBuffer;
+
+public:
+	NetsimRunner(std::ifstream& netlistStream, std::ifstream& mem) : memoryStream(mem) {
+		memoryStream >> nbCycles;
+
+		NetlistParser parser;
+		SoftNetlist softnet = parser.parseFrom(netlistStream);
+		this->init(softnet);
+		inputBuffer.resize(getInputSize());
+	}
+
+	inline void romFromStream(std::ifstream& romStream) {
+		flowBitFrom(romStream, this->rom);
+	}
+
+	virtual inline void onCycleBegin(uint) {
+		readBitsTo(memoryStream, inputBuffer, inputBuffer.size());
+		setInputs(inputBuffer);
+	}
+
+	virtual void onCycleEnd(uint) {
+		std::vector<Memory> outVals = this->getOutputsSplit();
+		for (const Memory& m : outVals) {
+			std::cout << m << " ";
+		}
+		std::cout << "\n";
+	}
+
+	void start() {
+		try {
+			this->cycle(nbCycles);
+		}
+		catch (IOError e) {
+			std::cerr << "\033[31m[IO ERROR] " << e.get() << "\033[0m\n";
+		}
+		catch (UsageError e) {
+			std::cerr << "\033[31m[USAGE ERROR] " << e.get() << "\033[0m\n";
+		}
+	}
+};
 
 int main(int argc, char* argv[]) {
 	std::ios_base::sync_with_stdio(false);
@@ -20,40 +70,17 @@ int main(int argc, char* argv[]) {
 
 	std::ifstream netlistStream(argv[1]);
 	std::ifstream memoryStream(argv[2]);
-	int nbCycles;
-	memoryStream >> nbCycles;
 
-	try {
-		NetlistParser parser;
-		SoftNetlist softnet = parser.parseFrom(netlistStream);
-		NetlistSim net(softnet);
-		Memory inputMem(net.getInputSize());
-
-		if (argc >= 4) {
-			std::ifstream romStream(argv[3]);
-			Memory rom;
-			flowBitFrom(romStream, rom);
-			std::cerr << rom << "\n";
-			net.writeRom(rom);
-		}
-
-		for (; nbCycles; nbCycles--) {
-			readBitsTo(memoryStream, inputMem, inputMem.size());
-
-			net.setInputs(inputMem);
-			net.cycle();
-
-			// std::vector<Memory> outVals = net.getOutputsSplit();
-			// for (const Memory& m : outVals) {
-			// 	std::cout << m << " ";
-			// }
-			// std::cout << "\n";
-		}
+	NetsimRunner net(netlistStream, memoryStream);
+	if (argc >= 4) {
+		std::ifstream romStream(argv[3]);
+		net.romFromStream(romStream);
 	}
-	catch (IOError e) {
-		std::cerr << "\033[31m[IO ERROR] " << e.get() << "\033[0m\n";
+	net.start();
+
+	std::vector<Memory> outVals = net.getOutputsSplit();
+	for (const Memory& m : outVals) {
+		std::cout << m << " ";
 	}
-	catch (UsageError e) {
-		std::cerr << "\033[31m[USAGE ERROR] " << e.get() << "\033[0m\n";
-	}
+	std::cout << "\n";
 }

@@ -6,33 +6,38 @@
 #include <map>
 #include <iostream>
 
-const int FLAG_OP_CONST = 1 << 1;
-const int FLAG_OP_OR = 1 << 2;
-const int FLAG_OP_XOR = 1 << 3;
-const int FLAG_OP_AND = 1 << 4;
-const int FLAG_OP_NAND = 1 << 5;
+#include "../util/exceptions.hpp"
 
-const int FLAG_OP_REG = 1 << 6;
-const int FLAG_OP_RAM = 1 << 7;
-const int FLAG_OP_ROM = 1 << 8;
-const int FLAG_OP_SELECT = 1 << 9;
-const int FLAG_OP_SLICE = 1 << 10;
-const int FLAG_OP_CONCAT = 1 << 11;
+using uint = uint_fast32_t;
+using boolType = uint_fast8_t;
 
-const int FLAG_OP_NOT = 1 << 12;
-const int FLAG_OP_MUX = 1 << 13;
-const int FLAG_RAM_WRITE = 1 << 14;
+const uint FLAG_OP_CONST = 1 << 1;
+const uint FLAG_OP_OR = 1 << 2;
+const uint FLAG_OP_XOR = 1 << 3;
+const uint FLAG_OP_AND = 1 << 4;
+const uint FLAG_OP_NAND = 1 << 5;
 
-const int FLAG_PARAM_0_CST = (1 << 20);
-const int FLAG_PARAM_1_CST = (1 << 21);
-const int FLAG_PARAM_2_CST = (1 << 22);
-const int FLAG_PARAM_3_CST = (1 << 23);
-const int FLAG_PARAM_4_CST = (1 << 24);
-const int FLAG_PARAM_5_CST = (1 << 25);
+const uint FLAG_OP_REG = 1 << 6;
+const uint FLAG_OP_RAM = 1 << 7;
+const uint FLAG_OP_ROM = 1 << 8;
+const uint FLAG_OP_SELECT = 1 << 9;
+const uint FLAG_OP_SLICE = 1 << 10;
+const uint FLAG_OP_CONCAT = 1 << 11;
 
-const int FLAG_UNARY_OPS = FLAG_OP_REG | FLAG_OP_NOT;
-const int FLAG_BIN_OPS = FLAG_OP_OR | FLAG_OP_XOR | FLAG_OP_AND | FLAG_OP_NAND;
-const int FLAG_BUS_OPS = FLAG_OP_SELECT | FLAG_OP_SLICE | FLAG_OP_CONCAT;
+const uint FLAG_OP_NOT = 1 << 12;
+const uint FLAG_OP_MUX = 1 << 13;
+const uint FLAG_RAM_WRITE = 1 << 14;
+
+const uint FLAG_PARAM_0_CST = (1 << 20);
+const uint FLAG_PARAM_1_CST = (1 << 21);
+const uint FLAG_PARAM_2_CST = (1 << 22);
+const uint FLAG_PARAM_3_CST = (1 << 23);
+const uint FLAG_PARAM_4_CST = (1 << 24);
+const uint FLAG_PARAM_5_CST = (1 << 25);
+
+const uint FLAG_UNARY_OPS = FLAG_OP_REG | FLAG_OP_NOT;
+const uint FLAG_BIN_OPS = FLAG_OP_OR | FLAG_OP_XOR | FLAG_OP_AND | FLAG_OP_NAND;
+const uint FLAG_BUS_OPS = FLAG_OP_SELECT | FLAG_OP_SLICE | FLAG_OP_CONCAT;
 
 enum Operation {
 	OpConst = FLAG_OP_CONST,
@@ -42,7 +47,7 @@ enum Operation {
 	OpNand = FLAG_OP_NAND,
 	OpReg = FLAG_OP_REG,
 	OpRam = FLAG_OP_RAM,
-	OpRamWrite = FLAG_RAM_WRITE | FLAG_OP_RAM,
+	OpRamWrite = FLAG_RAM_WRITE,
 	OpRom = FLAG_OP_ROM,
 	OpSelect = FLAG_OP_SELECT,
 	OpSlice = FLAG_OP_SLICE,
@@ -53,38 +58,38 @@ enum Operation {
 
 enum ArgType { ArgVariable, ArgBool, ArgInt };
 
-class Memory : public std::vector<bool> {
+class Memory : public std::vector<char> {
 public:
-	using std::vector<bool>::vector;
-	void extend_by(int);
-	void set_size_min(int);
-	inline Memory submem(int, int);
-	inline int toInt(int pos, int size);
+	using std::vector<char>::vector;
+	void extend_by(uint);
+	void set_size_min(uint);
+	inline Memory submem(uint, uint);
+	inline uint toInt(uint pos, uint size);
 };
 
 std::ostream& operator<<(std::ostream&, const Memory&);
 
 struct Arg {
 	std::string repr;
-	int intValue = 0;
+	uint intValue = 0;
 	Memory boolValue;
 	ArgType type = ArgVariable;
 
 	Arg(std::string, bool = false);
-	Arg(int);
+	Arg(uint);
 };
 
 struct Variable {
 	std::string name;
 	Operation operation;
-	int size, pos;
+	uint size, pos;
 	std::vector<Arg> args;
 };
 std::ostream& operator<<(std::ostream&, const Variable&);
 
 struct HardVariable {
 	std::string name;
-	int size, memoryPt;
+	uint size, memoryPt;
 };
 
 struct SoftNetlist {
@@ -111,14 +116,14 @@ class NetlistSim {
 protected:
 	std::vector<HardVariable> inputs, outputs;
 	Memory rom, ram, state, constants, registers;
-	int nbRegistersOp, inputSize, outputSize;
-	std::vector<int> operations;
+	uint nbRegistersOp, inputSize, outputSize;
+	std::vector<uint> operations;
 	// std::vector<bool> hasBeenExecuted;
 
 public:
 	NetlistSim(SoftNetlist&);
-	int getInputSize();
-	int getOutputSize();
+	uint getInputSize();
+	uint getOutputSize();
 	const std::vector<HardVariable>& getInputsVar();
 	const std::vector<HardVariable>& getOutputsVar();
 	Memory getState();
@@ -129,12 +134,18 @@ public:
 	Memory getOutputs();
 	std::vector<Memory> getOutputsSplit();
 
-	void cycle();
+	void cycle(uint nbCycles = 1);
 
 protected:
-	inline bool boolWithFlag(const int, const int);
-	inline Memory memWithFlag(const int, const int, const int);
-	inline void copyWithFlag(const int, const int, const int, const int);
+	NetlistSim();
+	void init(SoftNetlist& net);
+
+	inline bool boolWithFlag(const uint, const uint);
+	inline Memory memWithFlag(const uint, const uint, const uint);
+	inline void copyWithFlag(const uint, const uint, const uint, const uint);
+
+	virtual inline void onCycleBegin(uint) {}
+	virtual inline void onCycleEnd(uint) {}
 };
 
 #endif // NETLIST_HPP
