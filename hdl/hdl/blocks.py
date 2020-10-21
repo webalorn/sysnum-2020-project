@@ -1,5 +1,6 @@
-from .wires import Bit, bit, mux, concat
+from .wires import Bit, bit, mux, concat, Register, VirtualBit
 from .util import BuildError
+from .annotation import hdl_function
 
 from copy import copy
 
@@ -20,11 +21,25 @@ def multiplex(control, *args):
     return MultiControl(control, *args).build()
 
 
+def virtual(size, block):
+    if isinstance(block, BaseBlock):
+        return BlockBit(size, block)
+    elif block is None:
+        return VirtualBit(size)
+    elif isinstance(block, Bit):
+        b = VirtualBit(size)
+        b.set(block)
+        return b
+    else:
+        raise BuildError(f"Can't build a virtual bit from {block}")
+
+
 # ========== Blocks functions ==========
 
-def simple_adder(a, b, r=0):
-    assert len(a) == len(b)
-    if len(a) == 0 == len(b):
+@hdl_function
+def simple_adder(a: 'l', b: 'l', r: 'bit' = 0):
+    """ Returns (a+b+r, remainder) """
+    if len(a) == 0:
         return bit(), r
     else:
         x, y = a[0], b[0]
@@ -34,7 +49,10 @@ def simple_adder(a, b, r=0):
         return (b + prev, r2)
 
 
-def increment(n):
+@hdl_function
+def increment(n: 'bus') -> (Bit, Bit):
+    """ Returns (n+1, remainder) """
+    n = bit(n)
     if len(n) == 0:
         return bit(), 1
     else:
@@ -43,8 +61,20 @@ def increment(n):
         return m, (r & n[0])
 
 
-def negative_of_int(n):
-    return increment(~n)
+@hdl_function
+def negative_of_int(n: 'bus') -> Bit:
+    return increment(~n)[0]
+
+
+@hdl_function
+def simple_product(n: 'l', m: 'l') -> (Bit, Bit):
+    floors = [(n << i) & (m[-i - 1] * len(n)) for i in range(len(m))]
+    while len(floors) > 1:
+        stack = []
+        while len(floors) > 1:
+            stack.append(simple_adder(floors.pop(), floors.pop())[0])
+        floors.extend(stack[::-1])
+    return floors[0]
 
 
 # ========== Blocks classes ==========
@@ -53,7 +83,11 @@ class BaseBlock:
     pass
 
 
-class MultiControl(BaseBlock):
+class BuildableBlock(BaseBlock):
+    pass
+
+
+class MultiControl(BuildableBlock):
     def __init__(self, *args):
         """
             args : pairs of (control, value)
@@ -68,12 +102,13 @@ class MultiControl(BaseBlock):
     def size(self):
         return len(self._inputs[-1])
 
-    def add(self, control, value):
+    @hdl_function
+    def add(self, control: 'bit', value: 'bus'):
         control, bitvalue = bit(control), bit(value)
         assert len(control) == 1
         if self._inputs and len(bitvalue) != len(self._inputs[-1][1]):
             raise BuildError(
-                f"The size of {repr(value)} doesn't match the previous bits sizes")
+                f"The size of {repr(value)} ({len(bitvalue)}) doesn't match the previous bits sizes ({len(self._inputs[-1][1])})")
 
         self._inputs.append((control, bitvalue))
 
@@ -81,6 +116,8 @@ class MultiControl(BaseBlock):
         inputs = copy(self._inputs)
         if inputs == []:
             raise BuildError("MultiControl without inputs")
+        c0, b0 = inputs[0]
+        inputs[0] = (c0, (c0 * len(b0)) & b0)
         while len(inputs) > 1:
             stack = []
             while len(inputs) > 1:
@@ -91,7 +128,7 @@ class MultiControl(BaseBlock):
         return inputs[0][1]
 
 
-class Multiplexer(BaseBlock):
+class Multiplexer(BuildableBlock):
     def __init__(self, control=None, *args):
         """
             args : pairs of (control, value)
@@ -151,3 +188,45 @@ class Multiplexer(BaseBlock):
             inputs.extend(stack[::-1])
 
         return inputs[0]
+
+# ========== Blocks usable as a bit ==========
+
+
+class BlockBit(VirtualBit):
+    """ VirtualBit that build the block automatically """
+
+    def __init__(self, size, block, **kwargs):
+        if not isinstance(block, BuildableBlock):
+            raise BuildError(f"{block} is not a BuildableBlock")
+        self.block = block
+        self.block_built = False
+        super().__init__(size, **kwargs)
+
+    def build(self, chip, varname=None):
+        if not self.block_built:
+            self.block_built = True
+            self.set(self.block.build())
+        super().build(chip, varname)
+
+
+class MultiSourceReg(VirtualBit, BuildableBlock):
+    def __init__(self, size):
+        super().__init__(size)
+        self.reg = Register(size=size)
+        self.multi = MultiControl(('1', self.reg))
+        self.block_built = False
+
+    def add(self, control, val):
+        self.multi.add(control, val)
+
+    def add_many(self, *args):
+        self.multi.add_many(*args)
+
+    def get(self):
+        return self.reg
+
+    def build(self, chip, varname=None):
+        if not self.block_built:
+            self.reg.source(self.multi.build())
+            self.set(self.reg)
+        super().build(chip, varname)

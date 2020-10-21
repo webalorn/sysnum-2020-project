@@ -78,6 +78,7 @@ int main(int argc, char* argv[]) {
 	}
 	net.start();
 
+	std::cout << "\n\n====== FINAL OUTPUT\n";
 	std::vector<Memory> outVals = net.getOutputsSplit();
 	for (const Memory& m : outVals) {
 		std::cout << m << " ";

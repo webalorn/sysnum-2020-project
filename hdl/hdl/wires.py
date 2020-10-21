@@ -1,7 +1,7 @@
 import copy
 from collections.abc import Iterable
 
-from .util import BuildError
+from .util import BuildError, memoization
 
 
 # ========== bit factory functions ==========
@@ -12,6 +12,7 @@ def reg(n_or_var):
     return Register(n_or_var)
 
 
+@memoization
 def mux(control, false, true):
     return MuxOp.on(control, false, true)
 
@@ -32,6 +33,7 @@ def ram(word_size: int, read_addr, write_enable=None, write_addr=None, write_dat
     return RamOp(read_addr.size, word_size, read_addr, write_enable, write_addr, write_data)
 
 
+@memoization
 def concat(*elems, name=None):
     def do_concat(*elems):
         if len(elems) == 0:
@@ -56,7 +58,7 @@ def concat(*elems, name=None):
             (i1, j1), (i2,
                        j2) = elems[-1].get_interval(), rev[-1].get_interval()
             if bus1 is bus2 and j1 == i2 - 1:
-                elems[-1] = SliceOp(i1, j2, bus1)
+                elems[-1] = SliceOp.on(i1, j2, bus1)
                 rev.pop()
             else:
                 elems.append(rev.pop())
@@ -71,6 +73,7 @@ def concat(*elems, name=None):
     return b
 
 
+@memoization
 def bit(*args, size=None, name=None):
     """
         NB: size is only used when the argument is an int
@@ -117,6 +120,7 @@ def is_real_iterable(obj):
     return isinstance(obj, Iterable) and not isinstance(obj, Bit)
 
 
+@memoization
 def single_bit_op(op_cls, *operands):
     for b in operands:
         if not isinstance(b, Bit) or len(b) != 1:
@@ -125,6 +129,7 @@ def single_bit_op(op_cls, *operands):
     return op_cls(*operands)
 
 
+@memoization
 def vectorized_op(op_cls, *operands):
     operands = [bit(o) for o in operands]
     if not all([len(o) == len(operands[0]) for o in operands]):
@@ -243,6 +248,14 @@ class Bit:
     def __radd__(self, other):
         return concat(other, self)
 
+    def __mul__(self, n: int):  # Duplicate the bit(s)
+        if isinstance(n, Bit):
+            return self * len(n)
+        return concat(list(self) * n)
+
+    def __rmul__(self, n: int):
+        return concat(list(self) * n)
+
     def __lshift__(self, n):
         if n < 0:
             return self >> (-n)
@@ -279,7 +292,7 @@ class Constant(Bit):
         return str(self.get())
 
     def build(self, chip, varname=None):
-        pass
+        return True
 
 
 class InputVar(Bit):
@@ -328,6 +341,7 @@ class Operation(Bit):
             for b in self.args:
                 if isinstance(b, Bit):
                     b.build(chip)
+            return True
 
     def operation(self, chip):
         parts = [self.get_name(chip), '=']
@@ -402,7 +416,7 @@ class BitRegister(Bit):
             register.source(b)
 
     def build(self, chip, varname=None):
-        self.concat.build(chip, varname)
+        return self.concat.build(chip, varname)
 
     def get_name(self, chip):
         return self.concat.get_name(chip)
@@ -576,6 +590,13 @@ class SliceOp(Operation, SubBusOp):
     def get_interval(self):
         return (self.args[0], self.args[1])
 
+    @classmethod
+    def on(cls, i, j, arr):
+        arr = bit(arr)
+        if i == 0 and j == len(arr) - 1:
+            return arr
+        return SliceOp(i, j, arr)
+
 
 class ConcatOp(Operation):
     KEYWORD = 'CONCAT'
@@ -603,6 +624,9 @@ class RomOp(Operation):
             [addr_size, word_size, read_addr],
             size=word_size, **kwargs
         )
+
+    def read_at(self, read_addr):
+        self.args[2] = read_addr
 
     def check_args(self, none_is_ok):
         super().check_args(none_is_ok)
@@ -635,6 +659,9 @@ class RamOp(Operation):
             write_enable, write_addr, write_data
         ], size=word_size, **kwargs)
 
+    def read_at(self, read_addr):
+        self.args[2] = read_addr
+
     def write(self, write_enable, write_addr, write_data):
         self.args[3] = write_enable
         self.args[4] = write_addr
@@ -645,10 +672,40 @@ class RamOp(Operation):
         if not none_is_ok:
             if len(self.args[2]) != self.args[0]:
                 raise BuildError(
-                    f'RAM: Size of {repr(self.args[2])} (read_addr) is not {self.args[0]}')
+                    f'RAM: Size of {repr(self.args[2])} (read_addr) is {len(self.args[2])}, but should be {self.args[0]}')
             if len(self.args[4]) != self.args[0]:
                 raise BuildError(
-                    f'RAM: Size of {repr(self.args[4])} (write_addr) is not {self.args[0]}')
+                    f'RAM: Size of {repr(self.args[4])} (write_addr) is {len(self.args[4])}, but should be {self.args[0]}')
             if len(self.args[5]) != self.args[1]:
                 raise BuildError(
-                    f'RAM: Size of {repr(self.args[5])} (write_data) is not {self.args[1]}')
+                    f'RAM: Size of {repr(self.args[5])} (write_data) is {len(self.args[5])}, but should be {self.args[1]}')
+
+# ========== Other ==========
+
+
+class VirtualBit(Bit):
+    """
+        Feed this bit with an input later. Be careful : is prevent optimizations
+    """
+
+    def __init__(self, size, **kwargs):
+        super().__init__(size, **kwargs)
+        self.child = None
+
+    def set(self, val):
+        val = bit(val)
+        if len(val) != self.size:
+            raise BuildError(
+                f"This VirtualBit must be set with an input of size {self.size}, not {len(val)}")
+        self.child = val
+
+    def get(self):
+        return self.child
+
+    def build(self, chip, varname=None):
+        if self.child is None:
+            raise BuildError(f"The VirtualBit {varname} has not been set")
+        return self.child.build(chip)
+
+    def get_name(self, chip):
+        return self.child.get_name(chip)
