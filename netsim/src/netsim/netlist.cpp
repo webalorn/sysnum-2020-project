@@ -416,6 +416,7 @@ void NetlistSim::cycle(uint nbCycles) {
 		// 	std::cout << strOfOp(v) << " " << v << "\n";
 		// }
 
+		// std::cout << this->rom.submem(0, 128) << "\n";
 		// Copy all registers
 		std::copy(registers.begin(), registers.end(), state.begin());
 

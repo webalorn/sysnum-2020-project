@@ -138,6 +138,15 @@ def vectorized_op(op_cls, *operands):
     return bit([single_bit_op(op_cls, *vals) for vals in zip(*operands)])
 
 
+@memoization
+def merge_with_op(op, args):
+    if len(args) <= 1:
+        return args[0]
+    left, right = args[:len(args) // 2], args[len(args) // 2:]
+    left, right = merge_with_op(op, left), merge_with_op(op, right)
+    return op.on(left, right)
+
+
 def op_on_builder(f):
     """
         Convert to classmethod, and ensure that if there is a constant

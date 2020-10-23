@@ -136,6 +136,7 @@ class Multiplexer(BuildableBlock):
         self.control = None
         self._inputs = []
         self.add(*args)
+        self.plzshutup = False
         if control is not None:
             self.set_control(control)
 
@@ -150,7 +151,7 @@ class Multiplexer(BuildableBlock):
             val = bit(args[0])
             if self._inputs and self.size() != len(val):
                 raise BuildError(
-                    f"The size of {repr(args[0])} doesn't match the previous bits sizes")
+                    f"The size of {repr(args[0])} ({len(val)}) doesn't match the previous bits sizes ({self.size()})")
             self._inputs.append(val)
         else:
             for a in args:
@@ -165,10 +166,10 @@ class Multiplexer(BuildableBlock):
         if 2 ** len(self.control) < len(inputs):
             raise BuildError(
                 f"Too many inputs ({len(inputs)}) for control of size {len(self.control)}")
-        if 2 ** (len(self.control) - 1) >= len(inputs):
+        if 2 ** (len(self.control) - 1) >= len(inputs) and not self.plzshutup:
             print(
                 f"[WARNING] Using a {len(self.control)} bits control for only {len(inputs)} inputs in a multiplexer. This is NOOOOOOONOPTIMAL")
-        inputs.extend([None] * (2 ** len(self.control) - len(inputs)))
+        # inputs.extend([None] * (2 ** len(self.control) - len(inputs)))
 
         controls = list(self.control)
         fullzero = bit('0' * self.size())
@@ -176,6 +177,9 @@ class Multiplexer(BuildableBlock):
         while len(inputs) > 1:
             control_bit = controls.pop()
             stack = []
+            if len(inputs) % 2:
+                inputs.append(None)
+
             while len(inputs):
                 b1 = inputs.pop()
                 b0 = inputs.pop()
@@ -186,6 +190,9 @@ class Multiplexer(BuildableBlock):
                         b1 = fullzero
                     stack.append(mux(control_bit, b0, b1))
             inputs.extend(stack[::-1])
+
+        while controls:  # Use the remainding bits
+            inputs[0] = mux(controls.pop(), inputs[0], fullzero)
 
         return inputs[0]
 
