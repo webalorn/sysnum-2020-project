@@ -10,10 +10,11 @@ import operations as opctrl
 class Proc:
     INPUTS = [
         ("tic", 1),
+        ("byte", 8),
     ]
     OUTPUTS = [  # Size must be at most 32
         ("poweroff", 1),
-        ("answer", 8)
+        ("answer", 32),
     ]
     WORD = 32
     RAM_ADDR_SIZE = 16  # The last 16 bits of a word will be used
@@ -26,19 +27,13 @@ class Proc:
         self.zero_var = hdl.Assign(0, name='zero')
         self.one_var = hdl.Assign(1, name='one')
 
-        # State bits
-        # self.ram_already_used = None  # Later
-        self.is_op_loaded_for_next_cycle = virtual(1, None)
-
         # State registers
         self.has_booted = Register(self.one_var, name='hasbooted')
-        self.reg_hold_intruction = MultiSourceReg(32)
-        self.reg_has_hold = reg(self.is_op_loaded_for_next_cycle)
-        # self.reg_ram_is_source = MultiSourceReg(1)
+        self.reg_hold_intruction = Register(size=32, name='hold_instruction')
+        self.reg_has_hold = Register(name='has_hold')
 
         # Registers
-        self.reg_pc = MultiSourceReg(32)
-        self.reg_pc_value = mux(self.has_booted, '001' + '0' * 29, self.reg_pc)
+        self.reg_pc = MultiSourceReg(32, name='reg_pc')
         self.registers = RegisterController(self.NB_REGISTERS, self.WORD)
 
         # Memory management
@@ -47,34 +42,47 @@ class Proc:
         self.memory = MemoryController(self.rom, self.ram, self.OUTPUTS)
 
         # Processor architecture
-        self.op_controller = opctrl.OperationController(
-            self, [opctrl.RiscvBase, opctrl.CustomExtension]
-        )
+        self.op_controller = opctrl.OperationController(self)
 
     def generate(self, *input_args):
         self.in_vars = {desc[0]: val for desc,
                         val in zip(self.INPUTS, input_args)}
         self.memory.input_from(input_args)
 
-        # Move instruction pointer if needed
-        self.next_intruction_addr = self.adder(
-            self.reg_pc_value, bit(self.WORD // 8, size=self.WORD))[0]
-        self.reg_pc.add(~self.is_op_loaded_for_next_cycle,
-                        self.next_intruction_addr)
+        # Move instruction pointer and fetch instruction
+        cur_addr = mux(self.has_booted, '001' + '0' * 29, self.reg_pc)
 
-        # Read the instruction from RAM / ROM / Registers
-        mem_out = self.memory.read_at(~self.reg_has_hold, self.reg_pc_value)
-        instruction = mux(self.reg_has_hold, mem_out, self.reg_hold_intruction)
+        self.next_intruction_addr = self.adder(
+            self.reg_pc, bit(self.WORD // 8, size=self.WORD))[0]
+        # If an instruction has been executed, advance pointer
+        self.reg_pc.add(self.reg_has_hold, self.next_intruction_addr)
+        # If no instruction has been executed, do NOT move pointer
+        self.reg_pc.add(~self.reg_has_hold, cur_addr)
 
         # Execute instruction
-        self.op_controller.decode(instruction)
-        self.build_update_state()
+        self.op_controller.decode_instruction(
+            self.reg_has_hold, self.reg_hold_intruction)
 
+        # Fetch instruction for next cycle from RAM / ROM / Registers
+        self.reg_has_hold.source(~self.memory.used)
+        mem_out = self.memory.read_at(~self.memory.used, self.reg_pc.reg_input)
+        self.reg_hold_intruction.source(mem_out)
+
+        # Read outputs
         outputs = self.memory.fetch_output()
+
         # TODO : remove
-        outputs.append(self.registers.read_reg(5, 1, bit(1, size=5)))
-        outputs.append(self.registers.read_reg(6, 1, bit(2, size=5)))
-        outputs.append(self.registers.read_reg(7, 1, bit(3, size=5)))
+        # outputs.append(self.registers.read_reg(bit(1, size=5)))
+        # outputs.append(self.registers.read_reg(bit(2, size=5)))
+        # outputs.append(self.registers.read_reg(bit(3, size=5)))
+
+        outputs.append(self.registers.read_reg(bit(10, size=5)))
+        outputs.append(self.registers.read_reg(bit(2, size=5)))
+        outputs.append(self.registers.read_reg(bit(11, size=5)))
+
+        # outputs.append(self.reg_pc.reg_input)
+        # outputs.append(mem_out)
+        # outputs.append(self.reg_hold_intruction)
 
         # outputs.append(self.reg_pc_value)
         # outputs.append(self.next_intruction_addr)
@@ -92,9 +100,6 @@ class Proc:
                         )
         print("Used", len(chip.ids_to_varname), "variables")
         return chip
-
-    def build_update_state(self):
-        self.is_op_loaded_for_next_cycle.set('0')  # TODO
 
     # ========== Computing functions ==========
 

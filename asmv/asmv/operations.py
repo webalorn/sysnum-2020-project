@@ -21,11 +21,13 @@ def op_addi(rd, rs1, imm):
 
 @newop('SLTI', 'reg', 'reg', 'int:12')
 def op_slti(rd, rs1, imm):
+    """ Set lass than immediat : rd = 1 if rs1 < imm, else 0 """
     return ['0010011', rd, '010', rs1, imm]
 
 
 @newop('SLTIU', 'reg', 'reg', 'uint:12')
 def op_sltiu(rd, rs1, imm):
+    """ SLTI but unsigned """
     return ['0010011', rd, '011', rs1, imm]
 
 
@@ -46,11 +48,13 @@ def op_xori(rd, rs1, imm):
 
 @newop('SLLI', 'reg', 'reg', 'uint:5')
 def op_slli(rd, rs1, imm):
+    """ Logical left shift """
     return ['0010011', rd, '001', rs1, imm, '0000000']
 
 
 @newop('SRLI', 'reg', 'reg', 'uint:5')
 def op_srli(rd, rs1, imm):
+    """ Logical right shift """
     return ['0010011', rd, '101', rs1, imm, '0000000']
 
 
@@ -60,13 +64,13 @@ def op_srli(rd, rs1, imm):
 #     return ['0010011', rd, '101', rs1, imm, '0100000']
 
 
-@newop('LUI', 'reg', 'int:20')
+@newop('LUI', 'reg', 'bits:20')
 def op_lui(rd, imm):
     """ rd <- imm . 000000000000 """
     return ['0110111', rd, imm]
 
 
-@newop('AUIPC', 'reg', 'int:20')
+@newop('AUIPC', 'reg', 'bits:20')
 def op_auipc(rd, imm):
     """ rd <- pc + (imm . 000000000000) """
     return ['0010111', rd, imm]
@@ -81,11 +85,13 @@ def op_add(rd, rs1, rs2):
 
 @newop('SLT', 'reg', 'reg', 'reg')
 def op_slt(rd, rs1, rs2):
+    """ 1 if rs1 < rs2, else 0 """
     return ['0110011', rd, '010', rs1, rs2, '0000000']
 
 
 @newop('SLTU', 'reg', 'reg', 'reg')
 def op_sltu(rd, rs1, rs2):
+    """ 1 if rs1 < rs2, else 0, unsigned """
     return ['0110011', rd, '011', rs1, rs2, '0000000']
 
 
@@ -106,11 +112,13 @@ def op_xor(rd, rs1, rs2):
 
 @newop('SLL', 'reg', 'reg', 'reg')
 def op_sll(rd, rs1, rs2):
+    """ Logical left shift """
     return ['0110011', rd, '001', rs1, rs2, '0000000']
 
 
 @newop('SRL', 'reg', 'reg', 'reg')
 def op_srl(rd, rs1, rs2):
+    """ Logical right shift """
     return ['0110011', rd, '101', rs1, rs2, '0000000']
 
 
@@ -118,67 +126,158 @@ def op_srl(rd, rs1, rs2):
 def op_sub(rd, rs1, rs2):
     return ['0110011', rd, '000', rs1, rs2, '0100000']
 
+# TODO : currently unsuported
+# @newop('SRA', 'reg', 'reg', 'reg')
+# def op_sra(rd, rs1, rs2):
+#     return ['0110011', rd, '101', rs1, rs2, '0100000']
 
-@newop('SRA', 'reg', 'reg', 'reg')
-def op_sra(rd, rs1, rs2):
-    return ['0110011', rd, '101', rs1, rs2, '0100000']
+# ---------- Register-Register M extension
+
+
+@newop('MUL', 'reg', 'reg', 'reg')
+def op_mul(rd, rs1, rs2):
+    return ['0110011', rd, '000', rs1, rs2, '0000001']
+
+
+@newop('DIV', 'reg', 'reg', 'reg')
+def op_div(rd, rs1, rs2):
+    return ['0110011', rd, '100', rs1, rs2, '0000001']
+
+
+@newop('REM', 'reg', 'reg', 'reg')
+def op_rem(rd, rs1, rs2):
+    return ['0110011', rd, '110', rs1, rs2, '0000001']
 
 # ---------- Control Transfer Instructions
 
 
 @newop('JAL', 'reg', 'int:20')
 def op_jal(rd, imm):
-    """ Unconditional jump """
+    """ Unconditional jump, offset imm, link into rd """
     return ['1101111', rd, imm]
 
 
 @newop('JALR', 'reg', 'reg', 'int:12')
 def op_jalr(rd, rs1, imm):
+    """ Jump to rs1 + imm and link into rd """
     return ['1100111', rd, '000', rs1, imm]
+
+# Conditional
 
 
 @newop('BEQ', 'reg', 'reg', 'int:12')
 def op_beq(src1, src2, imm):
+    """ Branch on equal (src1 == src1) """
     return ['1100011', imm[:5], '000', src1, src2, imm[5:]]
 
 
 @newop('BNE', 'reg', 'reg', 'int:12')
 def op_bne(src1, src2, imm):
+    """ Branch on src1 != src1 """
     return ['1100011', imm[:5], '001', src1, src2, imm[5:]]
 
 
 @newop('BLT', 'reg', 'reg', 'int:12')
 def op_blt(src1, src2, imm):
+    """ Branch on src1 < src1 """
     return ['1100011', imm[:5], '100', src1, src2, imm[5:]]
 
 
 @newop('BLTU', 'reg', 'reg', 'int:12')
 def op_bltu(src1, src2, imm):
+    """ Branch on src1 < src1, unsigned """
     return ['1100011', imm[:5], '110', src1, src2, imm[5:]]
 
 
 @newop('BGE', 'reg', 'reg', 'int:12')
 def op_bge(src1, src2, imm):
+    """ Branch on src1 >= src1 """
     return ['1100011', imm[:5], '101', src1, src2, imm[5:]]
 
 
 @newop('BGEU', 'reg', 'reg', 'int:12')
 def op_bgeu(src1, src2, imm):
+    """ Branch on src1 >= src1, unsigned """
     return ['1100011', imm[:5], '111', src1, src2, imm[5:]]
 
+
+@newop('BGT', 'reg', 'reg', 'int:12')
+def op_bgt(src1, src2, imm):
+    """ Branch on src1 > src1 """
+    return op_blt(src2, src1, imm)
+
+
+@newop('BGTU', 'reg', 'reg', 'int:12')
+def op_bgtu(src1, src2, imm):
+    """ Branch on src1 > src1, unsigned """
+    return op_bltu(src2, src1, imm)
+
+
+@newop('BLE', 'reg', 'reg', 'int:12')
+def op_ble(src1, src2, imm):
+    """ Branch on src1 <= src1 """
+    return op_bge(src2, src1, imm)
+
+
+@newop('BLEU', 'reg', 'reg', 'int:12')
+def op_bleu(src1, src2, imm):
+    """ Branch on src1 <= src1, unsigned """
+    return op_bgeu(src2, src1, imm)
+
 # ---------- Load and Store Instructions
+
+# Load
 
 
 @newop('LW', 'reg', 'reg', 'int:12')
 def op_load_lw(rd, rs1, offset):
+    """ Load word (32 bits) """
     return ['0000011', rd, '010', rs1, offset]
 
 
-@newop('SW', 'reg', 'reg', 'int:12')
-def op_store_sw(addr, data, offset):
-    return ['0100011', offset[:5], '010', addr, data, offset[5:]]
+@newop('LH', 'reg', 'reg', 'int:12')
+def op_load_lh(rd, rs1, offset):
+    """ Load word (16 bits [half], sign-extended) """
+    return ['0000011', rd, '001', rs1, offset]
 
-# TODO : other load / store intructions
+
+@newop('LHU', 'reg', 'reg', 'int:12')
+def op_load_lhu(rd, rs1, offset):
+    """ Load word (16 bits [half], 0-extended) """
+    return ['0000011', rd, '101', rs1, offset]
+
+
+@newop('LB', 'reg', 'reg', 'int:12')
+def op_load_lb(rd, rs1, offset):
+    """ Load word (8 bits [byte], sign-extended) """
+    return ['0000011', rd, '000', rs1, offset]
+
+
+@newop('LBU', 'reg', 'reg', 'int:12')
+def op_load_lbu(rd, rs1, offset):
+    """ Load word (8 bits [byte], 0-extended) """
+    return ['0000011', rd, '100', rs1, offset]
+
+# Store
+
+
+@newop('SW', 'reg', 'reg', 'int:12')
+def op_store_sw(addr, reg_data, offset):
+    """ Stire word (32 bits) """
+    return ['0100011', offset[:5], '010', addr, reg_data, offset[5:]]
+
+
+@newop('SH', 'reg', 'reg', 'int:12')
+def op_store_sh(addr, reg_data, offset):
+    """ Stire word (16 bits [half]) """
+    return ['0100011', offset[:5], '001', addr, reg_data, offset[5:]]
+
+
+@newop('SB', 'reg', 'reg', 'int:12')
+def op_store_sb(addr, reg_data, offset):
+    """ Stire word (8 bits [byte]) """
+    return ['0100011', offset[:5], '000', addr, reg_data, offset[5:]]
+
 
 # ========== Base ISA pseudo-ops ==========
 
@@ -200,7 +299,17 @@ def op_mv(rd, rs1):
 
 @newop('NOP')
 def op_nop():
+    """ Do nothing. Litteraly """
     return op_addi('00000', '00000', int2b('0', 12))
+
+
+@multiop('LI', 2, 'reg', 'bits:32')
+def op_load_li(rd, imm):
+    """ Load immediate """
+    imm1, imm2 = imm[:20], imm[20:]
+    if imm2[0] == '1':
+        imm1 = bin_add(imm1, '1', 20)
+    return (op_lui(rd, imm1), op_addi(rd, rd, imm2))
 
 # Comparisons
 
@@ -240,16 +349,10 @@ def op_jal_j(imm):
 def op_ret():
     return op_jalr('00000', '00001', int2b('0', 12))
 
+@newop('CALL', 'reg', 'int:20')
+def op_call(reg_ret, addr):
+    return op_jal(reg_ret, addr)
 
-@multiop('LI', 2, 'reg', 'uint:32')
-def op_load_li(rd, imm):
-    """ Load immediate """
-    imm1, imm2 = imm[:20], imm[20:]
-    if imm2[0] == '1':
-        imm1 = bin_add(imm1, '1', 20)
-    return (op_lui(rd, imm1), op_addi(rd, rd, imm2))
-
-# TODO : branch, jump and link
 
 # ========== M : Integer Multiplication / Division 2.0 ==========
 

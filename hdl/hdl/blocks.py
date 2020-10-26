@@ -39,26 +39,32 @@ def virtual(size, block):
 @hdl_function
 def simple_adder(a: 'l', b: 'l', r: 'bit' = 0):
     """ Returns (a+b+r, remainder) """
-    if len(a) == 0:
-        return bit(), r
-    else:
-        x, y = a[0], b[0]
-        prev, r = simple_adder(a[1:], b[1:], r)
-        b = x ^ y ^ r
-        r2 = (x & (y | r)) | (y & r)
-        return (b + prev, r2)
+    def do_addition(i, r):
+        if len(a) == i:
+            return [], r
+        else:
+            x, y = a[i], b[i]
+            prev, r = do_addition(i + 1, r)
+            v = x ^ y ^ r
+            r2 = (x & (y | r)) | (y & r)
+            prev.append(v)
+            return (prev, r2)
+    n, r2 = do_addition(0, r)
+    return concat(n[::-1]), r2
 
 
-@hdl_function
-def increment(n: 'bus') -> (Bit, Bit):
-    """ Returns (n+1, remainder) """
-    n = bit(n)
-    if len(n) == 0:
-        return bit(), 1
-    else:
-        m, r = increment(n[1:])
-        m = (n[0] ^ r) + m
-        return m, (r & n[0])
+# @hdl_function
+# def increment(n: 'bus') -> (Bit, Bit):
+#     """ Returns (n+1, remainder) """
+#     n = bit(n)
+#     if len(n) == 0:
+#         return bit(), 1
+#     else:
+#         m, r = increment(n[1:])
+#         m = (n[0] ^ r) + m
+#         return m, (r & n[0])
+def increment(n: 'bus'):
+    return simple_adder(n, bit(1, size=len(n)))
 
 
 @hdl_function
@@ -67,7 +73,7 @@ def negative_of_int(n: 'bus') -> Bit:
 
 
 @hdl_function
-def simple_product(n: 'l', m: 'l') -> (Bit, Bit):
+def simple_product(n: 'l', m: 'l') -> Bit:
     floors = [(n << i) & (m[-i - 1] * len(n)) for i in range(len(m))]
     while len(floors) > 1:
         stack = []
@@ -217,10 +223,13 @@ class BlockBit(VirtualBit):
 
 
 class MultiSourceReg(VirtualBit, BuildableBlock):
-    def __init__(self, size):
+    def __init__(self, size, **kwargs):
         super().__init__(size)
-        self.reg = Register(size=size)
+        self.reg = Register(size=size, **kwargs)
         self.multi = MultiControl(('1', self.reg))
+
+        self.reg_input = virtual(size, self.multi)
+        self.reg.source(self.reg_input)
         self.block_built = False
 
     def add(self, control, val):
@@ -234,6 +243,6 @@ class MultiSourceReg(VirtualBit, BuildableBlock):
 
     def build(self, chip, varname=None):
         if not self.block_built:
-            self.reg.source(self.multi.build())
+            # self.reg.source(self.multi.build())
             self.set(self.reg)
         super().build(chip, varname)

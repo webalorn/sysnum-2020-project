@@ -5,6 +5,7 @@ from hdl import reg, Bit, BitRegister, mux, concat, bit, RamOp, RomOp, Register
 from hdl.blocks import MultiSourceReg, virtual, MultiControl, Multiplexer
 
 from decoder import SimpleDecoder, RiscDecoder
+import arith
 
 IO_SIGNIFICANT_BITS = 20
 
@@ -63,9 +64,9 @@ class InputController:
         self.plexer.add(*inputs)
 
     def read_at(self, control, addr):
-        addr = addr[:-5]  # Because it is 32bits-addressed
-        self.input_control.add(control, addr[-IO_SIGNIFICANT_BITS:])
-        return self.plexer_out
+        # Because it is 32bits-addressed
+        self.input_control.add(control, addr[:-5][-IO_SIGNIFICANT_BITS:])
+        return arith.left_shift(self.plexer_out, addr[-5:])
 
     def write_at(self, control, addr, value):
         pass
@@ -82,7 +83,9 @@ class OutputController:
 
     def write_at(self, control, addr, value):
         # Because it is 32bit-addressed
+        value = arith.right_shift(value, addr[-5:])
         addr = addr[:-5][-IO_SIGNIFICANT_BITS:]
+
         for i_out in range(len(self.outputs)):
             bit_eq = ~(addr ^ self.out_addresses[i_out])
             is_eq = hdl.merge_with_op(hdl.AndOp, bit_eq)
@@ -114,7 +117,8 @@ class MemoryController:
     @hdl.f
     def read_at(self, control: 'bit', addr: 32):
         dest, addr = addr[:3], addr[3:] + bit('000')
-        self.used = self.used | ((~dest[0]) & (~dest[1]))  # RAM and ROM -> 00x
+        self.used = self.used | (control & (
+            ~(dest[0] | dest[1])))  # RAM and ROM -> 00x
         output = bit(0, size=32)
 
         for dest_id, dest_obj in self.sources:
@@ -126,10 +130,10 @@ class MemoryController:
         return output
 
     @hdl.f
-    def write_at(self, control, addr: 'bit', value: 32):
-        dest, addr = addr[:3], addr[3:] + '000'
+    def write_at(self, control: 'bit', addr: 32, value: 32):
+        dest, addr = addr[:3], addr[3:] + bit('000')
         for dest_id, dest_obj in self.sources:
-            isdest = bit(dest) & dest_id
+            isdest = ~(bit(dest) ^ dest_id)
             isdest = isdest[0] & isdest[1] & isdest[2]
             dest_obj.write_at(control & isdest, addr, value)
 
@@ -156,8 +160,8 @@ class RegisterController:
         self.reg_addr_size = math.ceil(math.log2(nb_registers))
         self.word_size = word_size
 
-        self.registers = [Register(size=word_size)
-                          for _ in range(nb_registers)]
+        self.registers = [Register(size=word_size, name=f'register_{i}')
+                          for i in range(nb_registers)]
         self.reg_inputs = [MultiControl(('1', register))
                            for register in self.registers]
 
@@ -168,7 +172,6 @@ class RegisterController:
             self.registers[i_reg].source(
                 virtual(word_size, self.reg_inputs[i_reg]))
 
-        self.readers = [self.build_reader() for _ in range(nb_readers)]
         self.writers = [self.build_writer() for _ in range(nb_readers)]
 
     def build_reader(self):
@@ -187,17 +190,11 @@ class RegisterController:
     # Access to read / write
 
     @hdl.f
-    def read_reg(self, ireader: int, control: 'bit', addr: 'bus'):
-        while ireader >= len(self.readers):
-            self.readers.append(self.build_reader())
+    def read_reg(self, addr: 'bus'):
+        plex = Multiplexer(addr)
+        plex.add(*self.registers)
 
-        if len(addr) != self.reg_addr_size:
-            raise hdl.BuildError(
-                f"The size of the register address must be {self.reg_addr_size}, not {len(addr)}")
-        controller, plex = self.readers[ireader]
-        controller.add(control, addr)
-
-        return plex
+        return plex.build()
 
     @hdl.f
     def write_reg(self, iwriter: int, control: 'bit', addr: 'bus', val: 'bus'):

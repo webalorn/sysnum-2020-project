@@ -55,6 +55,7 @@ A datablock takes the following form : `.typename value`. It is strongly advised
   - `0b101010`, `-0b101010` : binary
   - `0x2a`, `-0x2a` : hexadecimal
   - `*label` : address of the memory pointer associated with `label`
+  - `label` : relative address of the memory pointer associated with `label`
 - **string** (data)
   - "this_is_a_string" : must be surrounded by `"`.
 - **register**

@@ -1,16 +1,19 @@
-from .util import AsmError, l_split, offsets_to_args
+from .util import AsmError, l_split, offsets_to_args, simplify_asm
+from .util import is_integer, first_upper, first_lower
 
 import functools
 import re
 
 # Sizes are in bytes
 OP_SIZE = 4
+HI_MOD = 2 ** 12
 
 all_operations = {}  # 'name' -> (size, fct)
 
 VALID_LABELS = re.compile(r"^[a-xA-Z0-9_\.]+$")
 IGNORED_CONFIGS = ['.file', '.globl', '.local', '.addrsig', '.type',
-                   '.section', '.text', '.data', '.rodata', '.bss', '.size']
+                   '.section', '.text', '.data', '.rodata', '.bss', '.size',
+                   '.addrsig', '.addrsig_sym']
 
 
 ALL_REGS = {'x' + str(k): k for k in range(32)}
@@ -24,6 +27,7 @@ ALL_REGS['t0'] = ALL_REGS['x5']
 ALL_REGS['t1'] = ALL_REGS['x6']
 ALL_REGS['t2'] = ALL_REGS['x7']
 ALL_REGS['s0'] = ALL_REGS['x8']
+ALL_REGS['fp'] = ALL_REGS['x8']
 ALL_REGS['s1'] = ALL_REGS['x9']
 ALL_REGS['a0'] = ALL_REGS['x10']
 ALL_REGS['a1'] = ALL_REGS['x11']
@@ -56,26 +60,55 @@ class RiscAsm:
         self.consts = {}
         self.align = 4
         self.base_address = 0
+        self.init_ops = [
+            'jal x0, main',  # Set 'main' as the starting label
+        ]
 
         if rom_mode:
+            # We need to set the starting value for the stack pointer
+            self.init_ops = [
+                'li sp, 0b00011111111111111111111111111111'] + self.init_ops
             self.base_address += 1 << 29
 
+        self.cur_asm_pt = self.base_address
         self.load(content)
+    
+    def get_label(self, label):
+        rel_int = ((label.endswith('b') or label.endswith('f')) and is_integer(label[:-1]))
+        label_id = label[:-1] if rel_int else label
+
+        if label_id not in self.labels:
+            raise AsmError(f"The label {label} is not a valid label")
+        label_val = self.labels[label_id]
+        if rel_int:
+            if label.endswith('b'):
+                label_val = first_lower(label_val, self.cur_asm_pt)
+                if label_val is None:
+                    raise AsmError(f"No backward reference to {label_id}")
+            else:
+                label_val = first_upper(label_val, self.cur_asm_pt)
+                if label_val is None:
+                    raise AsmError(f"No forward reference to {label_id}")
+        return label_val
 
     def load(self, content):
         all_lines = content.split("\n")
+        all_lines = self.init_ops + all_lines
 
         for i_line, line in enumerate(all_lines):
             try:
                 all_lines[i_line] = self.preprocess_line(line)
             except AsmError as e:
-                raise AsmError(e.message, i_line)
+                raise AsmError(e.message, i_line - len(self.init_ops))
+
+        if 'main' not in self.labels:
+            raise AsmError('The "main" label is not defined')
 
         for i_line, line in enumerate(all_lines):
             try:
                 all_lines[i_line] = self.post_process(line)
             except AsmError as e:
-                raise AsmError(e.message, i_line)
+                raise AsmError(e.message, i_line - len(self.init_ops))
 
         self.bindata = '\n'.join([l for l in all_lines if l])
         print(self.bindata)
@@ -89,15 +122,23 @@ class RiscAsm:
         while l_split(line, 2)[0].endswith(':'):
             label, line = l_split(line, 2)
             label = label[:-1]
-            if label in self.labels:
-                raise AsmError(f"The label {label} is already defined")
-            if not VALID_LABELS.match(label):
-                raise AsmError(f"The label '{label}' is not valid")
+            if is_integer(label):
+                self.labels[label] = self.labels.get(label, [])
+                self.labels[label + 'b'] = None # Mark ?b, ?f as existing
+                self.labels[label + 'f'] = None
+                self.labels[label].append(self.cur_size + self.base_address)
+            else:
+                if label in self.labels:
+                    raise AsmError(f"The label {label} is already defined")
+                if not VALID_LABELS.match(label):
+                    raise AsmError(f"The label '{label}' is not valid")
 
-            self.labels[label] = self.cur_size + self.base_address
+                self.labels[label] = self.cur_size + self.base_address
 
         if line.startswith('.'):
-            return self.process_config(line)
+            data = self.process_config(line)
+            self.cur_size += len(data) // 8
+            return data
         if line:
             return self.preprocess_asm(line)
 
@@ -105,16 +146,22 @@ class RiscAsm:
 
     def post_process(self, line):
         if isinstance(line, tuple):
-            fct, args = line
+            fct, args, nb_ops = line
+            self.cur_asm_pt += (nb_ops - 1) * 4  # Set the pt for the last op
+
             line_parts = []
             parts = fct(self, *args)
             if not isinstance(parts, tuple):
                 parts = (parts,)
+            self.cur_asm_pt += 4  # Move the pt after the last op
+
             for subpart in parts:
                 subline = ''.join(subpart[::-1])
                 assert len(subline) == 32
                 line_parts.append(subline)
             return '\n'.join(line_parts)
+        else:
+            self.cur_asm_pt += len(line) // 8
         return line
 
     def remove_comments(self, line):
@@ -134,6 +181,8 @@ class RiscAsm:
 
     def process_config(self, line):
         name, val = l_split(line, 2)
+        args = l_split(val, on=',')
+
         if name in ['.align', '.p2align']:
             if not val in ['1', '2', '4']:
                 raise AsmError('Align parameter must be 1, 2, or 4')
@@ -147,19 +196,26 @@ class RiscAsm:
 
     def process_data(self, line):
         datatype, val = l_split(line, 2)
+        args = l_split(val, on=',')
         bits = []
 
         if datatype == '.int':
-            bits.append(format_bits(val, 33, False, None))
-        elif datatype == '.uint':
-            bits.append(format_bits(val, 32, True, None))
+            bits.append(format_bits(val, 33, 'int'))
+        elif datatype in ['.uint']:
+            bits.append(format_bits(val, 32, 'uint'))
+        elif datatype in ['.word', '.4byte', '.long']:
+            bits.append(format_bits(val, 32, 'bits'))
+        elif datatype in ['.byte']:
+            bits.append(format_bits(val, 8, 'bits'))
+        elif datatype in ['.2byte', '.half', '.short']:
+            bits.append(format_bits(val, 16, 'bits'))
         elif datatype in ['.string', '.ident', '.asciz']:
             if len(val) < 2 or val[0] != '"' or val[-1] != '"':
                 raise AsmError(
                     'A string must be surrounded by two " characters')
             val = bytes(val[1:-1], 'utf-8')
             for b in val:
-                bits.append(format_bits(str(b), 8, True, None))
+                bits.append(format_bits(str(b), 8, 'bits', None))
         else:
             raise AsmError(f'The datatype {datatype} doesn\'t exists')
 
@@ -169,9 +225,11 @@ class RiscAsm:
         return bits
 
     def preprocess_asm(self, line):
-        line = offsets_to_args(line)
+        # line = offsets_to_args(line)
+        line = simplify_asm(line)
+
         name, args = l_split(line, 2)
-        args = l_split(args)
+        args = l_split(args, on=',') if args else []
         name = name.upper()
 
         if not name in all_operations:
@@ -179,7 +237,7 @@ class RiscAsm:
         size, fct = all_operations[name]
         self.cur_size += size * 4
 
-        return (fct, args)
+        return (fct, args, size)
 
     # ---------- Utilities
 
@@ -197,17 +255,22 @@ class RiscAsm:
 # ========== All operations ==========
 
 
-def int_of_val(arg, riscObj=None):
+def int_of_val(arg, risc_obj=None, rel_label=False):
     if isinstance(arg, int):
         return arg
-    if riscObj is not None:
-        if arg.startswith('*'):
-            label = arg[1:]
-            if label not in riscObj.labels:
-                raise AsmError(f"The label {label} is not a valid label")
-            return riscObj.labels[label]
-        elif arg in riscObj.consts:
-            return riscObj.consts[arg]
+    if risc_obj is not None and not is_integer(arg):
+        if arg.startswith('%hi'):  # %hi(...)
+            val = int_of_val('*' + arg[4:-1], risc_obj, rel_label)
+            return val // HI_MOD
+        elif arg.startswith('%lo'):  # %lo(...)
+            val = int_of_val('*' + arg[4:-1], risc_obj, rel_label)
+            return val % HI_MOD
+        elif arg.startswith('*'): # Address of label
+            return risc_obj.get_label(arg[1:])
+        elif rel_label and arg in risc_obj.labels:
+            return risc_obj.get_label(arg) - risc_obj.cur_asm_pt
+        elif arg in risc_obj.consts:
+            return risc_obj.consts[arg]
 
     base = 10
     arg = arg.lower()
@@ -221,16 +284,18 @@ def int_of_val(arg, riscObj=None):
         raise AsmError(f"The value {arg} doesn't represent an integer")
 
 
-def format_bits(arg, size, unsigned, riscObj=None):
-    arg_val = int_of_val(arg, riscObj)
+def format_bits(arg, size, arg_type, risc_obj=None, rel_label=False):
+    arg_val = int_of_val(arg, risc_obj, rel_label)
 
     # Check size
     inf, sup = 0, 2 ** size
-    if not unsigned:
+    if arg_type == 'int':
         inf, sup = -2 ** (size - 1), 2 ** (size - 1)
+    elif arg_type == 'bits':
+        inf = -2 ** (size - 1)  # Allow int / uint range
     if not inf <= arg_val < sup:
         raise AsmError(
-            f"The value {arg_val} ({arg}) must be between {inf} and {sup-1} (block of size {size}")
+            f"The value {arg_val} ({arg}) must be between {inf} and {sup-1} (rvalue of size {size})")
 
     neg = bool(arg_val < 0)
     if neg:
@@ -251,7 +316,7 @@ def multiop(name, nb_ops, *arg_types):
     for i, typ in enumerate(arg_types):
         typ = typ.split(':')
         assert len(typ) in [1, 2]
-        assert typ[0] in ['reg', 'int', 'uint']
+        assert typ[0] in ['reg', 'int', 'uint', 'bits']
         if len(typ) >= 2:
             typ[1] = int(typ[1])
         arg_types[i] = typ
@@ -262,20 +327,23 @@ def multiop(name, nb_ops, *arg_types):
 
     def wrapper(fct):
         @functools.wraps(fct)
-        def wrapped_fct(riscObj, *args):
+        def wrapped_fct(risc_obj, *args):
             args = list(args)
             if len(args) != len(arg_types):
                 raise AsmError(f"Wrong number of args for {fct}")
 
             for i, (typ, arg) in enumerate(zip(arg_types, args)):
+                arg_type = 'bits'
                 if typ[0] == 'reg':
                     if arg not in ALL_REGS:
                         raise AsmError(f"{arg} is not a valid register name")
                     arg = str(ALL_REGS[arg])
+                else:
+                    arg_type = typ[0]
 
-                unsigned = typ[0] == 'uint'
                 size = typ[1]
-                arg = format_bits(arg, size, unsigned, riscObj)
+                arg = format_bits(arg, size, arg_type, risc_obj,
+                                  rel_label=True)  # TODO : rel_label=bool(nb_ops == 1) ??
                 args[i] = arg
 
             ops = fct(*args)

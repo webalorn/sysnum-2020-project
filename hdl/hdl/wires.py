@@ -273,7 +273,15 @@ class Bit:
     def __rshift__(self, n):
         if n <= 0:
             return self << (-n)
-        return concat('0' * min(n, self.size), self[:-n])
+        return concat('0' * min(n, self.size), self[: - n])
+
+    def get_repr(self, *args):
+        args = [f'{self.__class__.__module__}.{self.__class__.__qualname__}',
+                f'size={len(self)}'] + list(args)
+        return '<' + ' '.join(args) + '>'
+
+    def __repr__(self):
+        return self.get_repr()
 
 
 class Constant(Bit):
@@ -302,6 +310,9 @@ class Constant(Bit):
 
     def build(self, chip, varname=None):
         return True
+
+    def get_repr(self, *args):
+        return super().get_repr(f'val={self._value}', *args)
 
 
 class InputVar(Bit):
@@ -377,7 +388,7 @@ class Assign(Operation):
 
     def __init__(self, value, **kwargs):
         value = bit(value)
-        super().__init__([value], size=value.size, cells=value.size, **kwargs)
+        super().__init__([value], size=value.size, **kwargs)
         if self.name is None:
             self.name = value.name
 
@@ -397,7 +408,6 @@ class Register(Operation):
                 raise BuildError(
                     "The size of 'var' is not the same as the given size")
             size = var.size
-
         super().__init__([var], size=size, **kwargs)
 
     def source(self, var):
