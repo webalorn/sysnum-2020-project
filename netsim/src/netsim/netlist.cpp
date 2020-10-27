@@ -19,6 +19,7 @@ std::string strOfOp(uint opFlags) {
 	else if (opFlags & FLAG_OP_CONCAT) return "CONCAT";
 	else if (opFlags & FLAG_OP_NOT) return "NOT";
 	else if (opFlags & FLAG_OP_MUX) return "MUX";
+	else if (opFlags == 0) return "NOTHING";
 	return "????";
 }
 
@@ -135,19 +136,6 @@ void Memory::set_size_min(uint n) {
 		this->resize(n, 0);
 	}
 }
-inline Memory Memory::submem(uint pos, uint size) {
-	return Memory(this->begin() + pos, this->begin() + pos + size);
-}
-inline uint Memory::toInt(uint pos, uint size) {
-	uint v = 0;
-	while (size) {
-		v *= 2;
-		v += (*this)[pos];
-		pos += 1;
-		size -= 1;
-	}
-	return v;
-}
 
 std::ostream& operator<<(std::ostream& os, const Memory& mem) {
 	for (bool b : mem) {
@@ -156,42 +144,9 @@ std::ostream& operator<<(std::ostream& os, const Memory& mem) {
 	return os;
 }
 
-
 /*
 	Netlist simulator (~ hard netlist)
 */
-
-inline uint sizeOfArg(const Arg& arg, std::map<std::string, uint>& idOfVar,
-	std::vector<Variable>& allvars) {
-	if (arg.type == ArgVariable) {
-		return allvars[idOfVar[arg.repr]].size;
-	}
-	if (arg.type == ArgInt) {
-		throw UsageError("ArgInt doesn't have a size");
-	}
-	return arg.repr.size();
-}
-
-inline void copyFrom(const Memory& memFrom, const uint ptFrom, Memory& memTo, const uint ptTo, const uint n) {
-	std::copy(memFrom.begin() + ptFrom, memFrom.begin() + ptFrom + n, memTo.begin() + ptTo);
-}
-
-inline uint indexOfConst(Memory& state, std::map<std::string, uint>& memPtOfVar,
-	const Memory& boolValue) {
-	std::string boolString = "";
-	for (bool b : boolValue) {
-		boolString.push_back(b ? '1' : '0');
-	}
-	if (memPtOfVar.count(boolString)) {
-		return memPtOfVar[boolString];
-	}
-	uint s = state.size();
-	for (bool b : boolValue) {
-		state.push_back(b);
-	}
-	memPtOfVar[boolString] = s;
-	return s;
-}
 
 NetlistSim::NetlistSim(SoftNetlist& net) {
 	this->init(net);
@@ -210,7 +165,7 @@ void NetlistSim::init(SoftNetlist& net) {
 		var.pos = state.size();
 		memPtOfVar[var.name] = var.pos;
 		idOfVar[var.name] = iVarInAllVars++;
-		if (var.operation != OpSlice && var.operation != OpSelect) { // TODO : select
+		if (var.operation != OpSlice && var.operation != OpSelect) {
 			state.extend_by(var.size);
 		}
 
@@ -299,7 +254,7 @@ void NetlistSim::init(SoftNetlist& net) {
 			memPtOfVar[var.name] = var.pos;
 		}
 
-		if (var.operation == OpSlice) { // Remove Select operations
+		if (var.operation == OpSlice) { // Remove Slice operations
 			uint blockPt = operations.back(); operations.pop_back();
 			operations.pop_back(); // j
 			uint i = operations.back(); operations.pop_back();

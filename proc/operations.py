@@ -190,7 +190,7 @@ class OperationController:
             ('110', self.op_rem),
         ]
         print("M module")
-        self.m_ext_div = arith.simple_divide(self.reg_rs1, self.reg_rs2)
+        # self.m_ext_div = arith.simple_divide(self.reg_rs1, self.reg_rs2)
         # self._decode(mapping, funct3, control, [rd, rs1, rs2])
         print("M finised")
 

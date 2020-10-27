@@ -7,9 +7,11 @@
 #include "util/io.hpp"
 #include "netsim/netlist.hpp"
 #include "util/exceptions.hpp"
+#include "netsim/recnetlist.hpp"
 
 #ifndef BASE_NETSIM
-#define BASE_NETSIM NetlistSim
+// #define BASE_NETSIM NetlistSim
+#define BASE_NETSIM RecNetlistSim
 #endif
 
 class NetsimRunner : public BASE_NETSIM {
@@ -32,7 +34,7 @@ public:
 		flowBitFrom(romStream, this->rom);
 	}
 
-	virtual inline void onCycleBegin(uint) {
+	virtual void onCycleBegin(uint) {
 		// readBitsTo(memoryStream, inputBuffer, inputBuffer.size());
 		// setInputs(inputBuffer);
 	}
