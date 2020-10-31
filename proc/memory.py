@@ -7,7 +7,7 @@ from hdl.blocks import MultiSourceReg, virtual, MultiControl, Multiplexer
 from decoder import SimpleDecoder, RiscDecoder
 import arith
 
-IO_SIGNIFICANT_BITS = 20
+IO_SIGNIFICANT_BITS = 7
 
 
 class RomController:
@@ -56,12 +56,15 @@ class RamController:
 class InputController:
     def __init__(self, inputs):
         self.input_control = MultiControl()
-        self.plexer = Multiplexer(control=virtual(
-            IO_SIGNIFICANT_BITS, self.input_control))
+        self.input_addr = virtual(IO_SIGNIFICANT_BITS, self.input_control)
+
+        self.plexer = Multiplexer(control=self.input_addr)
         self.plexer_out = virtual(32, self.plexer)
 
         self.plexer.plzshutup = True
         self.plexer.add(*inputs)
+        # Read at -1 if no address
+        self.read_at(1, bit(-1, size=32))
 
     def read_at(self, control, addr):
         # Because it is 32bits-addressed
@@ -100,7 +103,9 @@ class OutputController:
 
 class MemoryController:
     def __init__(self, rom, ram, out_format):
-        self.output = OutputController([size for _, size in out_format])
+        self.input_signal = bit(-1, size=out_format[0][1])
+        # We don't add the first output to the controller because it is reserved
+        self.output = OutputController([size for _, size in out_format[1:]])
         self.sources = [
             ('000', ram),
             ('001', rom),
@@ -140,10 +145,12 @@ class MemoryController:
     def input_from(self, inputs):
         inputs = [hdl.extend(32, var) for var in inputs]
         mem = InputController(inputs)
+        self.input_signal = mem.input_addr
         self.sources.append(('100', mem))
 
     def fetch_output(self):
-        return self.output.fetch()
+        in_sig_size = len(self.input_signal)
+        return [self.input_signal[-in_sig_size:]] + self.output.fetch()
 
 
 # ========== Register control ==========

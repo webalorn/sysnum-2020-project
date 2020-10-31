@@ -10,15 +10,17 @@ import operations as opctrl
 class Proc:
     INPUTS = [
         ("tic", 1),
-        ("byte", 8),
+        ("hdd", 32),
     ]
     OUTPUTS = [  # Size must be at most 32
-        ("poweroff", 1),
-        ("answer", 32),
+        ("input_signal", 20),  # Can't be written on
+        ("poweroff", 1),  # Index 0
+        ("console", 32),
+        ("hdd_read_at", 32),
     ]
     WORD = 32
-    RAM_ADDR_SIZE = 16  # The last 16 bits of a word will be used
-    ROM_ADDR_SIZE = 16  # The last 16 bits of a word will be used
+    RAM_ADDR_SIZE = 26  # The last 16 bits of a word will be used
+    ROM_ADDR_SIZE = 26  # The last 16 bits of a word will be used
     NB_REGISTERS = 32
 
     # ========== Build ==========
@@ -72,33 +74,24 @@ class Proc:
         outputs = self.memory.fetch_output()
 
         # TODO : remove
-        # outputs.append(self.registers.read_reg(bit(1, size=5)))
+        # outputs.append(self.registers.read_reg(bit(10, size=5)))
+        # outputs.append(self.registers.read_reg(bit(11, size=5)))
+        # outputs.append(self.registers.read_reg(bit(8, size=5)))
         # outputs.append(self.registers.read_reg(bit(2, size=5)))
-        # outputs.append(self.registers.read_reg(bit(3, size=5)))
-
-        outputs.append(self.registers.read_reg(bit(10, size=5)))
-        outputs.append(self.registers.read_reg(bit(2, size=5)))
-        outputs.append(self.registers.read_reg(bit(11, size=5)))
-
-        # outputs.append(self.reg_pc.reg_input)
-        # outputs.append(mem_out)
-        # outputs.append(self.reg_hold_intruction)
-
-        # outputs.append(self.reg_pc_value)
-        # outputs.append(self.next_intruction_addr)
-        # outputs.append(instruction)
-        # outputs.append(self.reg_has_hold)
+        # outputs.append(self.reg_pc)
 
         return outputs
 
     def build(self):
         chip = hdl.Chip(self.generate,
                         inputs=[p[1] for p in self.INPUTS],
-                        # outputs=[p[1] for p in self.OUTPUTS], # TODO
+                        # outputs=[p[1] for p in self.OUTPUTS],
                         input_names=[p[0] for p in self.INPUTS],
-                        # output_names=[p[0] for p in self.OUTPUTS]
+                        output_names=[p[0] for p in self.OUTPUTS]
                         )
-        print("Used", len(chip.ids_to_varname), "variables")
+        print("Used", len(chip.varname_to_bits), "variables")
+        print("Total size of", sum(len(x)
+                                   for x in chip.varname_to_bits.values()))
         return chip
 
     # ========== Computing functions ==========
@@ -113,4 +106,4 @@ class Proc:
 if __name__ == "__main__":
     processor = Proc()
     chip = processor.build()
-    chip.compile_netlist('__build__/riskv.net')
+    chip.compile_netlist('__build__/riscv.net')

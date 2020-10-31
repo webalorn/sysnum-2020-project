@@ -1,5 +1,9 @@
-from .util import AsmError, bin_add
+from .util import AsmError, bin_add, hi_lo
 from .riscasm import newop, multiop, format_bits
+
+
+MUL_ENABLED = False
+DIV_ENABLED = False
 
 
 def int2b(val, size):
@@ -58,10 +62,9 @@ def op_srli(rd, rs1, imm):
     return ['0010011', rd, '101', rs1, imm, '0000000']
 
 
-# TODO : not currently supported
-# @newop('SRAI', 'reg', 'reg', 'uint:4')
-# def op_srai(rd, rs1, imm):
-#     return ['0010011', rd, '101', rs1, imm, '0100000']
+@newop('SRAI', 'reg', 'reg', 'uint:5')
+def op_srai(rd, rs1, imm):
+    return ['0010011', rd, '101', rs1, imm, '0100000']
 
 
 @newop('LUI', 'reg', 'bits:20')
@@ -130,23 +133,6 @@ def op_sub(rd, rs1, rs2):
 # @newop('SRA', 'reg', 'reg', 'reg')
 # def op_sra(rd, rs1, rs2):
 #     return ['0110011', rd, '101', rs1, rs2, '0100000']
-
-# ---------- Register-Register M extension
-
-
-@newop('MUL', 'reg', 'reg', 'reg')
-def op_mul(rd, rs1, rs2):
-    return ['0110011', rd, '000', rs1, rs2, '0000001']
-
-
-@newop('DIV', 'reg', 'reg', 'reg')
-def op_div(rd, rs1, rs2):
-    return ['0110011', rd, '100', rs1, rs2, '0000001']
-
-
-@newop('REM', 'reg', 'reg', 'reg')
-def op_rem(rd, rs1, rs2):
-    return ['0110011', rd, '110', rs1, rs2, '0000001']
 
 # ---------- Control Transfer Instructions
 
@@ -306,9 +292,7 @@ def op_nop():
 @multiop('LI', 2, 'reg', 'bits:32')
 def op_load_li(rd, imm):
     """ Load immediate """
-    imm1, imm2 = imm[:20], imm[20:]
-    if imm2[0] == '1':
-        imm1 = bin_add(imm1, '1', 20)
+    imm1, imm2 = hi_lo(imm)
     return (op_lui(rd, imm1), op_addi(rd, rd, imm2))
 
 # Comparisons
@@ -349,25 +333,91 @@ def op_jal_j(imm):
 def op_ret():
     return op_jalr('00000', '00001', int2b('0', 12))
 
+
+# TODO : 2 ops for long addr ?
 @newop('CALL', 'reg', 'int:20')
 def op_call(reg_ret, addr):
     return op_jal(reg_ret, addr)
 
 
+@newop('TAIL', 'int:20')
+def op_tail(addr):
+    return op_jal('00000', addr)
+
+
+@newop('JR', 'reg')
+def op_jr(rs1):
+    return op_jalr('00000', rs1, '0' * 12)
+
+# Branch
+
+
+@newop('BEQZ', 'reg', 'int:12')
+def op_beqz(src1, imm):
+    return op_beq(src1, '00000', imm)
+
+
+@newop('BNEZ', 'reg', 'int:12')
+def op_bnez(src1, imm):
+    return op_bne(src1, '00000', imm)
+
+
+@newop('BLTZ', 'reg', 'int:12')
+def op_bltz(src1, imm):
+    return op_blt(src1, '00000', imm)
+
+
+@newop('BLTUZ', 'reg', 'int:12')
+def op_bltuz(src1, imm):
+    return op_bltu(src1, '00000', imm)
+
+
+@newop('BGEZ', 'reg', 'int:12')
+def op_bgez(src1, imm):
+    return op_bge(src1, '00000', imm)
+
+
+@newop('BGEUZ', 'reg', 'int:12')
+def op_bgeuz(src1, imm):
+    return op_bgeu(src1, '00000', imm)
+
+
+@newop('BGTZ', 'reg', 'int:12')
+def op_bgtz(src1, imm):
+    return op_bgt(src1, '00000', imm)
+
+
+@newop('BGTUZ', 'reg', 'int:12')
+def op_bgtuz(src1, imm):
+    return op_bgtu(src1, '00000', imm)
+
+
+@newop('BLEZ', 'reg', 'int:12')
+def op_blez(src1, imm):
+    return op_ble(src1, '00000', imm)
+
+
+@newop('BLEUZ', 'reg', 'int:12')
+def op_bleuz(src1, imm):
+    return op_bleu(src1, '00000', imm)
+
+
 # ========== M : Integer Multiplication / Division 2.0 ==========
 
+if MUL_ENABLED:
+    @newop('MUL', 'reg', 'reg', 'reg')
+    def op_mul(rd, rs1, rs2):
+        return ['0110011', rd, '000', rs1, rs2, '0000001']
 
-# @newop('MUL', 'reg', 'reg', 'reg')
-# def op_mul(rd, dest, left, right):
-#     return ['0110011', rd, '000', left, right, '0000001']
+    @newop('MULHU', 'reg', 'reg', 'reg')
+    def op_mulhu(rd, rs1, rs2):
+        return ['0110011', rd, '011', rs1, rs2, '0000001']
 
-# TODO
+if DIV_ENABLED:
+    @newop('DIV', 'reg', 'reg', 'reg')
+    def op_div(rd, rs1, rs2):
+        return ['0110011', rd, '100', rs1, rs2, '0000001']
 
-
-# ========== Custom ==========
-
-# ---------- Pseudo-instructions
-
-# @newop('RIN', 'rb', 'rb', 'int:??')
-# def op_ret(dest, addr, offset):
-#     return
+    @newop('REM', 'reg', 'reg', 'reg')
+    def op_rem(rd, rs1, rs2):
+        return ['0110011', rd, '110', rs1, rs2, '0000001']

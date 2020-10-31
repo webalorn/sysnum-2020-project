@@ -53,16 +53,6 @@ def simple_adder(a: 'l', b: 'l', r: 'bit' = 0):
     return concat(n[::-1]), r2
 
 
-# @hdl_function
-# def increment(n: 'bus') -> (Bit, Bit):
-#     """ Returns (n+1, remainder) """
-#     n = bit(n)
-#     if len(n) == 0:
-#         return bit(), 1
-#     else:
-#         m, r = increment(n[1:])
-#         m = (n[0] ^ r) + m
-#         return m, (r & n[0])
 def increment(n: 'bus'):
     return simple_adder(n, bit(1, size=len(n)))
 

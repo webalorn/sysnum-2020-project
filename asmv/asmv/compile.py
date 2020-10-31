@@ -35,7 +35,11 @@ def main():
         asm = RiscAsm(content, args.rom)
     except AsmError as e:
         print(f"\033[91m[ASM ERROR] {str(e)}\033[0m")
-        return -1
+        return - 1
+
+    if asm.virtual_labels:
+        print("[WARNING] Created virtual labels:",
+              ', '.join(asm.virtual_labels))
 
     if args.bin:
         with open(args.output, 'wb') as outfile:

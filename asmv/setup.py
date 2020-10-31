@@ -6,7 +6,7 @@ import importlib.util
 setuptools.setup(
     name="asmv",
     version="0.0.1",
-    description="I just wanted to create a custom ASM for my risk-v like proc plz don't hurt me it is not this bad, is it ?",
+    description="I just wanted to create a custom ASM for my risc-v like proc plz don't hurt me it is not this bad, is it ?",
     packages=setuptools.find_packages(),
     entry_points={
                 'console_scripts': [

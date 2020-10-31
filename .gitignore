@@ -6,6 +6,8 @@
 *.dSYM
 .vscode/*
 *.egg-info/
+*.vhdd
+.vscode/
 
 netsim/toplevel
 netsim/run

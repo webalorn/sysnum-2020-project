@@ -64,13 +64,10 @@ def simple_divide(dividend: 'l', divisor: 'l') -> (Bit, Bit):
         dividend = mux(divisor[1], dividend_up, dividend)
         quotient = mux(divisor[1], quotient_up, bit(0, size=len(quotient_up)))
 
-        # print("Division step", step)
         sub = hdl.simple_adder(
             dividend,
             hdl.negative_of_int(divisor)
         )[0]
-        # sub = simple_neg(dividend, divisor)[0]
-        # print('added')
         return (mux(sub[0], quotient + '1', quotient + '0'),
                 mux(sub[0], sub, dividend))
 
@@ -78,3 +75,21 @@ def simple_divide(dividend: 'l', divisor: 'l') -> (Bit, Bit):
     remain = remain[1:]
     remain = mux(sign, remain, hdl.negative_of_int(remain))
     return quotient[1:], remain
+
+# ========== Blocks ==========
+
+
+class MultiAdder:
+    def __init__(self, size, adder_function):
+        self.input1 = MultiControl()
+        self.input2 = MultiControl()
+        self.result = adder_function(
+            virtual(size, self.input1), virtual(size, self.input2))
+
+    def get(self, i):
+        return self.result[i]
+
+    def add(self, control, left, right):
+        self.input1.add(control, left)
+        self.input2.add(control, right)
+        return self.result

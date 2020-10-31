@@ -5,6 +5,7 @@
 #include <vector>
 #include <map>
 #include <iostream>
+#include <algorithm>
 
 #include "../util/exceptions.hpp"
 
@@ -67,6 +68,7 @@ public:
 	void set_size_min(uint);
 	inline Memory submem(uint, uint);
 	inline uint toInt(uint pos, uint size);
+	inline void fromInt(uint val);
 };
 
 std::ostream& operator<<(std::ostream&, const Memory&);
@@ -198,6 +200,12 @@ inline uint Memory::toInt(uint pos, uint size) {
 		size -= 1;
 	}
 	return v;
+}
+
+inline void Memory::fromInt(uint val) {
+	for (int i = (int)this->size() - 1; i >= 0; i--, val /= 2) {
+		(*this)[i] = val & 1;
+	}
 }
 
 #endif // NETLIST_HPP

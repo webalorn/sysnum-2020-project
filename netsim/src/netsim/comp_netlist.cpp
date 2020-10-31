@@ -9,6 +9,8 @@
 	Netlist generator
 */
 
+std::map<std::string, uint> idOpOfVar;
+
 std::string reprOfArg(Arg& arg, int i, std::map<std::string, uint>& memPtOfVar) {
 	if (arg.type == ArgBool) {
 		return arg.boolValue[i] ? "1" : "0";
@@ -104,6 +106,41 @@ void genNetlistCode(SoftNetlist& net, std::ostream& os) {
 			var.args.pop_back(); var.args.pop_back(); var.args.pop_back();
 		}
 	}
+	allvars.insert(allvars.end(), ramVars.begin(), ramVars.end());
+
+	/* Optimize operations */
+	std::map<std::string, uint> nbDependOf;
+	int iOpCur = 0;
+	for (Variable& var : allvars) {
+		nbDependOf[var.name] = 0;
+		idOpOfVar[var.name] = iOpCur++;
+	}
+	for (Variable& var : allvars) {
+		for (Arg& arg : var.args) {
+			if (arg.type == ArgVariable) {
+				nbDependOf[arg.repr] += 1;
+			}
+		}
+	}
+	// Optimize concats
+	for (Variable& var : allvars) {
+		if (var.operation == OpConcat) {
+			std::vector<Arg> concatArgs;
+			for (Arg& arg : var.args) {
+				if (arg.type == ArgVariable && allvars[idOpOfVar[arg.repr]].operation == OpConcat) {
+					nbDependOf[arg.repr] -= 1;
+					for (Arg& arg2 : allvars[idOpOfVar[arg.repr]].args) {
+						concatArgs.push_back(arg2);
+					}
+				}
+				else {
+					concatArgs.push_back(arg);
+				}
+			}
+			var.args = concatArgs;
+		}
+	}
+
 
 	/* Create the init function */
 
@@ -137,7 +174,6 @@ void genNetlistCode(SoftNetlist& net, std::ostream& os) {
 	/* Create the run function */
 
 	// Initialize the operation vector
-	allvars.insert(allvars.end(), ramVars.begin(), ramVars.end());
 
 	os << "void NetsimCompRunner::cycle(uint nbCycles) {\n";
 	os << "uint addr;\n";
@@ -148,21 +184,13 @@ void genNetlistCode(SoftNetlist& net, std::ostream& os) {
 	os << "Memory zerobits(100, 0);\n";
 	for (Variable& var : allvars) {
 		if (var.operation == OpConst && var.args[0].type == ArgBool) {
-			// for (uint i = 0; i < var.size; i++) {
-			// 	os << "state[" << (var.pos + i) << "] = " << REPR(var.args[0], i) << ";\n";
-			// }
 			copyArg(os, memPtOfVar, var.pos, var.args[0], var.size);
-			// os << "std::copy(state.begin(), state.begin() + " << var.size << ", state.begin() + " << var.pos << ");";
 		}
 	}
 
 	// Main loop
-	os << "\nfor (uint iCycle = 0; iCycle < nbCycles; iCycle++) {\n";
-	// os << "std::cerr << \"\\nCycle \" << iCycle << \"\\n\";\n";
-	// os << "std::cerr << state << \"\\n\";\n";
-
+	os << "\nfor (uint iCycle = 0; nbCycles == 0 || iCycle < nbCycles; iCycle++) {\n";
 	os << "onCycleBegin(iCycle);\n";
-	// os << "std::cerr << state << \"\\n\";\n";
 	os << "std::copy(registers.begin(), registers.end(), state.begin());\n";
 
 
@@ -188,21 +216,17 @@ void genNetlistCode(SoftNetlist& net, std::ostream& os) {
 			memPtOfVar[var.name] = blockPt;
 		}
 		else if (var.operation == OpConst && var.args[0].type != ArgBool) {
-			// for (uint i = 0; i < var.size; i++) {
-			// 	os << "state[" << (var.pos + i) << "] = " << REPR(var.args[0], i) << ";\n";
-			// }
 			copyArg(os, memPtOfVar, var.pos, var.args[0], var.size);
 		}
 		else if (var.operation == OpConcat) {
-			uint size1 = sizeOfArg(var.args[0], idOfVar, allvars);
-			// for (uint i = 0; i < size1; i++) {
-			// 	os << "state[" << (var.pos + i) << "] = " << REPR(var.args[0], i) << ";\n";
-			// }
-			copyArg(os, memPtOfVar, var.pos, var.args[0], size1);
-			// for (uint i = size1; i < var.size; i++) {
-			// 	os << "state[" << (var.pos + i) << "] = " << REPR(var.args[1], i - size1) << ";\n";
-			// }
-			copyArg(os, memPtOfVar, var.pos, var.args[1], var.size - size1, size1);
+			if (nbDependOf[var.name] > 0) {
+				uint sizePrev = 0;
+				for (Arg& arg : var.args) {
+					uint sizeArg = sizeOfArg(arg, idOfVar, allvars);
+					copyArg(os, memPtOfVar, var.pos, arg, sizeArg, sizePrev);
+					sizePrev += sizeArg;
+				}
+			}
 		}
 		else if (var.operation & FLAG_BIN_OPS) {
 			os << "state[" << var.pos << "] = ";
@@ -225,14 +249,8 @@ void genNetlistCode(SoftNetlist& net, std::ostream& os) {
 		}
 		else if (var.operation == OpMux) {
 			os << "if (" << REPR(var.args[0], 0) << ") {\n";
-			// for (uint i = 0; i < var.size; i++) {
-			// 	os << "    state[" << (var.pos + i) << "] = " << REPR(var.args[2], i) << ";\n";
-			// }
 			copyArg(os, memPtOfVar, var.pos, var.args[2], var.size);
 			os << "} else {\n";
-			// for (uint i = 0; i < var.size; i++) {
-			// 	os << "    state[" << (var.pos + i) << "] = " << REPR(var.args[1], i) << ";\n";
-			// }
 			copyArg(os, memPtOfVar, var.pos, var.args[1], var.size);
 			os << "}\n";
 		}
@@ -249,9 +267,6 @@ void genNetlistCode(SoftNetlist& net, std::ostream& os) {
 			}
 
 			if (var.operation == OpRam || var.operation == OpRom) {
-				// for (uint i = 0; i < var.args[2].intValue; i++) {
-				// 	os << "state[" << (var.pos + i) << "] = ram[" << blockStart + i << " + addr];\n";
-				// }
 				os << "std::copy(ram.begin() + addr + " << blockStart << ", ram.begin() + addr +"
 					<< blockStart + var.args[2].intValue << ", state.begin() + "
 					<< var.pos << ");\n";

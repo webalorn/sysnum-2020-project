@@ -1,5 +1,5 @@
 CXX=g++ -std=c++17
-CPPFLAGS=-O2 -Wall -Wextra # TODO : -O2
+CPPFLAGS=-O2 -Wall -Wextra
 LDFLAGS=
 LDLIBS=
 SRC_DIR=src
@@ -7,7 +7,7 @@ OBJ_DIR=obj
 
 # SRCS=src/toplevel.cpp src/io.cpp
 # SRCS=$(wildcard $(SRC_DIR)/*.cpp)
-SRCS=$(shell find src -type f -name '*.cpp' ! -name 'toplevel.cpp' ! -name 'run.cpp' ! -name 'compile.cpp'  ! -name 'runproc.cpp')
+SRCS=$(shell find src -type f -name '*.cpp' ! -name 'toplevel.cpp' ! -name 'run*.cpp' ! -name 'compile.cpp')
 TARGET_SRCS=src/toplevel.cpp src/run.cpp src/compile.cpp src/runproc.cpp __build__/proc.o
 OBJS=$(subst .cpp,.o,$(SRCS))
 TARGET_OBJS=$(subst .cpp,.o,$(TARGET_SRCS))

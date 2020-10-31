@@ -6,11 +6,18 @@ from memory import RamController, RomController, MemoryController, RegisterContr
 from decoder import RiscDecoder
 import arith
 
+MUL_ENABLED = False
+DIV_ENABLED = False
+
+M_EXT_ENABLED = MUL_ENABLED or DIV_ENABLED
+
 
 class OperationController:
     def __init__(self, proc):
         self.proc = proc
         self.word_size = proc.WORD
+
+        self.m_adder = arith.MultiAdder(self.word_size, proc.adder)
 
     def get_encodings(self, op):
         operand1 = op[-12:-7]  # rd, first imm
@@ -90,8 +97,8 @@ class OperationController:
         self._decode(mapping, funct3, control, [rd, rs1, imm])
 
     def op_addi(self, control, rd, rs1, imm):
-        val = self.proc.adder(
-            self.reg_rs1,
+        val = self.m_adder.add(
+            control, self.reg_rs1,
             hdl.sign_extend(self.word_size, imm)
         )[0]
         self.write(0, control, rd, val)
@@ -123,7 +130,11 @@ class OperationController:
         self.write(0, control, rd, result)
 
     def op_srli_srai(self, control, rd, rs1, imm):
-        result = arith.right_shift(self.reg_rs1, imm[-5:])
+        n = self.reg_rs1
+        c_invert = imm[1] & n[0]
+        n = mux(c_invert, n, hdl.negative_of_int(n))
+        result = arith.right_shift(n, imm[-5:])
+        result = mux(c_invert, result, hdl.negative_of_int(result))
         self.write(0, control, rd, result)
         # TODO : SRAI
 
@@ -150,7 +161,7 @@ class OperationController:
     def op_add_sub(self, control, rd, rs1, rs2, funct7):
         val2 = self.reg_rs2
         val2 = mux(funct7[1], val2, hdl.negative_of_int(val2))
-        val = self.proc.adder(self.reg_rs1, val2)[0]
+        val = self.m_adder.add(control, self.reg_rs1, val2)[0]
         self.write(0, control, rd, val)
 
     def op_slt(self, control, rd, rs1, rs2, func7):
@@ -184,18 +195,41 @@ class OperationController:
     # ---------- M standard extension for integer multiplication / division
 
     def op_m_ext(self, control, rd, funct3, rs1, rs2):
-        mapping = [
-            ('000', self.op_mul),
-            ('100', self.op_div),
-            ('110', self.op_rem),
-        ]
-        print("M module")
-        # self.m_ext_div = arith.simple_divide(self.reg_rs1, self.reg_rs2)
-        # self._decode(mapping, funct3, control, [rd, rs1, rs2])
-        print("M finised")
+        mapping = []
+        if MUL_ENABLED:
+            mapping.append(('000', self.op_mul))
+            mapping.append(('011', self.op_mulhu))
+        if DIV_ENABLED:
+            mapping.append(('100', self.op_div))
+            mapping.append(('110', self.op_rem))
+
+        if MUL_ENABLED:  # Only works for MUL and MULHU
+            # TODO : VS mux
+            inv1 = self.reg_rs1[0] & (~funct3[1])
+            inv2 = self.reg_rs2[0] & (~funct3[2])
+
+            self.mul_sign = inv1 & inv2
+            v1 = hdl.extend(64, mux(inv1, self.reg_rs1,
+                                    hdl.negative_of_int(self.reg_rs1)))
+            v2 = hdl.extend(64, mux(inv2, self.reg_rs2,
+                                    hdl.negative_of_int(self.reg_rs2)))
+            # v2 = hdl.extend(64, self.reg_rs2, self.reg_rs2[0] & (~funct3[2]))
+            self.m_ext_mul = hdl.simple_product(v1, v2)
+
+        if DIV_ENABLED:
+            self.m_ext_div = arith.simple_divide(self.reg_rs1, self.reg_rs2)
+        if M_EXT_ENABLED:
+            self._decode(mapping, funct3, control, [rd, rs1, rs2])
 
     def op_mul(self, control, rd, rs1, rs2):
-        val = hdl.simple_product(self.reg_rs1, self.reg_rs2)
+        # val=hdl.simple_product(self.reg_rs1, self.reg_rs2)
+        val = self.m_ext_mul[-32:]
+        val = mux(self.mul_sign, val, hdl.negative_of_int(val))
+        self.write(0, control, rd, val)
+
+    def op_mulhu(self, control, rd, rs1, rs2):
+        # val=hdl.simple_product(self.reg_rs1, self.reg_rs2)
+        val = self.m_ext_mul[:32]
         self.write(0, control, rd, val)
 
     def op_div(self, control, rd, rs1, rs2):
@@ -211,8 +245,8 @@ class OperationController:
         self.write(0, control, rd, result)
 
     def op_auipc(self, control, rd, imm):
-        result = self.proc.adder(
-            self.proc.reg_pc,
+        result = self.m_adder.add(
+            control, self.proc.reg_pc,
             imm + bit(0, size=12)
         )[0]
         self.write(0, control, rd, result)
@@ -222,14 +256,14 @@ class OperationController:
     def op_jal(self, control, rd, offset):
         offset = hdl.sign_extend(self.word_size, offset)
         self.write(0, control, rd, self.proc.next_intruction_addr)
-        jump_addr = self.proc.adder(self.proc.reg_pc, offset)[0]
+        jump_addr = self.m_adder.add(control, self.proc.reg_pc, offset)[0]
         self.proc.reg_pc.add(control, jump_addr)
 
     def op_jalr(self, control, rd, funct3, rs1_target, offset):
         self.write(0, control, rd, self.proc.next_intruction_addr)
 
         offset = hdl.sign_extend(self.word_size, offset)
-        jump_addr = self.proc.adder(self.reg_rs1, offset)[0]
+        jump_addr = self.m_adder.add(control, self.reg_rs1, offset)[0]
         self.proc.reg_pc.add(control, jump_addr)
 
     # Conditional branch
@@ -244,6 +278,7 @@ class OperationController:
         r = r ^ funct3[2]  # Invert if funct3[2] == 1
 
         offset = hdl.sign_extend(self.word_size, offset1 + offset2)
+        # Don't use m_adder 2nd time
         jump_addr = self.proc.adder(self.proc.reg_pc, offset)[0]
         self.proc.reg_pc.add(control & r, jump_addr)
 
@@ -251,16 +286,20 @@ class OperationController:
 
     def op_load(self, control, rd, width, rs1, offset):
         # Implements LW, LH, LHU, LB, LBU
-        addr = self.proc.adder(
-            self.reg_rs1,
+        addr = self.m_adder.add(
+            control, self.reg_rs1,
             hdl.sign_extend(self.word_size, offset)
         )[0]
         result = self.proc.memory.read_at(control, addr)
         # First bit is 1 if unsigned
-        r_16bits = hdl.extend(self.word_size, result[-16:],
-                              (~width[0]) & result[-16])
-        r_8bits = hdl.extend(self.word_size, result[-8:],
-                             (~width[0]) & result[-8])
+        # r_16bits = hdl.extend(self.word_size, result[-16:],
+        #                       (~width[0]) & result[-16])
+        # r_8bits = hdl.extend(self.word_size, result[-8:],
+        #                      (~width[0]) & result[-8])
+        r_16bits = hdl.extend(self.word_size, result[:16],
+                              (~width[0]) & result[0])
+        r_8bits = hdl.extend(self.word_size, result[:8],
+                             (~width[0]) & result[0])
         result = mux(width[1], mux(
             width[2], r_8bits, r_16bits
         ), result)  # LW = 010, LH[U] = *01, LB[U] = *00
@@ -269,8 +308,8 @@ class OperationController:
 
     def op_store(self, control, offset1, width, rs1_dest, rs2_src, offset2):
         # Implements SW, SH, SB
-        addr = self.proc.adder(
-            self.reg_rs1,
+        addr = self.m_adder.add(
+            control, self.reg_rs1,
             hdl.sign_extend(self.word_size, offset1 + offset2)
         )[0]
         data_32 = self.reg_rs2  # SW : 010
@@ -279,6 +318,8 @@ class OperationController:
         prev = self.proc.memory.read_at(control & (~width[1]), addr)
         data_16 = data_32[-16:] + prev[16:]  # SH : 001
         data_8 = data_32[-8:] + prev[8:]  # SB : 000
+        # data_16 = prev[:16] + data_32[-16:]  # SH : 001
+        # data_8 = prev[:24] + data_32[-8:]  # SB : 000
 
         data = mux(width[1], mux(width[2], data_8, data_16), data_32)
 
