@@ -61,6 +61,7 @@ ASM_HEADER = """
     j main # Set 'main' as the starting label
 """
 ASM_HEADER_ROM = """
+exit:
 __asm_init:
     addi a0, zero, 4
     j _Znwj # Allocate memory for the mem pt

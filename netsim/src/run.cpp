@@ -35,19 +35,16 @@ public:
 	}
 
 	virtual void onCycleBegin(uint) {
-		// readBitsTo(memoryStream, inputBuffer, inputBuffer.size());
-		// setInputs(inputBuffer);
+		readBitsTo(memoryStream, inputBuffer, inputBuffer.size());
+		setInputs(inputBuffer);
 	}
 
 	virtual void onCycleEnd(uint) {
-		// std::vector<Memory> outVals = this->getOutputsSplit();
-		// for (const Memory& m : outVals) {
-		// 	std::cout << m << " ";
-		// }
-		// std::cout << "\n";
-		// if (outVals[0][0]) { // First output is the shutdown signal
-		// 	throw StopCycling();
-		// }
+		std::vector<Memory> outVals = this->getOutputsSplit();
+		for (const Memory& m : outVals) {
+			std::cout << m << " ";
+		}
+		std::cout << "\n";
 	}
 
 	void start() {
@@ -82,11 +79,4 @@ int main(int argc, char* argv[]) {
 		net.romFromStream(romStream);
 	}
 	net.start();
-
-	std::cout << "\n\n====== FINAL OUTPUT\n";
-	std::vector<Memory> outVals = net.getOutputsSplit();
-	for (const Memory& m : outVals) {
-		std::cout << m << " ";
-	}
-	std::cout << "\n";
 }

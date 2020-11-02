@@ -17,6 +17,7 @@ public:
 };
 
 class InputDevice {
+protected:
 	ProcInQueue inQueue;
 public:
 	virtual void run() = 0;
@@ -32,13 +33,26 @@ public:
 /* Some devides */
 
 class ConsoleOutDevice : public OutputDevice {
+protected:
+	uint flushCounter;
+	bool hasChar;
 public:
+	ConsoleOutDevice();
 	virtual void send(uint);
 };
 
 class ClockDevice : public InputDevice {
+protected:
+	time_t lastTick;
 public:
 	virtual void run();
+	ClockDevice();
+};
+
+class InitTimeDevice : public InputDevice {
+public:
+	virtual void run();
+	InitTimeDevice();
 };
 
 #endif // PERIPH_HPP

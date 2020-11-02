@@ -13,11 +13,11 @@ protected:
 	std::vector<Memory> inputVals;
 
 public:
-	void init();
-	void cycle(uint n);
+	virtual void init();
+	virtual void cycle(uint n);
 
-	NetsimCompRunner(uint maxCycles, VirtualDrive& drive);
-	inline void romFromStream(std::ifstream& romStream);
+	NetsimCompRunner();
+	void romFromStream(std::ifstream& romStream);
 	virtual void onCycleBegin(uint);
 	virtual void onCycleEnd(uint);
 	void start();

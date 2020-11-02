@@ -11,8 +11,8 @@ protected:
 
 public:
 	vector(uint size = 0, T initWith = T()) : _reserved(2), _size(0) {
-		// tab = new T[2];
-		tab = _new<T>(2);
+		tab = new T[2];
+		// tab = _new<T>(2);
 		this->resize(size, initWith);
 		this->reserve(2);
 	}
@@ -35,8 +35,8 @@ public:
 			while (_reserved < minreserve) {
 				_reserved = _reserved + _reserved;
 			}
-			// T* newtab = new T[_reserved];
-			T* newtab = _new<T>(_reserved);
+			T* newtab = new T[_reserved];
+			// T* newtab = _new<T>(_reserved);
 			for (uint i = 0; i < _size; i++) {
 				newtab[i] = tab[i];
 			}

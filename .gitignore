@@ -13,3 +13,4 @@ netsim/toplevel
 netsim/run
 netsim/compile
 netsim/runproc
+netsim/runclock

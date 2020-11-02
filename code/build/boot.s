@@ -1,7 +1,7 @@
 	.text
 	.file	"boot.cpp"
 	.globl	_Z13print_messagePKDi   # -- Begin function _Z13print_messagePKDi
-	.p2align	1
+	.p2align	2
 	.type	_Z13print_messagePKDi,@function
 _Z13print_messagePKDi:                  # @_Z13print_messagePKDi
 # %bb.0:
@@ -21,7 +21,7 @@ _Z13print_messagePKDi:                  # @_Z13print_messagePKDi
 	.size	_Z13print_messagePKDi, .Lfunc_end0-_Z13print_messagePKDi
                                         # -- End function
 	.globl	main                    # -- Begin function main
-	.p2align	1
+	.p2align	2
 	.type	main,@function
 main:                                   # @main
 # %bb.0:

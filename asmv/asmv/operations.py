@@ -7,7 +7,7 @@ DIV_ENABLED = False
 
 
 def int2b(val, size):
-    return format_bits(str(val), size, False, None)
+    return format_bits(str(val), size, 'bits', None)
 
 
 def uint2b(val, size):

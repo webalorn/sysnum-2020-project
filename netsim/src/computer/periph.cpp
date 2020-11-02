@@ -1,5 +1,6 @@
 #include "periph.hpp"
 #include <iostream>
+#include <ctime>
 
 ProcInQueue::ProcInQueue(int maxSizeVal) {
 	maxSize = maxSizeVal;
@@ -33,36 +34,68 @@ uint InputDevice::getSignal() {
 
 /* Some devices */
 
-std::string unicodeCharToString(uint charCode) {
-	std::string out;
+inline void printUnicode(uint charCode) {
 	if (charCode <= 0x7f) {
-		out.append(1, (char)(charCode));
+		std::cout << (char)(charCode);
 	}
 	else if (charCode <= 0x7ff) {
-		out.append(1, (char)(0xc0 | ((charCode >> 6) & 0x1f)));
-		out.append(1, (char)(0x80 | (charCode & 0x3f)));
+		std::cout << (char)(0xc0 | ((charCode >> 6) & 0x1f));
+		std::cout << (char)(0x80 | (charCode & 0x3f));
 	}
 	else if (charCode <= 0xffff) {
-		out.append(1, (char)(0xe0 | ((charCode >> 12) & 0x0f)));
-		out.append(1, (char)(0x80 | ((charCode >> 6) & 0x3f)));
-		out.append(1, (char)(0x80 | (charCode & 0x3f)));
+		std::cout << (char)(0xe0 | ((charCode >> 12) & 0x0f));
+		std::cout << (char)(0x80 | ((charCode >> 6) & 0x3f));
+		std::cout << (char)(0x80 | (charCode & 0x3f));
 	}
 	else {
-		out.append(1, (char)(0xf0 | ((charCode >> 18) & 0x07)));
-		out.append(1, (char)(0x80 | ((charCode >> 12) & 0x3f)));
-		out.append(1, (char)(0x80 | ((charCode >> 6) & 0x3f)));
-		out.append(1, (char)(0x80 | (charCode & 0x3f)));
+		std::cout << (char)(0xf0 | ((charCode >> 18) & 0x07));
+		std::cout << (char)(0x80 | ((charCode >> 12) & 0x3f));
+		std::cout << (char)(0x80 | ((charCode >> 6) & 0x3f));
+		std::cout << (char)(0x80 | (charCode & 0x3f));
 	}
-	return out;
+}
+
+ConsoleOutDevice::ConsoleOutDevice() {
+	hasChar = false;
+	flushCounter = true;
 }
 
 void ConsoleOutDevice::send(uint value) {
 	if (value) {
-		// std::cout << unicodeCharToString(value) << " (" << value << ")\n";
-		std::cout << unicodeCharToString(value);
+		printUnicode(value);
+		// std::cout << " (" << value << ")\n";
+		hasChar = true;
+	}
+	if (hasChar) {
+		flushCounter += 1;
+		if (flushCounter > 10000) {
+			std::cout << std::flush;
+			flushCounter = 0;
+		}
 	}
 }
 
-void ClockDevice::run() {
+// Clock
 
+ClockDevice::ClockDevice() {
+	lastTick = std::time(nullptr);
 }
+
+void ClockDevice::run() {
+	if (std::time(nullptr) > lastTick) {
+		inQueue.push(1);
+		lastTick++;
+	}
+}
+
+// Init time
+
+
+InitTimeDevice::InitTimeDevice() {
+	std::time_t t = std::time(0);
+	std::tm* now = std::localtime(&t);
+	uint today_secs = now->tm_sec + 60 * (now->tm_min + 60 * now->tm_hour);
+	inQueue.push(today_secs);
+}
+
+void InitTimeDevice::run() {}

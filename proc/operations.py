@@ -6,11 +6,6 @@ from memory import RamController, RomController, MemoryController, RegisterContr
 from decoder import RiscDecoder
 import arith
 
-MUL_ENABLED = False
-DIV_ENABLED = False
-
-M_EXT_ENABLED = MUL_ENABLED or DIV_ENABLED
-
 
 class OperationController:
     def __init__(self, proc):
@@ -196,14 +191,14 @@ class OperationController:
 
     def op_m_ext(self, control, rd, funct3, rs1, rs2):
         mapping = []
-        if MUL_ENABLED:
+        if self.proc.MUL_ENABLED:
             mapping.append(('000', self.op_mul))
             mapping.append(('011', self.op_mulhu))
-        if DIV_ENABLED:
+        if self.proc.DIV_ENABLED:
             mapping.append(('100', self.op_div))
             mapping.append(('110', self.op_rem))
 
-        if MUL_ENABLED:  # Only works for MUL and MULHU
+        if self.proc.MUL_ENABLED:  # Only works for MUL and MULHU
             # TODO : VS mux
             inv1 = self.reg_rs1[0] & (~funct3[1])
             inv2 = self.reg_rs2[0] & (~funct3[2])
@@ -216,9 +211,9 @@ class OperationController:
             # v2 = hdl.extend(64, self.reg_rs2, self.reg_rs2[0] & (~funct3[2]))
             self.m_ext_mul = hdl.simple_product(v1, v2)
 
-        if DIV_ENABLED:
+        if self.proc.DIV_ENABLED:
             self.m_ext_div = arith.simple_divide(self.reg_rs1, self.reg_rs2)
-        if M_EXT_ENABLED:
+        if self.proc.M_EXT_ENABLED:
             self._decode(mapping, funct3, control, [rd, rs1, rs2])
 
     def op_mul(self, control, rd, rs1, rs2):

@@ -1,21 +1,24 @@
 #if !defined(SLIB_HPP)
 #define SLIB_HPP
 
-// #define MUL_EXT true
-// #define DIV_EXT true
-// #define MUL_DIV_EXT true
+#include "clib.hpp"
+
+// #define MUL_EXT 1
+// #define DIV_EXT 1
+
+#ifdef MUL_EXT
+#ifdef DIV_EXT
+#define MUL_DIV_EXT 1
+#endif
+#endif
 
 #define W_CONSOLE *(out_addr + 1)
 #define HDD_ADDR *(out_addr + 2)
 #define R_HDD *(in_addr + 1)
 
-typedef unsigned int uint;
-
 volatile uint* const in_addr = (uint*)0b10000000000000000000000000000000;
 volatile uint* const out_addr = (uint*)0b10100000000000000000000000000000;
 
-
-extern "C" void exit(int v);
 
 // inline void shutdown() {
 // 	*out_addr = 1;
@@ -34,32 +37,26 @@ inline uint strlen(const char* s) {
 	return l;
 }
 
-/* Arithmetic */
+/*
+	Memory managment
+*/
 
-inline uint mul(uint a, uint b) {
-#ifdef MUL_EXT
-	return a * b;
-#else
-	uint r = 0;
-	while (b) {
-		if (b & 1) {
-			r += a;
-		}
-		b = b >> 1;
-		a = a << 1;
-	}
-	return r;
-#endif
+
+extern "C" {
+	uint __asm__freept = 0; // Initilized by the assembly code
+	void* _Znwj(int size);
+	void* _Znaj(int size);
+	void _ZdaPv(void* pt);
+	void _ZdlPv(void* pt);
 }
-
-/* Memory managment */
 
 #define MAX_BLOCKS 100
 
 uint nbBlocks = 0;
 void** allocPos;
 int* allocSize;
-uint __asm__freept = 0; // Initilized by the assembly code
+// uint __asm__freept = 0;
+
 
 void* malloc(int size) {
 	for (int iBlock = 0; iBlock < nbBlocks; iBlock++) {
@@ -89,13 +86,27 @@ void free(void* pos) {
 	exit(40); // X
 }
 
-template<class T> inline T* _new(int size = 1) {
-	return (T*)malloc(mul(size, sizeof(T)));
+// template<class T> inline T* _new(int size = 1) {
+// 	return (T*)malloc(mul(size, sizeof(T)));
+// }
+
+// template<class T> inline void _del(T* pos) {
+// 	free((void*)pos);
+// }
+
+void* _Znwj(int size) {
+	return malloc(size);
+}
+void* _Znaj(int size) {
+	return malloc(size);
+}
+void _ZdaPv(void* pt) {
+	free(pt);
+}
+void _ZdlPv(void* pt) {
+	free(pt);
 }
 
-template<class T> inline void _del(T* pos) {
-	free((void*)pos);
-}
 
 void initMemManager() {
 	allocPos = (void**)__asm__freept;

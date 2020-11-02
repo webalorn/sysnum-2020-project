@@ -13,7 +13,7 @@ class Proc:
         ("hdd", 32),
     ]
     OUTPUTS = [  # Size must be at most 32
-        ("input_signal", 20),  # Can't be written on
+        ("input_signal", 7),  # Can't be written on
         ("poweroff", 1),  # Index 0
         ("console", 32),
         ("hdd_read_at", 32),
@@ -23,9 +23,13 @@ class Proc:
     ROM_ADDR_SIZE = 26  # The last 16 bits of a word will be used
     NB_REGISTERS = 32
 
+    MUL_ENABLED = False
+    DIV_ENABLED = False
+
     # ========== Build ==========
 
     def __init__(self):
+        self.M_EXT_ENABLED = self.MUL_ENABLED or self.DIV_ENABLED
         self.zero_var = hdl.Assign(0, name='zero')
         self.one_var = hdl.Assign(1, name='one')
 
@@ -78,7 +82,8 @@ class Proc:
         # outputs.append(self.registers.read_reg(bit(11, size=5)))
         # outputs.append(self.registers.read_reg(bit(8, size=5)))
         # outputs.append(self.registers.read_reg(bit(2, size=5)))
-        # outputs.append(self.reg_pc)
+        outputs.append(self.reg_pc)
+        outputs.append(self.registers.read_reg(bit(11, size=5)))
 
         return outputs
 

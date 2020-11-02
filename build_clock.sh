@@ -1,11 +1,9 @@
-# on VM : clang --target=riscv32 -std=c++17 -S clock.cpp -o build/clock.s -O2
-
 mkdir -p proc/__build__ netsim/__build__ && \
-# cd proc && python3 riscv.py && cd .. &&\
-cp proc/__build__/riscv.net netsim/__build__/proc.net && \
+cd proc && python3 riscv_clock.py && cd .. &&\
+cp proc/__build__/riscv_clock.net netsim/__build__/proc_clock.net && \
 asm2rv code/build/clock.s -o code/build/clock.risc --rom && \
-python3 vhdd/vhdd.py new vhdd/drive_clock.vhdd - - && \
-# make -C netsim proc && \
+asm2rv code/build/clock_fast.s -o code/build/clock_fast.risc --rom && \
+make -C netsim clock && \
 printf "\e[32mBuild success [Clock]\e[0m\n"
 
-# start with : netsim/runproc code/build/clock.risc vhdd/drive.vhdd
+# start with : netsim/runclock code/build/clock.risc
