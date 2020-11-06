@@ -5,7 +5,7 @@
 #include "iostream.hpp"
 #include "string.hpp"
 
-uint hdd_cd(uint pos, const char* name) {
+uint hdd_cd(uint pos, const char32_t* name) {
 	uint reqNameSize = strlen(name);
 	uint nbSubs = read_drive(pos + 4);
 	pos += 8;
@@ -36,7 +36,6 @@ public:
 	File(uint pos) {
 		posCur = pos + 8;
 		posEnd = posCur + read_drive(pos + 4); // posCur + size
-		cout << "Size = " << read_drive(pos + 4) << '\n';
 	}
 	inline bool eof() {
 		return posCur >= posEnd;
@@ -70,6 +69,11 @@ public:
 		posCur += offset;
 	}
 };
+
+File& operator>>(File& is, uint& v) {
+	v = is.readWord();
+	return is;
+}
 
 int numberOfBytesInChar(unsigned char val) {
 	if (val < 128) {

@@ -16,10 +16,6 @@ public:
 /* Text output stream */
 
 
-#ifndef DIV_EXT
-const uint digits32[10] = { 1000000000 , 100000000 , 10000000 , 1000000 , 100000 , 10000 , 1000 , 100, 10, 1 };
-#endif
-
 class TextOutStream : public OStream {
 
 #ifdef DIV_EXT
@@ -64,7 +60,7 @@ public:
 		}
 		this->send_digits((uint)n);
 	}
-};
+		};
 
 TextOutStream& operator<<(TextOutStream& os, const char c) {
 	os.send_word((uint)c);
@@ -72,7 +68,7 @@ TextOutStream& operator<<(TextOutStream& os, const char c) {
 	return os;
 }
 
-TextOutStream& operator<<(TextOutStream& os, const char* s) {
+TextOutStream& operator<<(TextOutStream& os, const char32_t* s) {
 	while (*s) {
 		os.send_word((uint)(*s));
 		s++;

@@ -7,17 +7,20 @@
 #include "util/io.hpp"
 #include "netsim/netlist.hpp"
 #include "netsim/comp_netlist_sim.hpp"
+#include "computer/sf_screen.hpp"
 
 class ProcRunner : public NetsimCompRunner {
+	VirtualScreen screen;
 public:
-	ProcRunner(uint maxCycles, VirtualDrive& drive) {
+	ProcRunner(uint maxCycles, VirtualDrive& drive) : screen(100, 100, 5) {
 		nbCycles = maxCycles;
 		this->init();
 
-		outDevices.push_back(new ConsoleOutDevice());
+		outDevices.push_back(new ConsoleOutDevice);
 		outDevices.push_back(new DriveOutput(drive));
+		outDevices.push_back(new ScreenOutput(screen));
 
-		inDevices.push_back(new ClockDevice());
+		inDevices.push_back(new ClockDevice);
 		inDevices.push_back(new DriveInput(drive));
 
 		for (HardVariable& var : inputs) {

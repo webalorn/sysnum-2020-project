@@ -1,5 +1,6 @@
 CXX=g++ -std=c++17
-CPPFLAGS=-O2 -Wall -Wextra
+CPPFLAGS=-g -O2 -Wall -Wextra
+SFML_FLAGS=-lsfml-graphics -lsfml-window -lsfml-system
 LDFLAGS=
 LDLIBS=
 SRC_DIR=src
@@ -7,9 +8,11 @@ OBJ_DIR=obj
 
 # SRCS=src/toplevel.cpp src/io.cpp
 # SRCS=$(wildcard $(SRC_DIR)/*.cpp)
-SRCS=$(shell find src -type f -name '*.cpp' ! -name 'toplevel.cpp' ! -name 'run*.cpp' ! -name 'compile.cpp' ! -name 'comp_netlist_sim.cpp')
+SRCS=$(shell find src -type f -name '*.cpp' ! -name 'toplevel.cpp' ! -name 'run*.cpp' ! -name 'compile.cpp' ! -name 'comp_netlist_sim.cpp' ! -name 'sf_*.cpp')
+SF_SRCS=$(shell find src -type f -name 'sf_*.cpp')
 TARGET_SRCS=src/toplevel.cpp src/run.cpp src/compile.cpp src/runproc.cpp src/runclock.cpp __build__/proc.o src/netsim/comp_netlist_sim.o
 OBJS=$(subst .cpp,.o,$(SRCS))
+SF_OBJS=$(subst .cpp,.o,$(SF_SRCS))
 TARGET_OBJS=$(subst .cpp,.o,$(TARGET_SRCS))
 SIM_OBJ=src/netsim/comp_netlist_sim.o
 
@@ -35,8 +38,8 @@ __build__/%.cpp: __build__/%.net
 __build__/%.o: __build__/%.cpp
 	$(CXX) $(CPPFLAGS) -c -o $@ $<
 
-proc: $(OBJS) $(SIM_OBJ) compile __build__/proc.o src/runproc.o
-	$(CXX) $(LDFLAGS) -o runproc __build__/proc.o $(OBJS) $(SIM_OBJ) src/runproc.o $(LDLIBS)
+proc: $(OBJS) $(SF_OBJS) $(SIM_OBJ) compile __build__/proc.o src/runproc.o
+	$(CXX) $(LDFLAGS) $(SFML_FLAGS) -o runproc __build__/proc.o $(OBJS) $(SIM_OBJ) $(SF_OBJS) src/runproc.o $(LDLIBS)
 
 # Compile Clock processor
 
@@ -46,4 +49,4 @@ clock: $(OBJS) $(SIM_OBJ) compile __build__/proc_clock.o src/runclock.o
 # Other stuff
 
 clean:
-	rm $(OBJS) $(TARGET_OBJS) __build__/proc.cpp
+	rm $(OBJS) $(SF_OBJS) $(TARGET_OBJS) __build__/proc.cpp

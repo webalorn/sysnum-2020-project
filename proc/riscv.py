@@ -17,6 +17,7 @@ class Proc:
         ("poweroff", 1),  # Index 0
         ("console", 32),
         ("hdd_read_at", 32),
+        ("screen", 32),
     ]
     WORD = 32
     RAM_ADDR_SIZE = 26  # The last 16 bits of a word will be used
@@ -51,8 +52,10 @@ class Proc:
         self.op_controller = opctrl.OperationController(self)
 
     def generate(self, *input_args):
-        self.in_vars = {desc[0]: val for desc,
-                        val in zip(self.INPUTS, input_args)}
+        self.in_vars = {
+            desc[0]: val
+            for desc, val in zip(self.INPUTS, input_args)
+        }
         self.memory.input_from(input_args)
 
         # Move instruction pointer and fetch instruction
@@ -66,8 +69,8 @@ class Proc:
         self.reg_pc.add(~self.reg_has_hold, cur_addr)
 
         # Execute instruction
-        self.op_controller.decode_instruction(
-            self.reg_has_hold, self.reg_hold_intruction)
+        self.op_controller.decode_instruction(self.reg_has_hold,
+                                              self.reg_hold_intruction)
 
         # Fetch instruction for next cycle from RAM / ROM / Registers
         self.reg_has_hold.source(~self.memory.used)
@@ -88,15 +91,15 @@ class Proc:
         return outputs
 
     def build(self):
-        chip = hdl.Chip(self.generate,
-                        inputs=[p[1] for p in self.INPUTS],
-                        # outputs=[p[1] for p in self.OUTPUTS],
-                        input_names=[p[0] for p in self.INPUTS],
-                        output_names=[p[0] for p in self.OUTPUTS]
-                        )
+        chip = hdl.Chip(
+            self.generate,
+            inputs=[p[1] for p in self.INPUTS],
+            # outputs=[p[1] for p in self.OUTPUTS],
+            input_names=[p[0] for p in self.INPUTS],
+            output_names=[p[0] for p in self.OUTPUTS])
         print("Used", len(chip.varname_to_bits), "variables")
-        print("Total size of", sum(len(x)
-                                   for x in chip.varname_to_bits.values()))
+        print("Total size of",
+              sum(len(x) for x in chip.varname_to_bits.values()))
         return chip
 
     # ========== Computing functions ==========

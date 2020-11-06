@@ -38,3 +38,12 @@ It must be the second sector on the VHDD. Id: `1`.
 - Type : `0` (32 bits)
 - Size of the file (`n`, on 32 bits). `n` is the number of bytes, but must be a multiple of 4 (because 32-bits aligned).
 - Binary content (`n` bytes)
+
+
+## File formats
+
+### Simple bitmap image (.sbi)
+
+- height
+- width
+- for each pixel (line by line), 4 bytes : `<red>` `<blue>` `<green>` `<alpha>`

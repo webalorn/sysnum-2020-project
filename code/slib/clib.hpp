@@ -8,6 +8,7 @@ typedef unsigned int uint;
 
 extern "C" {
 	void exit(int v);
+	void memcpy(char* dest, const char* src, uint n);
 
 #ifndef MUL_EXT
 	uint __mulsi3(uint a, uint b);
@@ -17,6 +18,16 @@ extern "C" {
 	uint __udivsi3(uint a, uint b);
 	uint __umodsi3(uint a, uint b);
 #endif
+}
+
+
+void memcpy(char* dest, const char* src, uint n) {
+	while (n) {
+		n--;
+		*dest = *src;
+		dest += 1;
+		src += 1;
+	}
 }
 
 

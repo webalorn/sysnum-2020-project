@@ -1,10 +1,12 @@
 # Projet de sysnum
 
-**Note :** *ce projet simule un RISC-V. La plupart des programmes sont donc écris en C++ et compilés vers de l'assembleur par clang, et j'utilise ensuite mon propre programme pour le transformer en code binaire qui sera éxécuté par mon processeur. Il faut cependant diposer d'une installation de `clang` supportant la cible `riscv32` pour générer le code assembleur (ce qui ne semble pas le cas partout, j'ai du utiliser une VM linux pour cela). Ainsi le code assembleur est directement fournis et n'est **pas** généré par les commandes de build. Cependant, il peut très bine être régénéré en utilisant `make -C code`.*
+*Ce projet est disponible sur [github](https://github.com/webalorn/sysnum-2020-project)*
+
+**Note :** *ce projet simule un RISC-V. La plupart des programmes sont donc écris en C++ et compilés vers de l'assembleur par clang, et j'utilise ensuite mon propre programme pour le transformer en code binaire qui sera éxécuté par mon processeur. Il faut cependant diposer d'une installation de `clang` supportant la cible `riscv32` pour générer le code assembleur (ce qui ne semble pas le cas partout, j'ai du utiliser une VM linux pour cela). Ainsi le code assembleur est directement fournis et n'est **pas** généré par les commandes de build. Cependant, il peut très bien être régénéré en utilisant `make -C code`.*
 
 ## Simulateur de netlists
 
-Un simulateur simple est fourni avec le projet. Il utilise l'ancienne version du simulateur, c'est à dire qu'il ne compile pas les netlists et se contente de les simuler étape par étape. Pour le compiler. Il existe également une version intéractive de ce simulateur. Pour les compiler, lancer depuis le dossier principal les commandes suivants :
+Un simulateur simple est fourni avec le projet. Il utilise l'ancienne version du simulateur, c'est à dire qu'il ne compile pas les netlists et se contente de les simuler étape par étape. Il existe également une version intéractive de ce simulateur. Pour les compiler, lancer depuis le dossier principal les commandes suivants :
 
 ```bash
 # Simulateur intéractif
@@ -42,14 +44,7 @@ netsim/run netsim/examples/5adder.net netsim/examples/5adder.in
 
 Pour construire le processeur j'ai utilisé une sorte de langage HDL, ou plutôt une librairie que j'ai écrite pour décrire des circuits en python et générer les netlists correspondantes. Le code de la libraire est dans le dossier `hdl`, et le code python utilisant la libraire se situe dans le dossier `proc`.
 
-Pour build le processeur et le code binaire, il faut installer en local les outils python du projet, en lançant depuis le dossier principal, qui contient les dossiers `asmv` et `hdl` :
-
-```bash
-python3 -m pip install --no-deps --force -e asmv
-python3 -m pip install --no-deps --force -e hdl
-```
-
-### Clock
+### Clock :stopwatch:
 
 Pour compiler :
 
@@ -67,9 +62,34 @@ netsim/runclock code/build/clock_fast.risc
 ````
 
 
-### D'autres usages (bonus)
+### D'autres usages
 
-(WIP) mini-système de fichiers (lecture seule), bootloader et programes dans la RAM (fait).
+Pour build :
+```bash
+./build.sh
+```
+
+#### Horloge visuelle :mantelpiece_clock:
+
+Une version graphique de l'horloge utilises quelques fonctionalités plus complexes du simulateur. Elle utilise trois « périphériques virtuels » :
+- La sortie texte, utilisée par la clock simple. Cette sortie est controlée en envoyant des caractères sur une sortie du processeur
+- Le « disque dur » virtuel : les fichiers utilisés par le programme, y compris le programme lui-même, sont assemblés sur un fichier qui donne une description simple d'un disque avec deux secteurs. Sur le premier se trouve le programme qui va être chargé par `code/build/boot.risc` dans la RAM en position 0 et lancé (call 0). Sur le second se trouve une arborescende de fichiers et de dossiers, comme décris dans `vhdd/`. Pour stocker des images, j'utilise un format bitmap simple (`.sbi`), stockant 32 bits pour chaque pixel (3 couleurs + alpha).
+- L'écran, avec un contrôleur graphique simple. Étant donné qu'afficher des images directement avec le processeur est quelque chose que même nos ordinateurs bien plus puissants ne font pas, j'ai créé un contrôleur assez simple. Il dispose de primitives peu nombreuses permettant de
+  - Dessiner un pixel
+  - Dessiner un rectangle
+  - Charger une texture dans la mémoire graphique (le simulateur utilise la SFML pour la charher dans la mémoire)
+  - Dessiner une texture
+  - Actualiser l'écran : cela simule la synchronisation, en utilisant un buffer.
+
+L'horloge visuelle peut être lancée avec :
+```
+netsim/runproc code/build/boot.risc vhdd/drive_clock.vhdd
+```
+:warning: Il est normal que l'horloge prenne du temps à s'afficher, car elle load un certain nombre de sprites depuis de VHDD vers le contrôleur graphique (tout l'alphabet, en fait, elle utilise une routine d'une autre partie du projet). Pendant ce temps sera affiché `Loading sprites...` dans la console, et le chargement est fini lorsque le programme affiche `Done`.
+
+#### WIP
+
+(WIP)
 
 ## Organisation du projet
 
