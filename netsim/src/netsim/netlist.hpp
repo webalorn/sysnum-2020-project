@@ -10,7 +10,9 @@
 #include "../util/exceptions.hpp"
 
 using uint = uint_fast32_t;
-using boolType = uint_fast8_t;
+// using boolType = uint_fast8_t;
+using boolType = uint_fast64_t;
+using ull = unsigned long long;
 
 const uint FLAG_OP_CONST = 1 << 1;
 const uint FLAG_OP_OR = 1 << 2;
@@ -61,9 +63,9 @@ std::string strOfOp(uint opFlags);
 
 enum ArgType { ArgVariable, ArgBool, ArgInt };
 
-class Memory : public std::vector<char> {
+class Memory : public std::vector<boolType> {
 public:
-	using std::vector<char>::vector;
+	using std::vector<boolType>::vector;
 	void extend_by(uint);
 	void set_size_min(uint);
 	inline Memory submem(uint, uint);
@@ -83,16 +85,27 @@ struct Arg {
 	Arg(uint);
 };
 
+struct VarPos {
+	uint pos, size, rightOffset;
+	bool full;
+	uint tabPos;
+	VarPos(uint pos = 0, uint size = 0, uint rightOffset = 0, bool full = true);
+	VarPos extract(uint begin, uint end);
+};
+
 struct Variable {
 	std::string name;
 	Operation operation;
-	uint size, pos;
+	uint size;
+	VarPos loc;
 	std::vector<Arg> args;
+	Variable(std::string name, Operation operation, uint size, std::vector<Arg> args);
+	inline Variable() {};
 };
 
 struct HardVariable {
 	std::string name;
-	uint size, memoryPt;
+	uint pos;
 };
 
 struct SoftNetlist {
@@ -101,54 +114,6 @@ struct SoftNetlist {
 
 	void checkVarArgs();
 	std::vector<Variable> sorted();
-};
-
-class NetlistSim {
-	/*
-		All registers are at the begining of the operations vector (and state vector)
-		operations : [Operation | flags] [memory cell (in state)] [parameters....]
-			[block(s) size for REG, MUX (x1) and CONCAT (x2)]
-
-		Parameters can be :
-		- an static integer
-		- Id of a previous operation (id in 'operations')
-		- Id of a constant (id in 'contants'), with a flag set on the operation id
-
-		First parameter for rom / ram : additional parameter for the position in the ram / rom block
-	*/
-protected:
-	std::vector<HardVariable> inputs, outputs;
-	Memory rom, ram, state, constants, registers;
-	uint nbRegistersOp, inputSize, outputSize;
-	std::vector<uint> operations;
-	// std::vector<bool> hasBeenExecuted;
-
-public:
-	NetlistSim(SoftNetlist&);
-	uint getInputSize();
-	uint getOutputSize();
-	const std::vector<HardVariable>& getInputsVar();
-	const std::vector<HardVariable>& getOutputsVar();
-	Memory getState();
-
-	void writeRom(const Memory&); // Works only if there is only one ROM
-	void setInputs(const Memory&);
-	void setInputsSplit(const std::vector<Memory>&);
-	Memory getOutputs();
-	std::vector<Memory> getOutputsSplit();
-
-	void cycle(uint nbCycles = 1);
-
-protected:
-	NetlistSim();
-	void init(SoftNetlist& net);
-
-	inline bool boolWithFlag(const uint, const uint);
-	inline Memory memWithFlag(const uint, const uint, const uint);
-	inline void copyWithFlag(const uint, const uint, const uint, const uint);
-
-	virtual void onCycleBegin(uint) {}
-	virtual void onCycleEnd(uint) {}
 };
 
 // Utility functions

@@ -26,7 +26,6 @@ protected:
 SoftNetlist loadNetlistFrom(std::string);
 
 
-void readBitsTo(std::ifstream& stream, Memory& mem, uint size);
 void flowBitFrom(std::ifstream& stream, Memory& mem, bool extend = true);
 
 

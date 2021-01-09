@@ -8,7 +8,7 @@ OBJ_DIR=obj
 
 # SRCS=src/toplevel.cpp src/io.cpp
 # SRCS=$(wildcard $(SRC_DIR)/*.cpp)
-SRCS=$(shell find src -type f -name '*.cpp' ! -name 'toplevel.cpp' ! -name 'run*.cpp' ! -name 'compile.cpp' ! -name 'comp_netlist_sim.cpp' ! -name 'sf_*.cpp')
+SRCS=$(shell find src -type f -name '*.cpp' ! -name 'run*.cpp' ! -name 'compile.cpp' ! -name 'comp_netlist_sim.cpp' ! -name 'sf_*.cpp')
 SF_SRCS=$(shell find src -type f -name 'sf_*.cpp')
 TARGET_SRCS=src/toplevel.cpp src/run.cpp src/compile.cpp src/runproc.cpp src/runclock.cpp __build__/proc.o src/netsim/comp_netlist_sim.o
 OBJS=$(subst .cpp,.o,$(SRCS))
@@ -19,12 +19,6 @@ SIM_OBJ=src/netsim/comp_netlist_sim.o
 all: toplevel run
 
 # Compile main programs
-
-toplevel: $(OBJS) src/toplevel.o
-	$(CXX) $(LDFLAGS) -o toplevel $(OBJS) src/toplevel.o $(LDLIBS)
-
-run: $(OBJS) src/run.o
-	$(CXX) $(LDFLAGS) -o run $(OBJS) src/run.o $(LDLIBS)
 
 compile: $(OBJS) src/compile.o
 	$(CXX) $(LDFLAGS) -o compile $(OBJS) src/compile.o $(LDLIBS)
@@ -49,4 +43,4 @@ clock: $(OBJS) $(SIM_OBJ) compile __build__/proc_clock.o src/runclock.o
 # Other stuff
 
 clean:
-	rm $(OBJS) $(SF_OBJS) $(TARGET_OBJS) __build__/proc.cpp
+	rm $(OBJS) $(SF_OBJS) $(TARGET_OBJS) __build__/proc.cpp compile run runclock runproc toplevel

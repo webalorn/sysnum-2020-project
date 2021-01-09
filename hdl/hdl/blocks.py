@@ -1,9 +1,8 @@
-from .wires import Bit, bit, mux, concat, Register, VirtualBit
+from .wires import Bit, bit, mux, concat, Register, VirtualBit, ConcatOp, Constant
 from .util import BuildError
 from .annotation import hdl_function
 
 from copy import copy
-
 """
     Blocks are helpers that CONTAINS bits, but they can't be used as bits
     You must call the 'build' function on block classes to generate
@@ -36,9 +35,26 @@ def virtual(size, block):
 
 # ========== Blocks functions ==========
 
+
 @hdl_function
 def simple_adder(a: 'l', b: 'l', r: 'bit' = 0):
     """ Returns (a+b+r, remainder) """
+    if not isinstance(b, ConcatOp) and not isinstance(b, Constant):
+        gen_carry = a ^ b
+        prop_carry = a & b
+
+        def do_addition(i, r):
+            if len(a) == i:
+                return [], r
+            else:
+                g, p = gen_carry[i], prop_carry[i]
+                prev, r = do_addition(i + 1, r)
+                prev.append(g ^ r)
+                return (prev, p | (g & r))
+
+        n, r2 = do_addition(0, r)
+        return concat(n[::-1]), r2
+
     def do_addition(i, r):
         if len(a) == i:
             return [], r
@@ -49,6 +65,7 @@ def simple_adder(a: 'l', b: 'l', r: 'bit' = 0):
             r2 = (x & (y | r)) | (y & r)
             prev.append(v)
             return (prev, r2)
+
     n, r2 = do_addition(0, r)
     return concat(n[::-1]), r2
 
@@ -74,6 +91,7 @@ def simple_product(n: 'l', m: 'l') -> Bit:
 
 
 # ========== Blocks classes ==========
+
 
 class BaseBlock:
     pass
@@ -104,7 +122,8 @@ class MultiControl(BuildableBlock):
         assert len(control) == 1
         if self._inputs and len(bitvalue) != len(self._inputs[-1][1]):
             raise BuildError(
-                f"The size of {repr(value)} ({len(bitvalue)}) doesn't match the previous bits sizes ({len(self._inputs[-1][1])})")
+                f"The size of {repr(value)} ({len(bitvalue)}) doesn't match the previous bits sizes ({len(self._inputs[-1][1])})"
+            )
 
         self._inputs.append((control, bitvalue))
 
@@ -147,7 +166,8 @@ class Multiplexer(BuildableBlock):
             val = bit(args[0])
             if self._inputs and self.size() != len(val):
                 raise BuildError(
-                    f"The size of {repr(args[0])} ({len(val)}) doesn't match the previous bits sizes ({self.size()})")
+                    f"The size of {repr(args[0])} ({len(val)}) doesn't match the previous bits sizes ({self.size()})"
+                )
             self._inputs.append(val)
         else:
             for a in args:
@@ -159,12 +179,14 @@ class Multiplexer(BuildableBlock):
         if inputs == []:
             raise BuildError("Multiplexer without inputs")
 
-        if 2 ** len(self.control) < len(inputs):
+        if 2**len(self.control) < len(inputs):
             raise BuildError(
-                f"Too many inputs ({len(inputs)}) for control of size {len(self.control)}")
-        if 2 ** (len(self.control) - 1) >= len(inputs) and not self.plzshutup:
+                f"Too many inputs ({len(inputs)}) for control of size {len(self.control)}"
+            )
+        if 2**(len(self.control) - 1) >= len(inputs) and not self.plzshutup:
             print(
-                f"[WARNING] Using a {len(self.control)} bits control for only {len(inputs)} inputs in a multiplexer. This is NOOOOOOONOPTIMAL")
+                f"[WARNING] Using {len(self.control)} bits control for only {len(inputs)} inputs in a multiplexer. This is NOOOOOOONOPTIMAL"
+            )
         # inputs.extend([None] * (2 ** len(self.control) - len(inputs)))
 
         controls = list(self.control)
@@ -192,12 +214,12 @@ class Multiplexer(BuildableBlock):
 
         return inputs[0]
 
+
 # ========== Blocks usable as a bit ==========
 
 
 class BlockBit(VirtualBit):
     """ VirtualBit that build the block automatically """
-
     def __init__(self, size, block, **kwargs):
         if not isinstance(block, BuildableBlock):
             raise BuildError(f"{block} is not a BuildableBlock")

@@ -1,5 +1,5 @@
 import hdl
-from hdl import reg, Bit, BitRegister, mux, concat, bit, RamOp
+from hdl import reg, Bit, mux, concat, bit, RamOp
 from hdl.blocks import MultiSourceReg, virtual, MultiControl
 
 from memory import RamController, RomController, MemoryController, RegisterController
@@ -21,14 +21,18 @@ class OperationController:
         operand4 = op[-25:-20]  # rs2
         operand5 = op[-32:-25]  # func7, other imm
 
-        return ({  # From right to left, according to spec
-            'R': (operand1, operand2, operand3, operand4, operand5),
-            'I': (operand1, operand2, operand3, op[-32:-20]),
-            'S': (operand1, operand2, operand3, operand4, operand5),
-            'U': (operand1, op[-32:-12]),
-            'B': (operand1[-1], operand1[:-1], operand2, operand3, operand4, operand5[1:], operand5[0]),
-            'J': (operand1, op[-20:-12], op[-21:-20], op[-31:-21], op[-32:-31])
-        }, [operand1, operand2, operand3, operand4, operand5])
+        return (
+            {  # From right to left, according to spec
+                'R': (operand1, operand2, operand3, operand4, operand5),
+                'I': (operand1, operand2, operand3, op[-32:-20]),
+                'S': (operand1, operand2, operand3, operand4, operand5),
+                'U': (operand1, op[-32:-12]),
+                'B': (operand1[-1], operand1[:-1], operand2, operand3,
+                      operand4, operand5[1:], operand5[0]),
+                'J':
+                (operand1, op[-20:-12], op[-21:-20], op[-31:-21], op[-32:-31])
+            },
+            [operand1, operand2, operand3, operand4, operand5])
 
     def decode_instruction(self, control, op):
         opcode = op[-7:]
@@ -52,7 +56,6 @@ class OperationController:
         return self.proc.registers.write_reg(i, control, reg_addr, val)
 
     # ========== Proc modules ==========
-
     """
         RiscV standard (RV32I base integer IS, 2.1)
     """
@@ -92,20 +95,16 @@ class OperationController:
         self._decode(mapping, funct3, control, [rd, rs1, imm])
 
     def op_addi(self, control, rd, rs1, imm):
-        val = self.m_adder.add(
-            control, self.reg_rs1,
-            hdl.sign_extend(self.word_size, imm)
-        )[0]
+        val = self.m_adder.add(control, self.reg_rs1,
+                               hdl.sign_extend(self.word_size, imm))[0]
         self.write(0, control, rd, val)
 
     def op_slti(self, control, rd, rs1, imm):
-        result = arith.first_less_than(
-            self, self.reg_rs1, imm, False)
+        result = arith.first_less_than(self, self.reg_rs1, imm, False)
         self.write(0, control, rd, result)
 
     def op_sltiu(self, control, rd, rs1, imm):
-        result = arith.first_less_than(
-            self, self.reg_rs1, imm, True)
+        result = arith.first_less_than(self, self.reg_rs1, imm, True)
         self.write(0, control, rd, result)
 
     def op_andi(self, control, rd, rs1, imm):
@@ -135,8 +134,8 @@ class OperationController:
 
     # ---------- Integer Register-Register Instructions
     def op_op_reg_reg(self, control, rd, funct3, rs1, rs2, funct7):
-        self.op_reg_reg_standard(control & (
-            ~funct7[-1]), rd, funct3, rs1, rs2, funct7)
+        self.op_reg_reg_standard(control & (~funct7[-1]), rd, funct3, rs1, rs2,
+                                 funct7)
         self.op_m_ext(control & funct7[-1], rd, funct3, rs1, rs2)
 
     def op_reg_reg_standard(self, control, rd, funct3, rs1, rs2, funct7):
@@ -160,13 +159,11 @@ class OperationController:
         self.write(0, control, rd, val)
 
     def op_slt(self, control, rd, rs1, rs2, func7):
-        result = arith.first_less_than(
-            self, self.reg_rs1, self.reg_rs2, False)
+        result = arith.first_less_than(self, self.reg_rs1, self.reg_rs2, False)
         self.write(0, control, rd, result)
 
     def op_sltu(self, control, rd, rs1, rs2, funct7):
-        result = arith.first_less_than(
-            self, self.reg_rs1, self.reg_rs2, True)
+        result = arith.first_less_than(self, self.reg_rs1, self.reg_rs2, True)
         self.write(0, control, rd, result)
 
     def op_and(self, control, rd, rs1, rs2, funct7):
@@ -204,10 +201,10 @@ class OperationController:
             inv2 = self.reg_rs2[0] & (~funct3[2])
 
             self.mul_sign = inv1 & inv2
-            v1 = hdl.extend(64, mux(inv1, self.reg_rs1,
-                                    hdl.negative_of_int(self.reg_rs1)))
-            v2 = hdl.extend(64, mux(inv2, self.reg_rs2,
-                                    hdl.negative_of_int(self.reg_rs2)))
+            v1 = hdl.extend(
+                64, mux(inv1, self.reg_rs1, hdl.negative_of_int(self.reg_rs1)))
+            v2 = hdl.extend(
+                64, mux(inv2, self.reg_rs2, hdl.negative_of_int(self.reg_rs2)))
             # v2 = hdl.extend(64, self.reg_rs2, self.reg_rs2[0] & (~funct3[2]))
             self.m_ext_mul = hdl.simple_product(v1, v2)
 
@@ -240,10 +237,8 @@ class OperationController:
         self.write(0, control, rd, result)
 
     def op_auipc(self, control, rd, imm):
-        result = self.m_adder.add(
-            control, self.proc.reg_pc,
-            imm + bit(0, size=12)
-        )[0]
+        result = self.m_adder.add(control, self.proc.reg_pc,
+                                  imm + bit(0, size=12))[0]
         self.write(0, control, rd, result)
 
     # ========== Jumps ==========
@@ -266,8 +261,10 @@ class OperationController:
     def op_branch(self, control, offset1, funct3, rs1_addr, rs2_addr, offset2):
         equality = ~hdl.merge_with_op(hdl.OrOp, self.reg_rs1 ^ self.reg_rs2)
         w2 = self.word_size + 1
-        rs1, rs2 = [mux(funct3[1], hdl.sign_extend(w2, r), hdl.extend(w2, r))
-                    for r in (self.reg_rs1, self.reg_rs2)]
+        rs1, rs2 = [
+            mux(funct3[1], hdl.sign_extend(w2, r), hdl.extend(w2, r))
+            for r in (self.reg_rs1, self.reg_rs2)
+        ]
         r1_m_r2 = self.proc.adder(rs1, hdl.negative_of_int(rs2))[0]
         r = mux(funct3[0], equality, r1_m_r2[0])
         r = r ^ funct3[2]  # Invert if funct3[2] == 1
@@ -281,10 +278,8 @@ class OperationController:
 
     def op_load(self, control, rd, width, rs1, offset):
         # Implements LW, LH, LHU, LB, LBU
-        addr = self.m_adder.add(
-            control, self.reg_rs1,
-            hdl.sign_extend(self.word_size, offset)
-        )[0]
+        addr = self.m_adder.add(control, self.reg_rs1,
+                                hdl.sign_extend(self.word_size, offset))[0]
         result = self.proc.memory.read_at(control, addr)
         # First bit is 1 if unsigned
         # r_16bits = hdl.extend(self.word_size, result[-16:],
@@ -295,9 +290,8 @@ class OperationController:
                               (~width[0]) & result[0])
         r_8bits = hdl.extend(self.word_size, result[:8],
                              (~width[0]) & result[0])
-        result = mux(width[1], mux(
-            width[2], r_8bits, r_16bits
-        ), result)  # LW = 010, LH[U] = *01, LB[U] = *00
+        result = mux(width[1], mux(width[2], r_8bits, r_16bits),
+                     result)  # LW = 010, LH[U] = *01, LB[U] = *00
 
         self.write(0, control, rd, result)
 
@@ -305,8 +299,7 @@ class OperationController:
         # Implements SW, SH, SB
         addr = self.m_adder.add(
             control, self.reg_rs1,
-            hdl.sign_extend(self.word_size, offset1 + offset2)
-        )[0]
+            hdl.sign_extend(self.word_size, offset1 + offset2))[0]
         data_32 = self.reg_rs2  # SW : 010
 
         # Do not overwrite previous data

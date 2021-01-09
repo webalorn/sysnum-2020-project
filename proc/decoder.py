@@ -1,10 +1,9 @@
 import hdl
-from hdl import reg, Bit, BitRegister, mux, concat, bit
+from hdl import reg, Bit, mux, concat, bit
 from hdl.blocks import MultiSourceReg
 
 
 class RiscDecoder:
-
     def __init__(self, opcode):
         self.codes = {
             '': bit(1),

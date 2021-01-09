@@ -18,9 +18,7 @@ public:
 		inDevices.push_back(new ClockDevice);
 		inDevices.push_back(new InitTimeDevice);
 
-		for (HardVariable& var : inputs) {
-			inputVals.push_back(Memory(var.size));
-		}
+		inputVals.resize(inputs.size(), 0);
 	}
 };
 

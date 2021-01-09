@@ -24,5 +24,4 @@ int main(int argc, char* argv[]) {
 	NetlistParser parser;
 	SoftNetlist softnet = parser.parseFrom(netlistStream);
 	genNetlistCode(softnet, outStream);
-	
 }

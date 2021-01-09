@@ -11,29 +11,29 @@ void NetsimCompRunner::onCycleBegin(uint) {
 	for (uint iDevice = 0; iDevice < inDevices.size(); iDevice++) {
 		inDevices[iDevice]->run();
 		uint val = inDevices[iDevice]->getSignal();
-		inputVals[iDevice].fromInt(val);
+		inputVals[iDevice] = val;
 	}
 	setInputsSplit(inputVals);
 }
 
 void NetsimCompRunner::onCycleEnd(uint) {
-	std::vector<Memory> outVals = this->getOutputsSplit();
-	// for (const Memory& m : outVals) {
+	std::vector<boolType> outVals = this->getOutputsSplit();
+	// for (auto m : outVals) {
 	// 	std::cout << m << " ";
 	// }
 	// std::cout << "\n";
 
-	uint inputRead = outVals[0].toInt(0, outVals[0].size());
+	uint inputRead = outVals[0];
 	if (inputRead < inDevices.size()) {
 		inDevices[inputRead]->pop();
 	}
 
-	if (outVals[1][0]) { // Second output is the shutdown signal
+	if (outVals[1]) { // Second output is the shutdown signal
 		throw StopCycling();
 	}
 	for (uint iDevice = 0; iDevice < outDevices.size(); iDevice++) {
 		int iOutput = iDevice + 2;
-		outDevices[iDevice]->send(outVals[iOutput].toInt(0, outVals[iOutput].size()));
+		outDevices[iDevice]->send(outVals[iOutput]);
 	}
 }
 
@@ -46,5 +46,22 @@ void NetsimCompRunner::start() {
 	}
 	catch (UsageError e) {
 		std::cerr << "\033[31m[USAGE ERROR] " << e.get() << "\033[0m\n";
+	}
+}
+
+std::vector<boolType> NetsimCompRunner::getOutputsSplit() {
+	std::vector<boolType> outs(outputs.size());
+	for (uint iOutput = 0; iOutput < outputs.size(); iOutput++) {
+		// outs[iOutput] = state[outputs[iOutput].pos] & ((1ull << outputs[iOutput].size) - 1);
+		// outs[iOutput] = state[outputs[iOutput].pos];
+		outs[iOutput] = transferTab[outputs[iOutput].pos];
+	}
+	return outs;
+}
+
+void NetsimCompRunner::setInputsSplit(const std::vector<boolType>& inputValues) {
+	for (uint iInput = 0; iInput < inputValues.size(); iInput++) {
+		// state[inputs[iInput].pos] = inputValues[iInput];
+		transferTab[inputs[iInput].pos] = inputValues[iInput];
 	}
 }

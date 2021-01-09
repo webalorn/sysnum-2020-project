@@ -3,8 +3,8 @@ from collections.abc import Iterable
 
 from .util import BuildError, memoization
 
-
 # ========== bit factory functions ==========
+
 
 def reg(n_or_var):
     if isinstance(n_or_var, int):
@@ -22,7 +22,11 @@ def rom(word_size: int, read_addr):
     return RomOp(read_addr.size, word_size, read_addr)
 
 
-def ram(word_size: int, read_addr, write_enable=None, write_addr=None, write_data=None):
+def ram(word_size: int,
+        read_addr,
+        write_enable=None,
+        write_addr=None,
+        write_data=None):
     read_addr = bit(read_addr)
     if write_enable is None:
         write_enable = 0
@@ -30,30 +34,23 @@ def ram(word_size: int, read_addr, write_enable=None, write_addr=None, write_dat
             write_addr = '0' * read_addr.size
         if write_data is None:
             write_data = '0' * word_size
-    return RamOp(read_addr.size, word_size, read_addr, write_enable, write_addr, write_data)
+    return RamOp(read_addr.size, word_size, read_addr, write_enable,
+                 write_addr, write_data)
 
 
 @memoization
 def concat(*elems, name=None):
-    def do_concat(*elems):
-        if len(elems) == 0:
-            return bit()
-        if len(elems) == 1:
-            return elems[0]
-        left = do_concat(elems[:len(elems) // 2])
-        right = do_concat(elems[len(elems) // 2:])
-
-        return ConcatOp(left, right)
-
     elems, rev = [], [bit(el) for el in elems][::-1]
 
     while rev:
         if len(rev[-1]) == 0:
             rev.pop()
-        elif elems and isinstance(elems[-1], Constant) and isinstance(rev[-1], Constant):
+        elif elems and isinstance(elems[-1], Constant) and isinstance(
+                rev[-1], Constant):
             elems[-1] = Constant(elems[-1].get() + rev.pop().get())
 
-        elif elems and isinstance(elems[-1], SubBusOp) and isinstance(rev[-1], SubBusOp):
+        elif elems and isinstance(elems[-1], SubBusOp) and isinstance(
+                rev[-1], SubBusOp):
             bus1, bus2 = elems[-1].get_bus(), rev[-1].get_bus()
             (i1, j1), (i2,
                        j2) = elems[-1].get_interval(), rev[-1].get_interval()
@@ -62,12 +59,16 @@ def concat(*elems, name=None):
                 rev.pop()
             else:
                 elems.append(rev.pop())
+        elif isinstance(rev[-1], ConcatOp):
+            rev.extend(rev.pop().args)
         else:
             elems.append(rev.pop())
 
     if len(elems) == 0:
         return bit()
-    b = do_concat(*elems)
+    b = elems[0]
+    if len(elems) > 1:
+        b = ConcatOp(*elems)
     if b.name is None:
         b.name = name
     return b
@@ -108,6 +109,7 @@ def bit(*args, size=None, name=None):
                 return Constant(''.join(bits[::-1]))
             else:
                 raise BuildError(f"Can't convert {val} to a bit or bus")
+
     b = make_bit(*args, size=size)
     if b.name is None:
         b.name = name
@@ -116,26 +118,18 @@ def bit(*args, size=None, name=None):
 
 # ========== Bit utility functions ==========
 
+
 def is_real_iterable(obj):
     return isinstance(obj, Iterable) and not isinstance(obj, Bit)
 
 
 @memoization
-def single_bit_op(op_cls, *operands):
+def on_word_op(op_cls, *operands):
     for b in operands:
         if not isinstance(b, Bit) or len(b) != 1:
             raise BuildError(
                 f"The operation {op_cls.__name__} must be used on single bits")
     return op_cls(*operands)
-
-
-@memoization
-def vectorized_op(op_cls, *operands):
-    operands = [bit(o) for o in operands]
-    if not all([len(o) == len(operands[0]) for o in operands]):
-        raise BuildError(
-            "Can't apply a binary operation on bus of different size")
-    return bit([single_bit_op(op_cls, *vals) for vals in zip(*operands)])
 
 
 @memoization
@@ -154,11 +148,12 @@ def op_on_builder(f):
     """
     def on(cls, left, right):
         left, right = bit(left), bit(right)
-        if len(left) != 1 or len(right) != 1:
-            raise BuildError("Binary operation on bus of size != 1")
+        # if len(left) != 1 or len(right) != 1:
+        #     raise BuildError("Binary operation on bus of size != 1")
         if isinstance(left, Constant) and not isinstance(right, Constant):
             return f(cls, right, left)
         return f(cls, left, right)
+
     return classmethod(on)
 
 
@@ -216,31 +211,31 @@ class Bit:
     # Operators
 
     def __and__(self, other):
-        return vectorized_op(AndOp.on, self, bit(other))
+        return AndOp.on(self, bit(other))
 
     def __or__(self, other):
-        return vectorized_op(OrOp.on, self, bit(other))
+        return OrOp.on(self, bit(other))
 
     def __xor__(self, other):
-        return vectorized_op(XorOp.on, self, bit(other))
+        return XorOp.on(self, bit(other))
 
     def __pow__(self, other):
-        return vectorized_op(NandOp.on, self, bit(other))
+        return NandOp.on(self, bit(other))
 
     def __rand__(self, other):
-        return vectorized_op(AndOp.on, bit(other), self)
+        return AndOp.on(bit(other), self)
 
     def __ror__(self, other):
-        return vectorized_op(OrOp.on, bit(other), self)
+        return OrOp.on(bit(other), self)
 
     def __rxor__(self, other):
-        return vectorized_op(XorOp.on, bit(other), self)
+        return XorOp.on(bit(other), self)
 
     def __rpow__(self, other):
-        return vectorized_op(NandOp.on, bit(other), self)
+        return NandOp.on(bit(other), self)
 
     def __invert__(self):
-        return vectorized_op(NotOp.on, self)
+        return NotOp.on(self)
 
     def __len__(self):
         return self.size
@@ -273,11 +268,13 @@ class Bit:
     def __rshift__(self, n):
         if n <= 0:
             return self << (-n)
-        return concat('0' * min(n, self.size), self[: - n])
+        return concat('0' * min(n, self.size), self[:-n])
 
     def get_repr(self, *args):
-        args = [f'{self.__class__.__module__}.{self.__class__.__qualname__}',
-                f'size={len(self)}'] + list(args)
+        args = [
+            f'{self.__class__.__module__}.{self.__class__.__qualname__}',
+            f'size={len(self)}'
+        ] + list(args)
         return '<' + ' '.join(args) + '>'
 
     def __repr__(self):
@@ -289,10 +286,9 @@ class Constant(Bit):
         Used as an operant in an operation
         See SimpleBit for a constant variable
     """
-
     def __init__(self, value: str, **kwargs):
-        if (not isinstance(value, str) or
-                value.count('0') + value.count('1') != len(value)):
+        if (not isinstance(value, str)
+                or value.count('0') + value.count('1') != len(value)):
             raise BuildError(
                 "A constant must me built from a string of 0 and 1")
         self._value = str(value)
@@ -304,6 +300,9 @@ class Constant(Bit):
 
     def get(self):
         return self._value
+
+    def is_only(self, val):
+        return self._value == val * len(self._value)
 
     def get_name(self, chip):
         return str(self.get())
@@ -318,6 +317,7 @@ class Constant(Bit):
 class InputVar(Bit):
     def __init__(self, size=1, **kwargs):
         super().__init__(size=size, **kwargs)
+
 
 # ========== Operations ==========
 
@@ -334,23 +334,29 @@ class Operation(Bit):
 
     def check_args(self, none_is_ok):
         cls_name = self.__class__.__name__
-        if len(self.ARGS_TYPE) != len(self.args):
-            raise BuildError(
-                f"The operation {cls_name} need {len(self.ARGS_TYPE)} arguments but {len(self.args)} are provided")
+        args_types = self.ARGS_TYPE
+        if args_types == 'bus':
+            args_types = ['bus'] * len(self.args)
 
-        for i_arg, (arg, arg_type) in enumerate(zip(self.args, self.ARGS_TYPE)):
+        if len(args_types) != len(self.args):
+            raise BuildError(
+                f"The operation {cls_name} need {len(args_types)} arguments but {len(self.args)} are provided"
+            )
+        for i_arg, (arg, arg_type) in enumerate(zip(self.args, args_types)):
             if arg is None and none_is_ok:
                 continue
             if arg_type == 'int' and not isinstance(arg, int):
                 raise BuildError(
-                    f"The argument {i_arg} of {cls_name} must be a static integer")
+                    f"The argument {i_arg} of {cls_name} must be a static integer"
+                )
             if arg_type in ['bit', 'bus'] and not isinstance(arg, Bit):
                 try:
                     arg = bit(arg)
                     self.args[i_arg] = arg
                 except BuildError:
                     raise BuildError(
-                        f"The argument {i_arg} of {cls_name} must be an bit or a bus")
+                        f"The argument {i_arg} of {cls_name} must be an bit or a bus"
+                    )
             if arg_type == 'bit' and len(arg) != 1:
                 raise BuildError(
                     f"The argument {i_arg} of {cls_name} must be a single bit")
@@ -417,30 +423,6 @@ class Register(Operation):
         self.args = [var]
 
 
-class BitRegister(Bit):
-    """
-        A register that stores every bit in a single register
-    """
-
-    def __init__(self, size, **kwargs):
-        self.regs = [Register(size=1) for _ in range(size)]
-        self.concat = concat(*self.regs)
-
-        super().__init__(cells=self.concat.cells, **kwargs)
-
-    def source(self, var):
-        if var.size != self.size:
-            raise BuildError("Invalid size of 'var'")
-        for b, register in zip(var, self.regs):
-            register.source(b)
-
-    def build(self, chip, varname=None):
-        return self.concat.build(chip, varname)
-
-    def get_name(self, chip):
-        return self.concat.get_name(chip)
-
-
 class MuxOp(Operation):
     ARGS_TYPE = ['bit', 'bus', 'bus']
     PARTIAL_INIT = True
@@ -448,7 +430,8 @@ class MuxOp(Operation):
 
     def __init__(self, control, false, true, **kwargs):
         super().__init__([control, false, true],
-                         size=bit(false).size, **kwargs)
+                         size=bit(false).size,
+                         **kwargs)
 
     @staticmethod
     def on(control, false, true):
@@ -466,15 +449,16 @@ class MuxOp(Operation):
         super().check_args(none_is_ok)
         if self.args[1].size != self.args[2].size:
             raise BuildError(
-                "The two arguments of a MUX operations have the same size")
+                "The two arguments of a MUX operations must have the same size"
+            )
 
 
 class NotOp(Operation):
-    ARGS_TYPE = ['bit']
+    ARGS_TYPE = ['bus']
     KEYWORD = 'NOT'
 
     def __init__(self, val, **kwargs):
-        super().__init__([val], **kwargs)
+        super().__init__([val], size=val.size, **kwargs)
 
     @staticmethod
     def on(val):
@@ -485,8 +469,8 @@ class NotOp(Operation):
             return AndOp(val.args[0], val.args[1])
         if isinstance(val, NotOp):
             return val.args[0]
-        if isinstance(val, Constant) and len(val) == 1:
-            return '0' if val.get() == '1' else '1'
+        if isinstance(val, Constant):
+            return ''.join(['0' if c == '1' else '1' for c in val.get()])
         return NotOp(val)
 
 
@@ -494,10 +478,15 @@ class NotOp(Operation):
 
 
 class BinOperation(Operation):
-    ARGS_TYPE = ['bit', 'bit']
+    ARGS_TYPE = ['bus', 'bus']
 
     def __init__(self, left, right, **kwargs):
-        super().__init__([left, right], **kwargs)
+        left, right = bit(left), bit(right)
+        if len(left) != len(right):
+            raise BuildError(
+                "The two arguments of a binary operation must have the same size"
+            )
+        super().__init__([left, right], size=left.size, **kwargs)
 
 
 class OrOp(BinOperation):
@@ -506,9 +495,15 @@ class OrOp(BinOperation):
     @op_on_builder
     def on(cls, left, right):
         if isinstance(right, Constant):
-            if right.get() == '0':
+            if right.is_only('0'):
                 return left
-            return bit('1')
+            if right.is_only('1'):
+                return right
+            if isinstance(left, Constant):
+                return bit(''.join([
+                    '1' if x == '1' or y == '1' else '0'
+                    for (x, y) in zip(left.get(), right.get())
+                ]))
         if left is right:
             return left
         return OrOp(left, right)
@@ -520,11 +515,17 @@ class XorOp(BinOperation):
     @op_on_builder
     def on(cls, left, right):
         if isinstance(right, Constant):
-            if right.get() == '0':
+            if right.is_only('0'):
                 return left
-            return ~left
+            if right.is_only('1'):
+                return ~right
+            if isinstance(left, Constant):
+                return bit(''.join([
+                    '1' if x != y else '0'
+                    for (x, y) in zip(left.get(), right.get())
+                ]))
         if left is right:
-            return bit('0')
+            return bit('0' * len(left))
         return XorOp(left, right)
 
 
@@ -534,9 +535,15 @@ class AndOp(BinOperation):
     @op_on_builder
     def on(cls, left, right):
         if isinstance(right, Constant):
-            if right.get() == '0':
-                return bit('0')
-            return left
+            if right.is_only('0'):
+                return bit('0' * len(right))
+            if right.is_only('1'):
+                return left
+            if isinstance(left, Constant):
+                return bit(''.join([
+                    '1' if x == '1' and y == '1' else '0'
+                    for (x, y) in zip(left.get(), right.get())
+                ]))
         if left is right:
             return left
         return AndOp(left, right)
@@ -548,15 +555,22 @@ class NandOp(BinOperation):
     @op_on_builder
     def on(cls, left, right):
         if isinstance(right, Constant):
-            if right.get() == '0':
-                return bit('1')
-            return ~left
+            if right.is_only('0'):
+                return bit('1' * len(right))
+            if right.is_only('1'):
+                return ~left
+            if isinstance(left, Constant):
+                return bit(''.join([
+                    '1' if x == '0' or y == '0' else '0'
+                    for (x, y) in zip(left.get(), right.get())
+                ]))
         if left is right:
             return ~left
         return NandOp(left, right)
 
 
 # ========== Bus Operations ==========
+
 
 class SubBusOp:
     def get_bus(self):
@@ -619,16 +633,20 @@ class SliceOp(Operation, SubBusOp):
 
 class ConcatOp(Operation):
     KEYWORD = 'CONCAT'
-    ARGS_TYPE = ['bus', 'bus']
+    ARGS_TYPE = 'bus'
 
-    def __init__(self, left, right, **kwargs):
-        left, right = bit(left), bit(right)
+    def __init__(self, *args, **kwargs):
+        args = [bit(a) for a in args]
+        cells = []
+        for a in args:
+            for c in a:
+                cells.append(c)
 
-        super().__init__([left, right],
-                         cells=left.cells + right.cells, **kwargs)
+        super().__init__(args, cells=cells, **kwargs)
 
 
 # ========== ROM and RAM ==========
+
 
 class RomOp(Operation):
     KEYWORD = 'ROM'
@@ -639,10 +657,9 @@ class RomOp(Operation):
             read_addr : len == addr_size
             output : len == word_size
         """
-        super().__init__(
-            [addr_size, word_size, read_addr],
-            size=word_size, **kwargs
-        )
+        super().__init__([addr_size, word_size, read_addr],
+                         size=word_size,
+                         **kwargs)
 
     def read_at(self, read_addr):
         self.args[2] = read_addr
@@ -651,7 +668,8 @@ class RomOp(Operation):
         super().check_args(none_is_ok)
         if len(self.args[2]) != self.args[0]:
             raise BuildError(
-                f'ROM: Size of {repr(self.args[2])} (read_addr) is not {self.args[0]}')
+                f'ROM: Size of {repr(self.args[2])} (read_addr) is not {self.args[0]}'
+            )
 
 
 class RamOp(Operation):
@@ -659,8 +677,14 @@ class RamOp(Operation):
     PARTIAL_INIT = True
     ARGS_TYPE = ['int', 'int', 'bus', 'bit', 'bus', 'bus']
 
-    def __init__(self, addr_size: int, word_size: int, read_addr,
-                 write_enable=False, write_addr=None, write_data=None, **kwargs):
+    def __init__(self,
+                 addr_size: int,
+                 word_size: int,
+                 read_addr,
+                 write_enable=False,
+                 write_addr=None,
+                 write_data=None,
+                 **kwargs):
         """
             read_addr : len == addr_size
             output : len == word_size
@@ -674,9 +698,11 @@ class RamOp(Operation):
         """
 
         super().__init__([
-            addr_size, word_size, read_addr,
-            write_enable, write_addr, write_data
-        ], size=word_size, **kwargs)
+            addr_size, word_size, read_addr, write_enable, write_addr,
+            write_data
+        ],
+                         size=word_size,
+                         **kwargs)
 
     def read_at(self, read_addr):
         self.args[2] = read_addr
@@ -691,13 +717,17 @@ class RamOp(Operation):
         if not none_is_ok:
             if len(self.args[2]) != self.args[0]:
                 raise BuildError(
-                    f'RAM: Size of {repr(self.args[2])} (read_addr) is {len(self.args[2])}, but should be {self.args[0]}')
+                    f'RAM: Size of {repr(self.args[2])} (read_addr) is {len(self.args[2])}, but should be {self.args[0]}'
+                )
             if len(self.args[4]) != self.args[0]:
                 raise BuildError(
-                    f'RAM: Size of {repr(self.args[4])} (write_addr) is {len(self.args[4])}, but should be {self.args[0]}')
+                    f'RAM: Size of {repr(self.args[4])} (write_addr) is {len(self.args[4])}, but should be {self.args[0]}'
+                )
             if len(self.args[5]) != self.args[1]:
                 raise BuildError(
-                    f'RAM: Size of {repr(self.args[5])} (write_data) is {len(self.args[5])}, but should be {self.args[1]}')
+                    f'RAM: Size of {repr(self.args[5])} (write_data) is {len(self.args[5])}, but should be {self.args[1]}'
+                )
+
 
 # ========== Other ==========
 
@@ -706,7 +736,6 @@ class VirtualBit(Bit):
     """
         Feed this bit with an input later. Be careful : is prevent optimizations
     """
-
     def __init__(self, size, **kwargs):
         super().__init__(size, **kwargs)
         self.child = None
@@ -715,7 +744,8 @@ class VirtualBit(Bit):
         val = bit(val)
         if len(val) != self.size:
             raise BuildError(
-                f"This VirtualBit must be set with an input of size {self.size}, not {len(val)}")
+                f"This VirtualBit must be set with an input of size {self.size}, not {len(val)}"
+            )
         self.child = val
 
     def get(self):

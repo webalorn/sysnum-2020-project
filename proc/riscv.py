@@ -1,5 +1,5 @@
 import hdl
-from hdl import reg, Bit, BitRegister, mux, concat, bit, RamOp, Register
+from hdl import reg, Bit, mux, concat, bit, RamOp, Register
 from hdl.blocks import MultiSourceReg, virtual, MultiControl
 
 from memory import RamController, RomController, MemoryController, RegisterController

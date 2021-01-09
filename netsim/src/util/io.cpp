@@ -51,6 +51,10 @@ SoftNetlist NetlistParser::parseFrom(std::ifstream& fileStream) {
 	while (fileStream.get(c)) {
 		if (isSeparator(c)) {
 			nextWord();
+			if (c == '\n' && words.size()) {
+				curWord = "\n";
+				nextWord();
+			}
 		}
 		if (!isWhitelike(c)) {
 			curWord.push_back(c);
@@ -70,7 +74,10 @@ SoftNetlist NetlistParser::parseFrom(std::ifstream& fileStream) {
 
 	// Read input variables
 	while (curWord < words.size() && words[curWord] != "OUTPUT") {
-		inputs.push_back(words[curWord++]);
+		if (words[curWord] != "\n") {
+			inputs.push_back(words[curWord]);
+		}
+		curWord++;
 	}
 	if (curWord >= words.size()) {
 		throw UsageError("Missing 'OUTPUT' keyword in the netlist");
@@ -79,7 +86,10 @@ SoftNetlist NetlistParser::parseFrom(std::ifstream& fileStream) {
 
 	// Read output variables
 	while (words[curWord] != "VAR") {
-		outputs.push_back(words[curWord++]);
+		if (words[curWord] != "\n") {
+			outputs.push_back(words[curWord]);
+		}
+		curWord++;
 	}
 	if (curWord >= words.size()) {
 		throw UsageError("Missing 'VAR' keyword in the netlist");
@@ -88,6 +98,10 @@ SoftNetlist NetlistParser::parseFrom(std::ifstream& fileStream) {
 
 	// Read all variables
 	while (words[curWord] != "IN") {
+		if (words[curWord] == "\n") {
+			curWord++;
+			continue;
+		}
 		auto varName = words[curWord];
 		uint varSize = 1;
 		if (curWord + 2 < words.size() && words[curWord + 1] == ":") {
@@ -113,25 +127,20 @@ SoftNetlist NetlistParser::parseFrom(std::ifstream& fileStream) {
 	std::map<std::string, Variable> variables;
 
 	while (curWord < words.size()) { // Read variables
+		if (words[curWord] == "\n") {
+			curWord++;
+			continue;
+		}
 		auto varName = words[curWord++];
+		while (words[curWord] == "\n") { curWord++; }
 		auto opName = words[curWord++];
-		Variable var = Variable{ varName, opWordToOp(opName),
-			sizeOfVars[varName], 0, std::vector<Arg>() };
+		Variable var = Variable(varName, opWordToOp(opName),
+			sizeOfVars[varName], std::vector<Arg>());
 
-
-		uint nbArgs = 2;
 		if (var.operation == OpConst) {
-			nbArgs = 0;
 			var.args.push_back(Arg(opName)); // Because there is no "operation"
 		}
-		if (var.operation == OpReg || var.operation == OpNot) nbArgs = 1;
-		if (var.operation == OpRom || var.operation == OpMux || var.operation == OpSlice) nbArgs = 3;
-		if (var.operation == OpRam) nbArgs = 6;
-
-		if (curWord + nbArgs > words.size()) {
-			throw UsageError("Missing arguments for the " + opName + " operation");
-		}
-		for (uint iArg = 0; iArg < nbArgs; iArg++) {
+		while (curWord < words.size() && words[curWord] != "\n") {
 			var.args.push_back(Arg(words[curWord++]));
 		}
 		// Int parameters
@@ -146,8 +155,8 @@ SoftNetlist NetlistParser::parseFrom(std::ifstream& fileStream) {
 	}
 	for (auto p : sizeOfVars) {
 		if (variables.count(p.first) == 0) {
-			variables[p.first] = Variable{ p.first, OpConst,
-			sizeOfVars[p.first], 0, std::vector<Arg>{ Arg("0")} };
+			variables[p.first] = Variable(p.first, OpConst,
+				sizeOfVars[p.first], std::vector<Arg>{ Arg("0")});
 		}
 	}
 
@@ -165,36 +174,38 @@ SoftNetlist loadNetlistFrom(std::string filePath) {
 	Read streams
 */
 
-
-void readBitsTo(std::ifstream& stream, Memory& mem, uint size) {
-	char c;
-	for (uint iBit = 0; iBit < size;) {
-		if (stream.get(c)) {
-			if (c == '0' || c == '1') {
-				mem[iBit++] = c == '1';
-			}
-		}
-		else {
-			throw IOError("Can't read bits from stream");
-		}
-	}
-}
-
 void flowBitFrom(std::ifstream& stream, Memory& mem, bool extend) {
 	char c;
-	uint iBit = 0;
+	uint iWord = 0;
+	uint bitInWord = 0;
+	uint curWord = 0;
 	while (stream >> c) {
 		if (c == '0' || c == '1') {
-			if (iBit >= mem.size()) {
-				if (!extend) {
-					break;
+			uint v = c == '1' ? 1 : 0;
+			curWord = curWord | (v << (31 - bitInWord));
+			bitInWord++;
+			if (bitInWord == 32) {
+				if (iWord >= mem.size()) {
+					if (!extend) {
+						break;
+					}
+					mem.push_back(curWord);
 				}
-				mem.push_back(c == '1');
+				else {
+					mem[iWord] = curWord;
+				}
+				bitInWord = 0;
+				curWord = 0;
+				iWord++;
 			}
-			else {
-				mem[iBit] = (c == '1');
-			}
-			iBit++;
+		}
+	}
+	if (bitInWord) {
+		if (iWord < mem.size()) {
+			mem[iWord] = curWord;
+		}
+		else if (extend) {
+			mem.push_back(curWord);
 		}
 	}
 }

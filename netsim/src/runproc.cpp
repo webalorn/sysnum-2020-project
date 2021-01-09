@@ -23,9 +23,7 @@ public:
 		inDevices.push_back(new ClockDevice);
 		inDevices.push_back(new DriveInput(drive));
 
-		for (HardVariable& var : inputs) {
-			inputVals.push_back(Memory(var.size));
-		}
+		inputVals.resize(inputs.size(), 0);
 	}
 };
 

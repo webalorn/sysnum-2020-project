@@ -1,5 +1,5 @@
 import hdl
-from hdl import reg, Bit, BitRegister, mux, concat, bit, RamOp
+from hdl import reg, Bit, mux, concat, bit, RamOp
 from hdl.blocks import MultiSourceReg, virtual, MultiControl
 
 
@@ -23,10 +23,7 @@ def first_less_than(mod, first, second, unsigned=False):
     else:
         first = hdl.sign_extend(mod.word_size + 1, first)
         second = hdl.sign_extend(mod.word_size + 1, second)
-    val = mod.proc.adder(
-        first,
-        hdl.negative_of_int(second)
-    )[0]
+    val = mod.proc.adder(first, hdl.negative_of_int(second))[0]
     return '0' * (mod.word_size - 1) + val[0]  # Bit sign
 
 
@@ -44,6 +41,7 @@ def simple_neg(a: 'l', b: 'l', r: 'bit' = 0):
             prev, r = do_substract(i - 1, r)
             prev.append(v)
             return (prev, r)
+
     n, r = do_substract(len(a) - 1, r)
     return concat(n), r
 
@@ -58,23 +56,21 @@ def simple_divide(dividend: 'l', divisor: 'l') -> (Bit, Bit):
     def do_division(dividend, divisor, step):
         if step >= len(dividend):
             return (bit(size=0), dividend)
-        quotient_up, dividend_up = do_division(
-            dividend, divisor << 1, step + 1)
+        quotient_up, dividend_up = do_division(dividend, divisor << 1,
+                                               step + 1)
         # Don't overflow
         dividend = mux(divisor[1], dividend_up, dividend)
         quotient = mux(divisor[1], quotient_up, bit(0, size=len(quotient_up)))
 
-        sub = hdl.simple_adder(
-            dividend,
-            hdl.negative_of_int(divisor)
-        )[0]
-        return (mux(sub[0], quotient + '1', quotient + '0'),
-                mux(sub[0], sub, dividend))
+        sub = hdl.simple_adder(dividend, hdl.negative_of_int(divisor))[0]
+        return (mux(sub[0], quotient + '1',
+                    quotient + '0'), mux(sub[0], sub, dividend))
 
     quotient, remain = do_division(dividend, divisor, 0)
     remain = remain[1:]
     remain = mux(sign, remain, hdl.negative_of_int(remain))
     return quotient[1:], remain
+
 
 # ========== Blocks ==========
 
@@ -83,8 +79,8 @@ class MultiAdder:
     def __init__(self, size, adder_function):
         self.input1 = MultiControl()
         self.input2 = MultiControl()
-        self.result = adder_function(
-            virtual(size, self.input1), virtual(size, self.input2))
+        self.result = adder_function(virtual(size, self.input1),
+                                     virtual(size, self.input2))
 
     def get(self, i):
         return self.result[i]

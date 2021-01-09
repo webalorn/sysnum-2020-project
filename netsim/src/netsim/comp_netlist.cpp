@@ -2,6 +2,7 @@
 #include <deque>
 #include <algorithm>
 #include <ostream>
+#include <iostream>
 #include "netlist.hpp"
 #include "../util/exceptions.hpp"
 
@@ -11,22 +12,37 @@
 
 std::map<std::string, uint> idOpOfVar;
 
-std::string reprOfArg(Arg& arg, int i, std::map<std::string, uint>& memPtOfVar) {
+std::string reprOfLoc(VarPos& loc) {
+	if (loc.full) {
+		return "var_" + std::to_string((int)(loc.pos)) + "";
+	}
+	else {
+		ull mask = (1ull << loc.size) - 1;
+		return "((var_" + std::to_string((int)(loc.pos)) + " >> "
+			+ std::to_string(loc.rightOffset) + ") & " + std::to_string(mask) + ")";
+	}
+}
+
+std::string reprOfArg(Arg& arg, std::map<std::string, VarPos>& locOfVar) {
 	if (arg.type == ArgBool) {
-		return arg.boolValue[i] ? "1" : "0";
+		std::string s = "0b";
+		for (bool c : arg.boolValue) {
+			s.push_back(c ? '1' : '0');
+		}
+		return s + "ull";
 	}
 	else if (arg.type == ArgInt) {
 		return std::to_string((int)arg.intValue);
 	}
 	else {
-		uint varPos = memPtOfVar[arg.repr];
-		return "state[" + std::to_string((int)(varPos + i)) + "]";
+		VarPos& loc = locOfVar[arg.repr];
+		return reprOfLoc(loc);
 	}
 }
 
-#define REPR(arg, i) ((reprOfArg(arg, i, memPtOfVar)))
+#define REPR(arg) ((reprOfArg(arg, locOfVar)))
 
-bool isMemeZero(Memory& mem) {
+bool isMemZero(Memory& mem) {
 	for (bool b : mem) {
 		if (b) {
 			return false;
@@ -35,64 +51,67 @@ bool isMemeZero(Memory& mem) {
 	return true;
 }
 
-void copyArg(std::ostream& os, std::map<std::string, uint>& memPtOfVar,
-	uint destPos, Arg& sourceArg, uint size, uint destOffset = 0) {
+void copyArg(std::ostream& os, std::map<std::string, VarPos>& locOfVar,
+	const VarPos& destLoc, Arg& sourceArg, uint destOffset = 0, bool orEq = false) {
 
-	if (sourceArg.type == ArgVariable) {
-		uint varPos = memPtOfVar[sourceArg.repr];
-		os << "std::copy(state.begin() + " << varPos << ", state.begin() + "
-			<< varPos + size << ", state.begin() + " << destPos + destOffset << ");\n";
+	uint destPos = destLoc.pos;
+	if (!destLoc.full) {
+		std::cerr << "ERROR ???\n";
+		exit(-1);
 	}
-	else if (sourceArg.type == ArgBool && size <= 100 && isMemeZero(sourceArg.boolValue)) {
-		os << "std::copy(zerobits.begin(), zerobits.begin() + " << size
-			<< ", state.begin() + " << destPos + destOffset << ");\n";
+	os << "var_" << destPos;
+	os << (orEq ? " |= " : " = ");
+	if (sourceArg.type == ArgBool && isMemZero(sourceArg.boolValue)) {
+		os << "0ull";
 	}
 	else {
-		for (uint i = 0; i < size; i++) {
-			os << "state[" << destPos + i + destOffset << "] = " << REPR(sourceArg, i) << ";\n";
-		}
+		os << REPR(sourceArg);
 	}
+	if (destOffset) {
+		os << " << " << destOffset;
+	}
+	os << ";\n";
 }
 
 void genNetlistCode(SoftNetlist& net, std::ostream& os) {
 	// Sort all variables
 	net.checkVarArgs();
 	std::vector<Variable> allvars = net.sorted();
-	std::map<std::string, uint> memPtOfVar, idOfVar;
-	uint sizeState = 0, sizeRam = 0, nbRegistersOp = 0, sizeRegs = 0;
+	std::map<std::string, uint> idOfVar;
+	std::map<std::string, VarPos> locOfVar;
+	uint sizeState = 0, sizeRam = 0, nbRegistersOp = 0;
+	uint iTransferTab = 0;
 
 
 	uint iVarInAllVars = 0;
 	for (Variable& var : allvars) { // Initialize the ROM before
 		if (var.operation == OpRom) {
 			var.args.insert(var.args.begin(), Arg(sizeRam)); // First arg : rom block id
-			sizeRam += (1 << var.args[1].intValue) + var.args[2].intValue;
+			sizeRam += ((1 << var.args[1].intValue) + var.args[2].intValue) / 32 + 1;
 		}
 	}
 	for (Variable& var : allvars) { // Initialize the memory
-		var.pos = sizeState;
-		memPtOfVar[var.name] = var.pos;
+		var.loc = VarPos(sizeState, var.size);
+		locOfVar[var.name] = var.loc;
 		idOfVar[var.name] = iVarInAllVars++;
+
 		if (var.operation != OpSlice && var.operation != OpSelect) {
-			sizeState += var.size;
+			sizeState += 1;
 		}
 
 		if (var.operation == OpReg) {
 			nbRegistersOp++;
-			sizeRegs += var.size;
 		}
 		if (var.operation == OpRam) {
-			var.args.insert(var.args.begin(), Arg(sizeRam)); // First arg : rom block id
-			sizeRam += (1 << var.args[1].intValue) + var.args[2].intValue;
+			var.args.insert(var.args.begin(), Arg(sizeRam)); // First arg : ram block id
+			sizeRam += ((1 << var.args[1].intValue) + var.args[2].intValue) / 32 + 1;
 		}
-		// std::cout << var << "\n";
 	}
 
 	// Create the write RAM operations
-	std::vector<Variable> ramVars;
 	for (Variable& var : allvars) {
 		if (var.operation == OpRam) {
-			Variable varWrite = Variable{ "", OpRamWrite, 0, sizeState, {} };
+			Variable varWrite = Variable("", OpRamWrite, sizeState, {});
 			// Create the write operation
 			varWrite.args.push_back(var.args[0]); // ram block starts at
 			varWrite.args.push_back(var.args[1]); // addr_size
@@ -100,46 +119,45 @@ void genNetlistCode(SoftNetlist& net, std::ostream& os) {
 			varWrite.args.push_back(var.args[4]); // write_enable
 			varWrite.args.push_back(var.args[5]); // write_addr
 			varWrite.args.push_back(var.args[6]); // write_data
-			ramVars.push_back(varWrite);
+			allvars.push_back(varWrite);
 
 			// Remove the write parameters from the RAM read operation
 			var.args.pop_back(); var.args.pop_back(); var.args.pop_back();
 		}
 	}
-	allvars.insert(allvars.end(), ramVars.begin(), ramVars.end());
 
 	/* Optimize operations */
-	std::map<std::string, uint> nbDependOf;
-	int iOpCur = 0;
-	for (Variable& var : allvars) {
-		nbDependOf[var.name] = 0;
-		idOpOfVar[var.name] = iOpCur++;
-	}
-	for (Variable& var : allvars) {
-		for (Arg& arg : var.args) {
-			if (arg.type == ArgVariable) {
-				nbDependOf[arg.repr] += 1;
-			}
-		}
-	}
+	// std::map<std::string, uint> nbDependOf;
+	// int iOpCur = 0;
+	// for (Variable& var : allvars) {
+	// 	nbDependOf[var.name] = 0;
+	// 	idOpOfVar[var.name] = iOpCur++;
+	// }
+	// for (Variable& var : allvars) {
+	// 	for (Arg& arg : var.args) {
+	// 		if (arg.type == ArgVariable) {
+	// 			nbDependOf[arg.repr] += 1;
+	// 		}
+	// 	}
+	// }
 	// Optimize concats
-	for (Variable& var : allvars) {
-		if (var.operation == OpConcat) {
-			std::vector<Arg> concatArgs;
-			for (Arg& arg : var.args) {
-				if (arg.type == ArgVariable && allvars[idOpOfVar[arg.repr]].operation == OpConcat) {
-					nbDependOf[arg.repr] -= 1;
-					for (Arg& arg2 : allvars[idOpOfVar[arg.repr]].args) {
-						concatArgs.push_back(arg2);
-					}
-				}
-				else {
-					concatArgs.push_back(arg);
-				}
-			}
-			var.args = concatArgs;
-		}
-	}
+	// for (Variable& var : allvars) {
+	// 	if (var.operation == OpConcat) {
+	// 		std::vector<Arg> concatArgs;
+	// 		for (Arg& arg : var.args) {
+	// 			if (arg.type == ArgVariable && allvars[idOpOfVar[arg.repr]].operation == OpConcat) {
+	// 				nbDependOf[arg.repr] -= 1;
+	// 				for (Arg& arg2 : allvars[idOpOfVar[arg.repr]].args) {
+	// 					concatArgs.push_back(arg2);
+	// 				}
+	// 			}
+	// 			else {
+	// 				concatArgs.push_back(arg);
+	// 			}
+	// 		}
+	// 		var.args = concatArgs;
+	// 	}
+	// }
 
 
 	/* Create the init function */
@@ -147,28 +165,23 @@ void genNetlistCode(SoftNetlist& net, std::ostream& os) {
 	os << "#import \"../src/netsim/comp_netlist_sim.hpp\"\n\n";
 
 	os << "void NetsimCompRunner::init() {\n";
-	uint inputSize = 0;
+
 	for (std::string inName : net.inputs) {
-		auto& var = net.variables[inName];
-		uint memPt = memPtOfVar[inName];
+		VarPos& loc = locOfVar[inName];
+		loc.tabPos = iTransferTab++;
 		os << "inputs.push_back(HardVariable{ \"" << inName
-			<< "\", " << var.size << ", " << memPt << " });\n";
-		inputSize += var.size;
+			<< "\", " << loc.tabPos << " });\n";
 	}
-	uint outputSize = 0;
 	for (std::string outName : net.outputs) {
-		auto& var = net.variables[outName];
-		uint memPt = memPtOfVar[outName];
+		VarPos& loc = locOfVar[outName];
+		loc.tabPos = iTransferTab++;
 		os << "outputs.push_back(HardVariable{ \"" << outName
-			<< "\", " << var.size << ", " << memPt << " });\n";
-		outputSize += var.size;
+			<< "\", " << loc.tabPos << " });\n";
 	}
-	os << "inputSize = " << inputSize << ";\n";
-	os << "outputSize = " << outputSize << ";\n";
-	os << "\n";
-	os << "state.resize(" << sizeState << ", 0);\n";
+	os << "transferTab.resize(" << iTransferTab << ", 0);\n";
+
 	os << "ram.resize(" << sizeRam << ", 0);\n";
-	os << "registers.resize(" << sizeRegs << ", 0);\n";
+	os << "registers.resize(" << nbRegistersOp << ", 0);\n";
 	os << "}\n\n";
 
 	/* Create the run function */
@@ -179,20 +192,28 @@ void genNetlistCode(SoftNetlist& net, std::ostream& os) {
 	os << "uint addr;\n";
 	os << "\n";
 
+	for (uint i = 0; i < sizeState; i++) {
+		os << "boolType var_" << i << " = 0;\n";
+	}
+
 	// Init constants
 	os << "// Init constants\n";
-	os << "Memory zerobits(100, 0);\n";
 	for (Variable& var : allvars) {
 		if (var.operation == OpConst && var.args[0].type == ArgBool) {
-			copyArg(os, memPtOfVar, var.pos, var.args[0], var.size);
+			copyArg(os, locOfVar, var.loc, var.args[0]);
 		}
 	}
 
 	// Main loop
 	os << "\nfor (uint iCycle = 0; nbCycles == 0 || iCycle < nbCycles; iCycle++) {\n";
 	os << "onCycleBegin(iCycle);\n";
-	os << "std::copy(registers.begin(), registers.end(), state.begin());\n";
-
+	for (uint i = 0; i < nbRegistersOp; i++) {
+		os << "var_" << i << " = registers[" << i << "];\n";
+	}
+	for (std::string inName : net.inputs) {
+		VarPos& loc = locOfVar[inName];
+		os << "var_" << loc.pos << " = transferTab[" << loc.tabPos << "];\n";
+	}
 
 	for (Variable& var : allvars) {
 		os << "// " << var.name << " = " << strOfOp(var.operation);
@@ -202,80 +223,76 @@ void genNetlistCode(SoftNetlist& net, std::ostream& os) {
 		os << "\n";
 
 		if (var.operation == OpSelect) { // Remove Select operations
-			uint blockPt = memPtOfVar[var.args[1].repr];
-			blockPt += var.args[0].intValue;
+			VarPos blockPt = locOfVar[var.args[1].repr];
+			blockPt = blockPt.extract(var.args[0].intValue, var.args[0].intValue);
 
-			var.pos = blockPt;
-			memPtOfVar[var.name] = blockPt;
+			var.loc = blockPt;
+			locOfVar[var.name] = blockPt;
+			// os << "sss[" << var.loc.pos << "] = " << reprOfLoc(blockPt) << ";";
 		}
 		else if (var.operation == OpSlice) { // Remove Slice operations
-			uint blockPt = memPtOfVar[var.args[2].repr];
-			blockPt += var.args[0].intValue;
+			VarPos blockPt = locOfVar[var.args[2].repr];
+			blockPt = blockPt.extract(var.args[0].intValue, var.args[1].intValue);
 
-			var.pos = blockPt;
-			memPtOfVar[var.name] = blockPt;
+			var.loc = blockPt;
+			locOfVar[var.name] = blockPt;
+			// os << "sss[" << var.loc.pos << "] = " << reprOfLoc(blockPt) << ";";
 		}
 		else if (var.operation == OpConst && var.args[0].type != ArgBool) {
-			copyArg(os, memPtOfVar, var.pos, var.args[0], var.size);
+			copyArg(os, locOfVar, var.loc, var.args[0]);
 		}
 		else if (var.operation == OpConcat) {
-			if (nbDependOf[var.name] > 0) {
-				uint sizePrev = 0;
-				for (Arg& arg : var.args) {
-					uint sizeArg = sizeOfArg(arg, idOfVar, allvars);
-					copyArg(os, memPtOfVar, var.pos, arg, sizeArg, sizePrev);
-					sizePrev += sizeArg;
-				}
+			// if (nbDependOf[var.name] > 0) {
+			uint sizePrev = 0;
+			bool setWithOr = false;
+			for (Arg& arg : var.args) {
+				uint sizeArg = sizeOfArg(arg, idOfVar, allvars);
+				sizePrev += sizeArg;
+				copyArg(os, locOfVar, var.loc, arg, var.size - sizePrev, setWithOr);
+				setWithOr = true;
 			}
+			// }
 		}
 		else if (var.operation & FLAG_BIN_OPS) {
-			os << "state[" << var.pos << "] = ";
+			os << "var_" << var.loc.pos << " = ";
 			if (var.operation == OpOr) {
-				os << REPR(var.args[0], 0) << " || " << REPR(var.args[1], 0);
+				os << REPR(var.args[0]) << " | " << REPR(var.args[1]);
 			}
 			else if (var.operation == OpAnd) {
-				os << REPR(var.args[0], 0) << " && " << REPR(var.args[1], 0);
+				os << REPR(var.args[0]) << " & " << REPR(var.args[1]);
 			}
 			else if (var.operation == OpXor) {
-				os << REPR(var.args[0], 0) << " != " << REPR(var.args[1], 0);
+				os << "(" << REPR(var.args[0]) << " ^ " << REPR(var.args[1])
+					<< ") & " << ((1ull << var.loc.size) - 1);
 			}
 			else if (var.operation == OpNand) {
-				os << "!(" << REPR(var.args[0], 0) << " && " << REPR(var.args[1], 0) << ")";
+				os << "~(" << REPR(var.args[0]) << " & " << REPR(var.args[1]) << ")";
 			}
 			os << ";\n";
 		}
 		else if (var.operation == OpNot) {
-			os << "state[" << var.pos << "] = !" << REPR(var.args[0], 0) << ";\n";
+			os << "var_" << var.loc.pos << " = (~" << REPR(var.args[0]) << ") &"
+				<< ((1ull << var.loc.size) - 1)
+				<< ";\n";
 		}
 		else if (var.operation == OpMux) {
-			os << "if (" << REPR(var.args[0], 0) << ") {\n";
-			copyArg(os, memPtOfVar, var.pos, var.args[2], var.size);
+			os << "if (" << REPR(var.args[0]) << " & 1) {\n";
+			copyArg(os, locOfVar, var.loc.pos, var.args[2]);
 			os << "} else {\n";
-			copyArg(os, memPtOfVar, var.pos, var.args[1], var.size);
+			copyArg(os, locOfVar, var.loc.pos, var.args[1]);
 			os << "}\n";
 		}
 		else if (var.operation == OpRam || var.operation == OpRom || var.operation == OpRamWrite) {
 			int blockStart = var.args[0].intValue;
 			int iAddr = var.operation == OpRamWrite ? 4 : 3;
-			for (uint i = 0; i < var.args[1].intValue; i++) {
-				if (i == 0) {
-					os << "addr = " << REPR(var.args[iAddr], i) << ";\n";
-				}
-				else {
-					os << "addr = (addr << 1) + " << REPR(var.args[iAddr], i) << ";\n";
-				}
-			}
+			os << "addr = ((" << REPR(var.args[iAddr]) << ") >> 5) + " << blockStart << ";\n";
 
 			if (var.operation == OpRam || var.operation == OpRom) {
-				os << "std::copy(ram.begin() + addr + " << blockStart << ", ram.begin() + addr +"
-					<< blockStart + var.args[2].intValue << ", state.begin() + "
-					<< var.pos << ");\n";
+				os << "var_" << var.loc.pos << " = ram[addr];\n";
 			}
 			else {
-				os << "if (" << REPR(var.args[3], 0) << ") {\n";
-				for (uint i = 0; i < var.args[2].intValue; i++) {
-					os << "    ram[addr + " << (blockStart + i) << "] = " << REPR(var.args[5], i) << ";\n";
-				}
+				os << "if (" << REPR(var.args[3]) << ") {\n";
+				os << "    ram[addr] = " << REPR(var.args[5]) << ";\n";
 				os << "}\n";
 			}
 		}
@@ -283,13 +300,14 @@ void genNetlistCode(SoftNetlist& net, std::ostream& os) {
 			throw UsageError("Unknwown operation");
 		}
 	}
-	uint curPos = 0;
 	for (uint iRegister = 0; iRegister < nbRegistersOp; iRegister++) {
 		Variable& var = allvars[iRegister];
-		uint registeredPt = memPtOfVar[var.args[0].repr];
-		os << "std::copy(state.begin() + " << registeredPt << ", state.begin() + "
-			<< (registeredPt + var.size) << ", registers.begin() + " << curPos << ");\n";
-		curPos += var.size;
+		VarPos& registeredPt = locOfVar[var.args[0].repr];
+		os << "registers[" << iRegister << "] = var_" << registeredPt.pos << ";\n";
+	}
+	for (std::string outName : net.outputs) {
+		VarPos& loc = locOfVar[outName];
+		os << "transferTab[" << loc.tabPos << "] = var_" << loc.pos << ";\n";
 	}
 	os << "\n";
 	os << "try {\n";

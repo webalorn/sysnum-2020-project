@@ -26,24 +26,35 @@ main:                                   # @main
 	addi	t3, zero, 56
 	addi	t4, zero, 57
 	addi	t5, zero, 13
+	addi	t6, zero, 1
+	j	.LBB0_2
+.LBB0_1:                                #   in Loop: Header=BB0_2 Depth=1
+	sw	t6, 0(a0)
+.LBB0_2:                                # =>This Loop Header: Depth=1
+                                        #     Child Loop BB0_3 Depth 2
+                                        #       Child Loop BB0_4 Depth 3
+                                        #         Child Loop BB0_5 Depth 4
 	addi	s2, zero, 48
-	addi	t6, zero, 48
-.LBB0_1:                                # =>This Loop Header: Depth=1
-                                        #     Child Loop BB0_2 Depth 2
-                                        #       Child Loop BB0_3 Depth 3
-	sw	s2, 4(a0)
-	sw	t6, 4(a0)
-	sw	a6, 4(a0)
-	addi	s1, zero, 48
-.LBB0_2:                                #   Parent Loop BB0_1 Depth=1
+	addi	s3, zero, 48
+.LBB0_3:                                #   Parent Loop BB0_2 Depth=1
                                         # =>  This Loop Header: Depth=2
-                                        #       Child Loop BB0_3 Depth 3
-	sw	s1, 4(a0)
+                                        #       Child Loop BB0_4 Depth 3
+                                        #         Child Loop BB0_5 Depth 4
+	sw	s2, 4(a0)
+	sw	s3, 4(a0)
+	sw	a6, 4(a0)
 	addi	s0, zero, 48
-.LBB0_3:                                #   Parent Loop BB0_1 Depth=1
-                                        #     Parent Loop BB0_2 Depth=2
-                                        # =>    This Inner Loop Header: Depth=3
+.LBB0_4:                                #   Parent Loop BB0_2 Depth=1
+                                        #     Parent Loop BB0_3 Depth=2
+                                        # =>    This Loop Header: Depth=3
+                                        #         Child Loop BB0_5 Depth 4
 	sw	s0, 4(a0)
+	addi	s1, zero, 48
+.LBB0_5:                                #   Parent Loop BB0_2 Depth=1
+                                        #     Parent Loop BB0_3 Depth=2
+                                        #       Parent Loop BB0_4 Depth=3
+                                        # =>      This Inner Loop Header: Depth=4
+	sw	s1, 4(a0)
 	sw	a6, 4(a0)
 	sw	a7, 4(a0)
 	sw	a7, 4(a0)
@@ -177,35 +188,32 @@ main:                                   # @main
 	sw	t4, 4(a0)
 	sw	a3, 4(a0)
 	sw	a3, 4(a0)
-	addi	s0, s0, 1
-	sw	a3, 4(a0)
-	sw	a3, 4(a0)
-	bne	s0, a6, .LBB0_3
-# %bb.4:                                #   in Loop: Header=BB0_2 Depth=2
 	addi	s1, s1, 1
 	sw	a3, 4(a0)
-	bne	s1, t1, .LBB0_2
-# %bb.5:                                #   in Loop: Header=BB0_1 Depth=1
+	sw	a3, 4(a0)
+	bne	s1, a6, .LBB0_5
+# %bb.6:                                #   in Loop: Header=BB0_4 Depth=3
+	addi	s0, s0, 1
+	sw	a3, 4(a0)
+	bne	s0, t1, .LBB0_4
+# %bb.7:                                #   in Loop: Header=BB0_3 Depth=2
 	sw	t5, 4(a0)
-	addi	s0, t6, 1
-	xori	s1, s0, 58
-	seqz	s3, s1
-	addi	t6, zero, 48
-	addi	s1, zero, 48
-	beq	s0, a6, .LBB0_7
-# %bb.6:                                #   in Loop: Header=BB0_1 Depth=1
-	mv	s1, s0
-.LBB0_7:                                #   in Loop: Header=BB0_1 Depth=1
-	add	s3, s2, s3
-	xori	s2, s1, 52
-	xori	s0, s3, 50
-	or	s0, s2, s0
-	addi	s2, zero, 48
-	beqz	s0, .LBB0_1
-# %bb.8:                                #   in Loop: Header=BB0_1 Depth=1
-	mv	t6, s1
-	mv	s2, s3
-	j	.LBB0_1
+	addi	s1, s3, 1
+	xori	s0, s1, 58
+	seqz	s0, s0
+	addi	s3, zero, 48
+	bne	s1, a6, .LBB0_10
+# %bb.8:                                #   in Loop: Header=BB0_3 Depth=2
+	add	s2, s2, s0
+	bne	s3, a1, .LBB0_3
+.LBB0_9:                                #   in Loop: Header=BB0_3 Depth=2
+	beq	s2, a5, .LBB0_1
+	j	.LBB0_3
+.LBB0_10:                               #   in Loop: Header=BB0_3 Depth=2
+	mv	s3, s1
+	add	s2, s2, s0
+	beq	s3, a1, .LBB0_9
+	j	.LBB0_3
 .Lfunc_end0:
 	.size	main, .Lfunc_end0-main
                                         # -- End function
