@@ -74,19 +74,21 @@ class Proc:
 
         # Fetch instruction for next cycle from RAM / ROM / Registers
         self.reg_has_hold.source(~self.memory.used)
-        mem_out = self.memory.read_at(~self.memory.used, self.reg_pc.reg_input)
+        mem_out = self.memory.read_at(~self.memory.used, self.reg_pc.reg_input,
+                                      True)
         self.reg_hold_intruction.source(mem_out)
 
         # Read outputs
         outputs = self.memory.fetch_output()
 
-        # TODO : remove
-        # outputs.append(self.registers.read_reg(bit(10, size=5)))
-        # outputs.append(self.registers.read_reg(bit(11, size=5)))
-        # outputs.append(self.registers.read_reg(bit(8, size=5)))
-        # outputs.append(self.registers.read_reg(bit(2, size=5)))
-        outputs.append(self.reg_pc)
-        outputs.append(self.registers.read_reg(bit(11, size=5)))
+        # TODO : delete
+        # outputs.append(self.reg_pc)
+        # outputs.append(self.registers.registers[10])
+        # outputs.append(self.registers.registers[11])
+        # outputs.append(self.registers.registers[12])
+        # outputs.append(self.registers.registers[8])
+        # outputs.append(self.registers.registers[9])
+        # outputs.append(self.registers.registers[2])
 
         return outputs
 
@@ -106,9 +108,6 @@ class Proc:
 
     def adder(self, a, b, r='0'):
         return hdl.simple_adder(a, b, r)
-
-    def incrementer(self, a):
-        return hdl.increment(a)
 
 
 if __name__ == "__main__":

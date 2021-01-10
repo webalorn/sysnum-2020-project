@@ -12,19 +12,18 @@ def left_shift(bits, shift, invert=False):
     return bits
 
 
-def right_shift(bits, shift, invert=False):
-    return left_shift(bits, shift, not invert)
+def right_shift(bits, shift, invert=False, lead_bit=bit('0')):
+    if invert:
+        return left_shift(bits, shift)
 
-
-def first_less_than(mod, first, second, unsigned=False):
-    if unsigned:
-        first = hdl.extend(mod.word_size + 1, first)
-        second = hdl.extend(mod.word_size + 1, second)
-    else:
-        first = hdl.sign_extend(mod.word_size + 1, first)
-        second = hdl.sign_extend(mod.word_size + 1, second)
-    val = mod.proc.adder(first, hdl.negative_of_int(second))[0]
-    return '0' * (mod.word_size - 1) + val[0]  # Bit sign
+    lead = lead_bit
+    shift = list(shift)
+    k = 1
+    while shift:
+        bits = mux(shift.pop(), bits, lead + bits[:-k])
+        k *= 2
+        lead = lead + lead
+    return bits
 
 
 @hdl.f
@@ -75,17 +74,50 @@ def simple_divide(dividend: 'l', divisor: 'l') -> (Bit, Bit):
 # ========== Blocks ==========
 
 
-class MultiAdder:
+class ALU:
     def __init__(self, size, adder_function):
         self.input1 = MultiControl()
         self.input2 = MultiControl()
-        self.result = adder_function(virtual(size, self.input1),
-                                     virtual(size, self.input2))
+        self.inv = virtual(1, bit(0))
+        self.signed = virtual(1, bit(0))
+        self.word_size = size
+
+        operand1 = virtual(size, self.input1)
+        operand1 = mux(
+            self.signed,
+            hdl.extend(size + 1, operand1),
+            hdl.sign_extend(size + 1, operand1),
+        )
+
+        operand2 = virtual(size, self.input2)
+        operand2 = mux(
+            self.signed,
+            hdl.extend(size + 1, operand2),
+            hdl.sign_extend(size + 1, operand2),
+        )
+        operand2 = mux(self.inv, operand2, hdl.negative_of_int(operand2))
+        num, self.carry = adder_function(operand1, operand2)
+        self.result = num[1:], num[0]
 
     def get(self, i):
         return self.result[i]
 
-    def add(self, control, left, right):
+    def add(self, control, left, right, inv=None):
         self.input1.add(control, left)
         self.input2.add(control, right)
+        if inv is not None:
+            inv = bit(inv)
+            self.inv.set((control & inv) | self.inv.get())
         return self.result
+
+    def comp(self, control, first, second, signed):
+        self.signed.set(self.signed.get() | (control & signed))
+        if len(second) < self.word_size:
+            second = mux(signed, hdl.extend(self.word_size, second),
+                         hdl.sign_extend(self.word_size, second))
+        self.add(control, first, second, True)
+        return self.result[0][0]
+
+    def first_less_than(self, control, first, second, unsigned=False):
+        r = self.comp(control, first, second, not unsigned)
+        return '0' * (self.word_size - 1) + r

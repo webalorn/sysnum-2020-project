@@ -1,4 +1,4 @@
-CXX=clang --target=riscv32 -march=rv32i -std=c++17
+CXX=clang --target=riscv32 -march=rv32i -std=c++17 -fno-exceptions
 LIB_HPP=$(wildcard slib/*.hpp)
 GAME_HPP=$(wildcard game/*.hpp)
 

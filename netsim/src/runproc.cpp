@@ -47,11 +47,4 @@ int main(int argc, char* argv[]) {
 	ProcRunner net(maxCycles, drive);
 	net.romFromStream(romStream);
 	net.start();
-
-	// std::cout << "\n\n====== FINAL OUTPUT\n";
-	// std::vector<Memory> outVals = net.getOutputsSplit();
-	// for (const Memory& m : outVals) {
-	// 	std::cout << m << " ";
-	// }
-	// std::cout << "\n";
 }

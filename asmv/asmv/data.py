@@ -43,23 +43,26 @@ class DataAssign(Data):
             self.mem_size += 1
 
     def get_bits(self):
-        return format_bits(self.val, self.size, self.datatype, self.risc_obj, abs_label=True)
+        return format_bits(self.val,
+                           self.size,
+                           self.datatype,
+                           self.risc_obj,
+                           abs_label=True)
 
     def compute(self):
         bits = self.get_bits()
-        assert(len(bits) == self.size)
-        bits = ''.join(bits)
-        return bits + '0' * (len(bits) - self.size)
+        assert (len(bits) == self.size)
+        return bits + '0' * (self.mem_size - len(bits))
 
     def __len__(self):
-        return self.size
+        return self.mem_size
+        # return self.size
 
 
 class DataString(DataAssign):
     def __init__(self, val, risc_obj=None):
         if len(val) < 2 or val[0] != '"' or val[-1] != '"':
-            raise AsmError(
-                'A string must be surrounded by two " characters')
+            raise AsmError('A string must be surrounded by two " characters')
         val = eval(val)
         self.chars = [str(b) for b in bytes(val, 'utf-8')]
         self.chars.append('0')  # Add a NULL character
@@ -75,5 +78,6 @@ class ZeroData(DataAssign):
             nbytes = int(nbytes)
         except ValueError:
             raise AsmError(
-                f'The value {nbytes} is not an integer and can\'t be used as the size of a .zero')
+                f'The value {nbytes} is not an integer and can\'t be used as the size of a .zero'
+            )
         super().__init__(0, nbytes * 8, 'bits')

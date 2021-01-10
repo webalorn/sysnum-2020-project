@@ -14,6 +14,8 @@ def reg(n_or_var):
 
 @memoization
 def mux(control, false, true):
+    if false is true:
+        return true
     return MuxOp.on(control, false, true)
 
 
@@ -60,7 +62,7 @@ def concat(*elems, name=None):
             else:
                 elems.append(rev.pop())
         elif isinstance(rev[-1], ConcatOp):
-            rev.extend(rev.pop().args)
+            elems.extend(rev.pop().args)
         else:
             elems.append(rev.pop())
 
@@ -518,7 +520,7 @@ class XorOp(BinOperation):
             if right.is_only('0'):
                 return left
             if right.is_only('1'):
-                return ~right
+                return ~left
             if isinstance(left, Constant):
                 return bit(''.join([
                     '1' if x != y else '0'
@@ -536,7 +538,7 @@ class AndOp(BinOperation):
     def on(cls, left, right):
         if isinstance(right, Constant):
             if right.is_only('0'):
-                return bit('0' * len(right))
+                return right
             if right.is_only('1'):
                 return left
             if isinstance(left, Constant):

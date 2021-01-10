@@ -11,10 +11,16 @@ OP_SIZE = 4
 all_operations = {}  # 'name' -> (size, fct)
 
 VALID_LABELS = re.compile(r"^[a-zA-Z0-9_\.]+$")
-IGNORED_CONFIGS = ['.file', '.globl', '.local', '.addrsig', '.type',
-                   '.section', '.text', '.data', '.rodata', '.bss', '.size',
-                   '.addrsig', '.addrsig_sym', '.cfi_startproc', '.cfi_endproc',
-                   '.cfi_def_cfa_offset', '.cfi_offset', '.cfi_def_cfa', '.weak']
+# IGNORED_CONFIGS = [
+#     '.file', '.globl', '.local', '.addrsig', '.type', '.section', '.text',
+#     '.data', '.rodata', '.bss', '.size', '.addrsig', '.addrsig_sym',
+#     '.cfi_startproc', '.cfi_endproc', '.cfi_def_cfa_offset', '.cfi_offset',
+#     '.cfi_def_cfa', '.weak', '.cfi_personality', '.cfi_lsda'
+# ]
+IGNORED_CONFIGS = [
+    '.file', '.globl', '.local', '.addrsig', '.type', '.section', '.text',
+    '.data', '.rodata', '.bss', '.size', '.addrsig', '.addrsig_sym', '.weak'
+]
 
 # TODO : maybe cfi, etc.... may have a meaning ?
 
@@ -127,12 +133,18 @@ class RiscAsm:
 
         if rom_mode:
             # We need to set the starting value for the stack pointer
-            self.init_ops = [
-                'li sp, 0b00011111111111111111111111111111'] + self.init_ops
+            self.init_ops = ['li sp, 0b00011111111111111111111111111100'
+                             ] + self.init_ops
             self.base_address += 1 << 29
 
         self.cur_asm_pt = self.base_address
         self.load(content)
+
+        # for x in [
+        #         '_ZL4cout', '_ZTV17StandardOutStream',
+        #         '_ZN17StandardOutStream9send_wordEj'
+        # ]:  # TODO : remove
+        #     print(x, " -> ", self.labels[x])
 
     def get_label(self, label, create_label=False):
         rel_int = ((label.endswith('b') or label.endswith('f'))
@@ -143,7 +155,8 @@ class RiscAsm:
             if create_label:  # Virtual have a size of 32
                 if not VALID_LABELS.match(label):
                     raise AsmError(
-                        f"The label name '{label}' contains invalid characters")
+                        f"The label name '{label}' contains invalid characters"
+                    )
                 self.labels[label] = self.cur_size + self.base_address
                 self.virtual_labels.append(label)
                 self.cur_size += 32
@@ -212,7 +225,8 @@ class RiscAsm:
                     raise AsmError(f"The label {label} is already defined")
                 if not VALID_LABELS.match(label):
                     raise AsmError(
-                        f"The label name '{label}' contains invalid characters")
+                        f"The label name '{label}' contains invalid characters"
+                    )
 
                 self.labels[label] = self.cur_size + self.base_address
 
@@ -233,7 +247,7 @@ class RiscAsm:
             line_parts = []
             parts = fct(self, *args)
             if not isinstance(parts, tuple):
-                parts = (parts,)
+                parts = (parts, )
             self.cur_asm_pt += 4  # Move the pt after the last op
 
             for subpart in parts:
@@ -265,9 +279,9 @@ class RiscAsm:
         args = l_split(val, on=',')
 
         if name in ['.align', '.p2align']:
-            if not val in ['1', '2', '4']:
-                raise AsmError('Align parameter must be 1, 2, or 4')
-            self.align = int(val)
+            if not val in ['2', '4']:
+                raise AsmError('Align parameter must be 2 or 4')
+            self.align = 2**int(val)
         elif name == '.equ':
             arg, value = l_split(val, 2)
             self.consts[arg] = int_of_val(value)
@@ -302,8 +316,9 @@ class RiscAsm:
     def get_bin_repr(self):
         text = self.get_text_repr()
         text = text.replace('\n', '')
-        return bytearray([int(text[i: i + 8], 2)
-                          for i in range(0, len(text), 8)])
+        return bytearray(
+            [int(text[i:i + 8], 2) for i in range(0, len(text), 8)])
+
 
 # ========== All operations ==========
 
@@ -343,7 +358,10 @@ def multiop(name, nb_ops, *arg_types):
                     arg_type = typ[0]
 
                 size = typ[1]
-                arg = format_bits(arg, size, arg_type, risc_obj,
+                arg = format_bits(arg,
+                                  size,
+                                  arg_type,
+                                  risc_obj,
                                   rel_label=True)
                 args[i] = arg
 
@@ -356,6 +374,7 @@ def multiop(name, nb_ops, *arg_types):
         assert name not in all_operations
         all_operations[name] = (nb_ops, wrapped_fct)
         return fct  # The base function is kept intact
+
     return wrapper
 
 

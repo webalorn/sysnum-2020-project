@@ -60,7 +60,7 @@ public:
 		}
 		this->send_digits((uint)n);
 	}
-		};
+};
 
 TextOutStream& operator<<(TextOutStream& os, const char c) {
 	os.send_word((uint)c);
@@ -75,6 +75,13 @@ TextOutStream& operator<<(TextOutStream& os, const char32_t* s) {
 	}
 	return os;
 }
+TextOutStream& operator<<(TextOutStream& os, const char* s) {
+	while (*s) {
+		os.send_word((uint)(*s));
+		s++;
+	}
+	return os;
+}
 
 TextOutStream& operator<<(TextOutStream& os, uint n) {
 	os.send_digits(n);
@@ -82,6 +89,10 @@ TextOutStream& operator<<(TextOutStream& os, uint n) {
 }
 TextOutStream& operator<<(TextOutStream& os, int n) {
 	os.send_digits(n);
+	return os;
+}
+TextOutStream& operator<<(TextOutStream& os, char32_t c) {
+	os.send_word(c);
 	return os;
 }
 

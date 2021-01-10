@@ -16,6 +16,9 @@ public:
 		this->resize(size, initWith);
 		this->reserve(2);
 	}
+	~vector() {
+		delete tab;
+	}
 	void resize(uint newsize, T initWith = T()) {
 		if (newsize > _size) {
 			while (newsize > _reserved) {
@@ -40,6 +43,7 @@ public:
 			for (uint i = 0; i < _size; i++) {
 				newtab[i] = tab[i];
 			}
+			delete tab;
 			tab = newtab;
 		}
 	}

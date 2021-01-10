@@ -10,7 +10,7 @@ protected:
 	std::deque<uint> events;
 
 public:
-	ProcInQueue(int maxSize = -1);
+	ProcInQueue(int maxSize = 10);
 	void push(uint);
 	void pop();
 	uint front();

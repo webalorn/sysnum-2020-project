@@ -18,7 +18,7 @@ void NetsimCompRunner::onCycleBegin(uint) {
 
 void NetsimCompRunner::onCycleEnd(uint) {
 	std::vector<boolType> outVals = this->getOutputsSplit();
-	// for (auto m : outVals) {
+	// for (auto m : outVals) { // TODO : remove
 	// 	std::cout << m << " ";
 	// }
 	// std::cout << "\n";
@@ -33,7 +33,13 @@ void NetsimCompRunner::onCycleEnd(uint) {
 	}
 	for (uint iDevice = 0; iDevice < outDevices.size(); iDevice++) {
 		int iOutput = iDevice + 2;
+		// if (outVals[iOutput]) { // TODO : remove
+		// 	std::cout << "=> ";
+		// }
 		outDevices[iDevice]->send(outVals[iOutput]);
+		// if (outVals[iOutput]) { // TODO : remove
+		// 	std::cout << "\n";
+		// }
 	}
 }
 

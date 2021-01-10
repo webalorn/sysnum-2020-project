@@ -34,23 +34,22 @@ class RamController:
         self.word_size = word_size
 
         self.inputs = MultiControl()
-        self.write_addrs = MultiControl()
-        self.write_data = MultiControl()
+        self.write_addrs = hdl.VirtualBit(ram_size)
+        self.write_data = hdl.VirtualBit(word_size)
         self.write_enabled = virtual(1, bit('0'))
 
         self.output = RamOp(ram_size, word_size,
                             virtual(ram_size, self.inputs), self.write_enabled,
-                            virtual(ram_size, self.write_addrs),
-                            virtual(word_size, self.write_data))
+                            self.write_addrs, self.write_data)
 
     def read_at(self, control, addr):
         self.inputs.add(control, addr[-self.ram_size:])
         return self.output
 
     def write_at(self, control, addr, value):
-        self.write_enabled.set(self.write_enabled.get() | control)
-        self.write_addrs.add(control, addr[-self.ram_size:])
-        self.write_data.add(control, value)
+        self.write_enabled.set(control)
+        self.write_addrs.set(addr[-self.ram_size:])
+        self.write_data.set(value)
 
 
 class InputController:
@@ -108,45 +107,47 @@ class MemoryController:
         # We don't add the first output to the controller because it is reserved
         self.output = OutputController([size for _, size in out_format[1:]])
         self.sources = [
-            ('000', ram),
-            ('001', rom),
-            ('101', self.output),
+            ('000', ram, True),
+            ('001', rom, True),
+            ('101', self.output, False),
         ]
         self.used = bit(0)  # If the ROM or RAM has already been used
 
         # Set default actions
         rom.read_at('0', '0' * rom.rom_size)
         ram.read_at('1', '0' * ram.ram_size)
-        ram.write_at('0', '0' * ram.ram_size, '0' * ram.word_size)
+        # ram.write_at('0', '0' * ram.ram_size, '0' * ram.word_size)
 
     @hdl.f
-    def read_at(self, control: 'bit', addr: 32):
-        dest, addr = addr[:3], addr[3:] + bit('000')
+    def read_at(self, control: 'bit', addr: 32, memory_only=False):
+        dest, addr = addr[:3], addr[3:][:-2] + bit('00000')
         self.used = self.used | (control &
                                  (~(dest[0] | dest[1])))  # RAM and ROM -> 00x
         output = bit(0, size=32)
 
-        for dest_id, dest_obj in self.sources:
-            isdest = ~(bit(dest) ^ dest_id)
-            isdest = isdest[0] & isdest[1] & isdest[2]
-            dest_out = dest_obj.read_at(control & isdest, addr)
-            if dest_out is not None:
-                output = mux(isdest, output, dest_out)
+        for dest_id, dest_obj, is_memory in self.sources:
+            if not memory_only or is_memory:
+                isdest = ~(bit(dest) ^ dest_id)
+                isdest = isdest[0] & isdest[1] & isdest[2]
+                dest_out = dest_obj.read_at(control & isdest, addr)
+                if dest_out is not None:
+                    output = mux(isdest, output, dest_out)
         return output
 
     @hdl.f
     def write_at(self, control: 'bit', addr: 32, value: 32):
         dest, addr = addr[:3], addr[3:] + bit('000')
-        for dest_id, dest_obj in self.sources:
-            isdest = ~(bit(dest) ^ dest_id)
-            isdest = isdest[0] & isdest[1] & isdest[2]
+        for dest_id, dest_obj, is_memory in self.sources:
+            isdest = bit(True)
+            for a, b in zip(dest_id, dest):
+                isdest = isdest & (b if a == '1' else ~b)
             dest_obj.write_at(control & isdest, addr, value)
 
     def input_from(self, inputs):
         inputs = [hdl.extend(32, var) for var in inputs]
         mem = InputController(inputs)
         self.input_signal = mem.input_addr
-        self.sources.append(('100', mem))
+        self.sources.append(('100', mem, True))
 
     def fetch_output(self):
         in_sig_size = len(self.input_signal)
@@ -161,7 +162,7 @@ class RegisterController:
         Used to control registers. You can use each writer and reader at most ONE time per cycle.
         Register 0 is always 0
     """
-    def __init__(self, nb_registers, word_size, nb_readers=0, nb_writers=0):
+    def __init__(self, nb_registers, word_size):
         self.nb_registers = nb_registers
         self.reg_addr_size = math.ceil(math.log2(nb_registers))
         self.word_size = word_size
@@ -170,31 +171,7 @@ class RegisterController:
             Register(size=word_size, name=f'register_{i}')
             for i in range(nb_registers)
         ]
-        self.reg_inputs = [
-            MultiControl(('1', register)) for register in self.registers
-        ]
-
         self.registers[0] = bit(0, size=word_size)
-        self.reg_inputs[0] = None
-
-        for i_reg in range(1, nb_registers):
-            self.registers[i_reg].source(
-                virtual(word_size, self.reg_inputs[i_reg]))
-
-        self.writers = [self.build_writer() for _ in range(nb_readers)]
-
-    def build_reader(self):
-        controller = MultiControl()  # add (control, addr)
-        plex = Multiplexer(virtual(self.reg_addr_size, controller))
-        plex.add(*self.registers)
-
-        return (controller, virtual(self.word_size, plex))
-
-    def build_writer(self):
-        controller = MultiControl()  # add (control, addr)
-        reg_controls = SimpleDecoder(virtual(self.reg_addr_size, controller))
-
-        return (controller, reg_controls)
 
     # Access to read / write
 
@@ -206,10 +183,7 @@ class RegisterController:
         return plex.build()
 
     @hdl.f
-    def write_reg(self, iwriter: int, control: 'bit', addr: 'bus', val: 'bus'):
-        while iwriter >= len(self.writers):
-            self.writers.append(self.build_writer())
-
+    def write_reg(self, control: 'bit', addr: 'bus', val: 'bus'):
         if len(addr) != self.reg_addr_size:
             raise hdl.BuildError(
                 f"The size of the register address must be {self.reg_addr_size}, not {len(addr)}"
@@ -219,9 +193,10 @@ class RegisterController:
                 f"The size of the register value must be {self.word_size}, not {len(val)}"
             )
 
-        controller, reg_controls = self.writers[iwriter]
+        reg_controls = SimpleDecoder(addr)
 
-        controller.add(control, addr)
-        for ireg, reg_in in enumerate(self.reg_inputs):
-            if reg_in is not None:
-                reg_in.add(control & reg_controls.get_control(ireg), val)
+        for i_reg, register in enumerate(self.registers):
+            if i_reg:
+                register.source(
+                    mux(control & reg_controls.get_control(i_reg), register,
+                        val))

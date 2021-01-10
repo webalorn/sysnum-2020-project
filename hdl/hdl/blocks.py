@@ -39,6 +39,7 @@ def virtual(size, block):
 @hdl_function
 def simple_adder(a: 'l', b: 'l', r: 'bit' = 0):
     """ Returns (a+b+r, remainder) """
+
     if not isinstance(b, ConcatOp) and not isinstance(b, Constant):
         gen_carry = a ^ b
         prop_carry = a & b
