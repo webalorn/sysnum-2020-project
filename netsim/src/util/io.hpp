@@ -27,6 +27,7 @@ SoftNetlist loadNetlistFrom(std::string);
 
 
 void flowBitFrom(std::ifstream& stream, Memory& mem, bool extend = true);
+void flowBitFromBinary(std::ifstream& stream, Memory& mem, bool extend = true);
 
 
 #endif // IO_HPP

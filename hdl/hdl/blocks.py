@@ -40,21 +40,23 @@ def virtual(size, block):
 def simple_adder(a: 'l', b: 'l', r: 'bit' = 0):
     """ Returns (a+b+r, remainder) """
 
-    if not isinstance(b, ConcatOp) and not isinstance(b, Constant):
-        gen_carry = a ^ b
-        prop_carry = a & b
+    # if not isinstance(b, ConcatOp) and not isinstance(b, Constant):
+    if not isinstance(b, Constant):
+        prop_carry = a ^ b
+        gen_carry = a & b
 
-        def do_addition(i, r):
+        def do_addition_quick(i, r):
             if len(a) == i:
                 return [], r
             else:
                 g, p = gen_carry[i], prop_carry[i]
-                prev, r = do_addition(i + 1, r)
-                prev.append(g ^ r)
-                return (prev, p | (g & r))
+                prev, r = do_addition_quick(i + 1, r)
+                prev.append(r)
+                return (prev, g | (p & r))
 
-        n, r2 = do_addition(0, r)
-        return concat(n[::-1]), r2
+        n, r2 = do_addition_quick(0, r)
+        n = concat(n[::-1]) ^ prop_carry
+        return n, r2
 
     def do_addition(i, r):
         if len(a) == i:
@@ -62,8 +64,10 @@ def simple_adder(a: 'l', b: 'l', r: 'bit' = 0):
         else:
             x, y = a[i], b[i]
             prev, r = do_addition(i + 1, r)
-            v = x ^ y ^ r
-            r2 = (x & (y | r)) | (y & r)
+            xor = x ^ y
+            v = xor ^ r
+            # r2 = (x & (y | r)) | (y & r)
+            r2 = (x & y) | (xor & r)
             prev.append(v)
             return (prev, r2)
 
@@ -82,7 +86,8 @@ def negative_of_int(n: 'bus') -> Bit:
 
 @hdl_function
 def simple_product(n: 'l', m: 'l') -> Bit:
-    floors = [(n << i) & (m[-i - 1] * len(n)) for i in range(len(m))]
+    zero_floor = '0' * len(n)
+    floors = [mux(m[-i - 1], zero_floor, n << i) for i in range(len(m))]
     while len(floors) > 1:
         stack = []
         while len(floors) > 1:

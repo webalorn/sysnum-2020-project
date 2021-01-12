@@ -210,48 +210,45 @@ class OperationController:
     # ---------- M standard extension for integer multiplication / division
 
     def op_m_ext(self, control, rd, funct3, rs1, rs2):
-        mapping = []
         if self.proc.MUL_ENABLED:
-            mapping.append(('000', self.op_mul))
-            mapping.append(('011', self.op_mulhu))
-        if self.proc.DIV_ENABLED:
-            mapping.append(('100', self.op_div))
-            mapping.append(('110', self.op_rem))
+            # '000' -> mul
+            # '011' -> mulhu
+            # '001' -> mulh
+            # '010' -> mulhsu
+            mul_control = (~funct3[0]) & control
+            hight_control = funct3[1] | funct3[2]
 
-        if self.proc.MUL_ENABLED:  # Only works for MUL and MULHU
-            # TODO : VS mux
-            inv1 = self.reg_rs1[0] & (~funct3[1])
-            inv2 = self.reg_rs2[0] & (~funct3[2])
+            sign1 = self.reg_rs1[0] & (funct3[1] ^ funct3[2])
+            sign2 = self.reg_rs2[0] & (~funct3[1])
 
-            self.mul_sign = inv1 & inv2
-            v1 = hdl.extend(
-                64, mux(inv1, self.reg_rs1, hdl.negative_of_int(self.reg_rs1)))
-            v2 = hdl.extend(
-                64, mux(inv2, self.reg_rs2, hdl.negative_of_int(self.reg_rs2)))
-            # v2 = hdl.extend(64, self.reg_rs2, self.reg_rs2[0] & (~funct3[2]))
-            self.m_ext_mul = hdl.simple_product(v1, v2)
+            num1 = hdl.extend(64, self.reg_rs1, sign1)
+            num2 = hdl.extend(64, self.reg_rs2, sign2)
+            m_ext_mul = hdl.simple_product(num1, num2)
+
+            self.write_rd(mul_control & hight_control, m_ext_mul[:32])
+            self.write_rd(mul_control & (~hight_control), m_ext_mul[-32:])
 
         if self.proc.DIV_ENABLED:
-            self.m_ext_div = arith.simple_divide(self.reg_rs1, self.reg_rs2)
-        if self.proc.M_EXT_ENABLED:
-            self._decode(mapping, funct3, control, [rd, rs1, rs2])
+            # 100 -> div
+            # 110 -> rem
+            # 101 -> divu
+            # 111 -> remu
+            div_control = funct3[0] & control
+            rem_control = funct3[1]
+            is_signed = ~funct3[2]
 
-    def op_mul(self, control, rd, rs1, rs2):
-        # val=hdl.simple_product(self.reg_rs1, self.reg_rs2)
-        val = self.m_ext_mul[-32:]
-        val = mux(self.mul_sign, val, hdl.negative_of_int(val))
-        self.write_rd(control, val)
+            sign1 = is_signed & self.reg_rs1[0]
+            sign2 = is_signed & self.reg_rs2[0]
+            num1 = mux(sign1, self.reg_rs1, hdl.negative_of_int(self.reg_rs1))
+            num2 = mux(sign2, self.reg_rs2, hdl.negative_of_int(self.reg_rs2))
 
-    def op_mulhu(self, control, rd, rs1, rs2):
-        # val=hdl.simple_product(self.reg_rs1, self.reg_rs2)
-        val = self.m_ext_mul[:32]
-        self.write_rd(control, val)
+            quotient, remainder = arith.simple_divide(num1, num2)
+            quotient = mux(sign1 ^ sign2, quotient,
+                           hdl.negative_of_int(quotient))
+            remainder = mux(sign1, remainder, hdl.negative_of_int(remainder))
 
-    def op_div(self, control, rd, rs1, rs2):
-        self.write_rd(control, self.m_ext_div[0])
-
-    def op_rem(self, control, rd, rs1, rs2):
-        self.write_rd(control, self.m_ext_div[1])
+            self.write_rd(div_control & rem_control, remainder)
+            self.write_rd(div_control & (~rem_control), quotient)
 
     # ========== Register operations ==========
 
@@ -283,7 +280,8 @@ class OperationController:
 
     def op_branch(self, control, offset1, funct3, rs1_addr, rs2_addr, offset2):
         equality = ~hdl.merge_with_op(hdl.OrOp, self.reg_rs1 ^ self.reg_rs2)
-        r1_m_r2 = self.alu.comp(control, self.reg_rs1, self.reg_rs2, funct3[1])
+        r1_m_r2 = self.alu.comp(control, self.reg_rs1, self.reg_rs2,
+                                ~funct3[1])
         r = mux(funct3[0], equality, r1_m_r2[0])
         r = r ^ funct3[2]  # Invert if funct3[2] == 1
 

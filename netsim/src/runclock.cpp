@@ -32,7 +32,7 @@ int main(int argc, char* argv[]) {
 		return -1;
 	}
 
-	std::ifstream romStream(argv[1]);
+	std::ifstream romStream(argv[1], std::ios::binary);
 	uint maxCycles = 0; // -> +INF
 	if (argc >= 3) {
 		maxCycles = std::stoi(argv[2]);

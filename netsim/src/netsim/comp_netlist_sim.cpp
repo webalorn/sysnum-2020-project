@@ -4,7 +4,7 @@
 NetsimCompRunner::NetsimCompRunner() {}
 
 void NetsimCompRunner::romFromStream(std::ifstream& romStream) {
-	flowBitFrom(romStream, this->ram);
+	flowBitFromBinary(romStream, this->ram);
 }
 
 void NetsimCompRunner::onCycleBegin(uint) {
@@ -18,10 +18,6 @@ void NetsimCompRunner::onCycleBegin(uint) {
 
 void NetsimCompRunner::onCycleEnd(uint) {
 	std::vector<boolType> outVals = this->getOutputsSplit();
-	// for (auto m : outVals) { // TODO : remove
-	// 	std::cout << m << " ";
-	// }
-	// std::cout << "\n";
 
 	uint inputRead = outVals[0];
 	if (inputRead < inDevices.size()) {
@@ -33,13 +29,7 @@ void NetsimCompRunner::onCycleEnd(uint) {
 	}
 	for (uint iDevice = 0; iDevice < outDevices.size(); iDevice++) {
 		int iOutput = iDevice + 2;
-		// if (outVals[iOutput]) { // TODO : remove
-		// 	std::cout << "=> ";
-		// }
 		outDevices[iDevice]->send(outVals[iOutput]);
-		// if (outVals[iOutput]) { // TODO : remove
-		// 	std::cout << "\n";
-		// }
 	}
 }
 
@@ -58,8 +48,6 @@ void NetsimCompRunner::start() {
 std::vector<boolType> NetsimCompRunner::getOutputsSplit() {
 	std::vector<boolType> outs(outputs.size());
 	for (uint iOutput = 0; iOutput < outputs.size(); iOutput++) {
-		// outs[iOutput] = state[outputs[iOutput].pos] & ((1ull << outputs[iOutput].size) - 1);
-		// outs[iOutput] = state[outputs[iOutput].pos];
 		outs[iOutput] = transferTab[outputs[iOutput].pos];
 	}
 	return outs;
@@ -67,7 +55,6 @@ std::vector<boolType> NetsimCompRunner::getOutputsSplit() {
 
 void NetsimCompRunner::setInputsSplit(const std::vector<boolType>& inputValues) {
 	for (uint iInput = 0; iInput < inputValues.size(); iInput++) {
-		// state[inputs[iInput].pos] = inputValues[iInput];
 		transferTab[inputs[iInput].pos] = inputValues[iInput];
 	}
 }

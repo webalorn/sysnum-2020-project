@@ -2,16 +2,13 @@ from .util import AsmError, bin_add, hi_lo
 from .riscasm import newop, multiop, format_bits
 
 
-MUL_ENABLED = False
-DIV_ENABLED = False
-
-
 def int2b(val, size):
     return format_bits(str(val), size, 'bits', None)
 
 
 def uint2b(val, size):
     return format_bits(str(val), size, True, None)
+
 
 # ========== Base ISA ==========
 
@@ -78,6 +75,7 @@ def op_auipc(rd, imm):
     """ rd <- pc + (imm . 000000000000) """
     return ['0010111', rd, imm]
 
+
 # ---------- Register-Register
 
 
@@ -129,10 +127,6 @@ def op_srl(rd, rs1, rs2):
 def op_sub(rd, rs1, rs2):
     return ['0110011', rd, '000', rs1, rs2, '0100000']
 
-# TODO : currently unsuported
-# @newop('SRA', 'reg', 'reg', 'reg')
-# def op_sra(rd, rs1, rs2):
-#     return ['0110011', rd, '101', rs1, rs2, '0100000']
 
 # ---------- Control Transfer Instructions
 
@@ -147,6 +141,7 @@ def op_jal(rd, imm):
 def op_jalr(rd, rs1, imm):
     """ Jump to rs1 + imm and link into rd """
     return ['1100111', rd, '000', rs1, imm]
+
 
 # Conditional
 
@@ -210,6 +205,7 @@ def op_bleu(src1, src2, imm):
     """ Branch on src1 <= src1, unsigned """
     return op_bgeu(src2, src1, imm)
 
+
 # ---------- Load and Store Instructions
 
 # Load
@@ -243,6 +239,7 @@ def op_load_lb(rd, rs1, offset):
 def op_load_lbu(rd, rs1, offset):
     """ Load word (8 bits [byte], 0-extended) """
     return ['0000011', rd, '100', rs1, offset]
+
 
 # Store
 
@@ -295,6 +292,7 @@ def op_load_li(rd, imm):
     imm1, imm2 = hi_lo(imm)
     return (op_lui(rd, imm1), op_addi(rd, rd, imm2))
 
+
 # Comparisons
 
 
@@ -321,6 +319,7 @@ def op_sgtz(rd, rs1):
     """ Set 1 iff rs1 > 0 """
     return op_slt(rd, '00000', rs1)
 
+
 # ---------- Control flow
 
 
@@ -334,7 +333,6 @@ def op_ret():
     return op_jalr('00000', '00001', int2b('0', 12))
 
 
-# TODO : 2 ops for long addr ?
 @newop('CALL', 'reg', 'int:20')
 def op_call(reg_ret, addr):
     return op_jal(reg_ret, addr)
@@ -348,6 +346,7 @@ def op_tail(addr):
 @newop('JR', 'reg')
 def op_jr(rs1):
     return op_jalr('00000', rs1, '0' * 12)
+
 
 # Branch
 
@@ -404,20 +403,40 @@ def op_bleuz(src1, imm):
 
 # ========== M : Integer Multiplication / Division 2.0 ==========
 
-if MUL_ENABLED:
-    @newop('MUL', 'reg', 'reg', 'reg')
-    def op_mul(rd, rs1, rs2):
-        return ['0110011', rd, '000', rs1, rs2, '0000001']
 
-    @newop('MULHU', 'reg', 'reg', 'reg')
-    def op_mulhu(rd, rs1, rs2):
-        return ['0110011', rd, '011', rs1, rs2, '0000001']
+def enableMExt(MUL_ENABLED=True, DIV_ENABLED=True):
+    if MUL_ENABLED:
 
-if DIV_ENABLED:
-    @newop('DIV', 'reg', 'reg', 'reg')
-    def op_div(rd, rs1, rs2):
-        return ['0110011', rd, '100', rs1, rs2, '0000001']
+        @newop('MUL', 'reg', 'reg', 'reg')
+        def op_mul(rd, rs1, rs2):
+            return ['0110011', rd, '000', rs1, rs2, '0000001']
 
-    @newop('REM', 'reg', 'reg', 'reg')
-    def op_rem(rd, rs1, rs2):
-        return ['0110011', rd, '110', rs1, rs2, '0000001']
+        @newop('MULHU', 'reg', 'reg', 'reg')
+        def op_mulhu(rd, rs1, rs2):
+            return ['0110011', rd, '011', rs1, rs2, '0000001']
+
+        @newop('MULH', 'reg', 'reg', 'reg')
+        def op_mulh(rd, rs1, rs2):
+            return ['0110011', rd, '001', rs1, rs2, '0000001']
+
+        @newop('MULHSU', 'reg', 'reg', 'reg')
+        def op_mulhsu(rd, rs1, rs2):
+            return ['0110011', rd, '010', rs1, rs2, '0000001']
+
+    if DIV_ENABLED:
+
+        @newop('DIV', 'reg', 'reg', 'reg')
+        def op_div(rd, rs1, rs2):
+            return ['0110011', rd, '100', rs1, rs2, '0000001']
+
+        @newop('REM', 'reg', 'reg', 'reg')
+        def op_rem(rd, rs1, rs2):
+            return ['0110011', rd, '110', rs1, rs2, '0000001']
+
+        @newop('DIVU', 'reg', 'reg', 'reg')
+        def op_divu(rd, rs1, rs2):
+            return ['0110011', rd, '101', rs1, rs2, '0000001']
+
+        @newop('REMU', 'reg', 'reg', 'reg')
+        def op_remu(rd, rs1, rs2):
+            return ['0110011', rd, '111', rs1, rs2, '0000001']

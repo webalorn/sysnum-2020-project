@@ -79,26 +79,14 @@ class Proc:
         self.reg_hold_intruction.source(mem_out)
 
         # Read outputs
-        outputs = self.memory.fetch_output()
-
-        # TODO : delete
-        # outputs.append(self.reg_pc)
-        # outputs.append(self.registers.registers[10])
-        # outputs.append(self.registers.registers[11])
-        # outputs.append(self.registers.registers[12])
-        # outputs.append(self.registers.registers[8])
-        # outputs.append(self.registers.registers[9])
-        # outputs.append(self.registers.registers[2])
-
-        return outputs
+        return self.memory.fetch_output()
 
     def build(self):
-        chip = hdl.Chip(
-            self.generate,
-            inputs=[p[1] for p in self.INPUTS],
-            # outputs=[p[1] for p in self.OUTPUTS],
-            input_names=[p[0] for p in self.INPUTS],
-            output_names=[p[0] for p in self.OUTPUTS])
+        chip = hdl.Chip(self.generate,
+                        inputs=[p[1] for p in self.INPUTS],
+                        outputs=[p[1] for p in self.OUTPUTS],
+                        input_names=[p[0] for p in self.INPUTS],
+                        output_names=[p[0] for p in self.OUTPUTS])
         print("Used", len(chip.varname_to_bits), "variables")
         print("Total size of",
               sum(len(x) for x in chip.varname_to_bits.values()))

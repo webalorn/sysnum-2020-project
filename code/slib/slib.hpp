@@ -43,6 +43,7 @@ inline uint strlen(const char32_t* s) {
 }
 
 
+#ifndef DIV_EXT
 void uint2str(uint num, char32_t* arr, uint nbdigits, char16_t blank) {
 	bool before = false;
 	for (uint i = 10 - nbdigits; i < 10; i++) {
@@ -57,6 +58,7 @@ void uint2str(uint num, char32_t* arr, uint nbdigits, char16_t blank) {
 		}
 	}
 }
+#endif
 
 /*
 	Memory managment

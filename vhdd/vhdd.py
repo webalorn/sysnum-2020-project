@@ -11,10 +11,11 @@ class UsageError(Exception):
 #     word = [bool(word in [1, '1']) for b in word[:32]]
 #     file.write(''.join('1' if b else '0' for b in word))
 
+
 def int2word(n):
     parts = []
     for i in range(4):
-        parts.append((n // (256 ** (3 - i))) % 256)
+        parts.append((n // (256**(3 - i))) % 256)
     return bytes(parts)
 
 
@@ -83,9 +84,8 @@ def cmd_new(dest_path, codefile_path, root_path):
     if codefile_path == '-':
         code = bytes(0)
     else:
-        with open(codefile_path) as codefile:
-            code = ''.join([c for c in codefile.read() if c in '01'])
-        code = bytes([int(code[i:i + 8], 2) for i in range(0, len(code), 8)])
+        with open(codefile_path, 'rb') as codefile:
+            code = codefile.read()
         code = align32(code)
 
     if root_path == '-':

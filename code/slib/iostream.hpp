@@ -22,7 +22,7 @@ class TextOutStream : public OStream {
 	void print_digits(const uint v) {
 		if (v) {
 			print_digits(v / 10);
-			this->send_word(v % 10);
+			this->send_word('0' + v % 10);
 		}
 	}
 #endif

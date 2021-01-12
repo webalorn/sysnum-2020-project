@@ -32,7 +32,7 @@ int main(int argc, char* argv[]) {
 	if (argc < 3) {
 		std::cerr << "This command takes 2 or 3 arguments :\n";
 		std::cerr << "-> A file for the ROM, containing 0 and 1 chars (all other chars are ignored). Only works if there is at most one ROM operation in the netlist file [REQUIRED]\n";
-		std::cerr << "-> A file for the VHDD REQUIRED]\n";
+		std::cerr << "-> A file for the VHDD [REQUIRED]\n";
 		std::cerr << "-> The maximum number of cylcles [OPTINAL]\n";
 		return -1;
 	}

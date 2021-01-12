@@ -11,18 +11,10 @@ OP_SIZE = 4
 all_operations = {}  # 'name' -> (size, fct)
 
 VALID_LABELS = re.compile(r"^[a-zA-Z0-9_\.]+$")
-# IGNORED_CONFIGS = [
-#     '.file', '.globl', '.local', '.addrsig', '.type', '.section', '.text',
-#     '.data', '.rodata', '.bss', '.size', '.addrsig', '.addrsig_sym',
-#     '.cfi_startproc', '.cfi_endproc', '.cfi_def_cfa_offset', '.cfi_offset',
-#     '.cfi_def_cfa', '.weak', '.cfi_personality', '.cfi_lsda'
-# ]
 IGNORED_CONFIGS = [
     '.file', '.globl', '.local', '.addrsig', '.type', '.section', '.text',
     '.data', '.rodata', '.bss', '.size', '.addrsig', '.addrsig_sym', '.weak'
 ]
-
-# TODO : maybe cfi, etc.... may have a meaning ?
 
 ALL_REGS = {'x' + str(k): k for k in range(32)}
 
@@ -139,12 +131,6 @@ class RiscAsm:
 
         self.cur_asm_pt = self.base_address
         self.load(content)
-
-        # for x in [
-        #         '_ZL4cout', '_ZTV17StandardOutStream',
-        #         '_ZN17StandardOutStream9send_wordEj'
-        # ]:  # TODO : remove
-        #     print(x, " -> ", self.labels[x])
 
     def get_label(self, label, create_label=False):
         rel_int = ((label.endswith('b') or label.endswith('f'))
@@ -279,9 +265,9 @@ class RiscAsm:
         args = l_split(val, on=',')
 
         if name in ['.align', '.p2align']:
-            if not val in ['2', '4']:
+            if not val in ['1', '2', '4']:
                 raise AsmError('Align parameter must be 2 or 4')
-            self.align = 2**int(val)
+            self.align = min(4, 2**int(val))
         elif name == '.equ':
             arg, value = l_split(val, 2)
             self.consts[arg] = int_of_val(value)

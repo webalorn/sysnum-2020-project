@@ -209,3 +209,23 @@ void flowBitFrom(std::ifstream& stream, Memory& mem, bool extend) {
 		}
 	}
 }
+
+void flowBitFromBinary(std::ifstream& stream, Memory& mem, bool extend) {
+	std::vector<unsigned char> buffer(std::istreambuf_iterator<char>(stream), {});
+	for (uint iWord = 0, iCell = 0; iCell < buffer.size(); iWord++, iCell += 4) {
+		uint word = 0;
+		for (uint iPart = 0; iPart < 4; iPart++) {
+			uint part = iPart + iCell < buffer.size() ? buffer[iCell + iPart] : 0;
+			word += part << 8 * (3 - iPart);
+		}
+		if (iWord < mem.size()) {
+			mem[iWord] = word;
+		}
+		else if (extend) {
+			mem.push_back(word);
+		}
+		else {
+			break;
+		}
+	}
+}

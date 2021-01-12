@@ -12,14 +12,21 @@
 
 std::map<std::string, uint> idOpOfVar;
 
+std::string maskFor(VarPos& loc) {
+	if (loc.size == 64) {
+		return std::to_string(~(0ull)) + "ull";
+	}
+	return std::to_string((1ull << loc.size) - 1) + "ull";
+}
+
 std::string reprOfLoc(VarPos& loc) {
 	if (loc.full) {
 		return "var_" + std::to_string((int)(loc.pos)) + "";
 	}
 	else {
-		ull mask = (1ull << loc.size) - 1;
+		std::string mask = maskFor(loc);
 		return "((var_" + std::to_string((int)(loc.pos)) + " >> "
-			+ std::to_string(loc.rightOffset) + ") & " + std::to_string(mask) + ")";
+			+ std::to_string(loc.rightOffset) + ") & " + mask + ")";
 	}
 }
 
@@ -126,40 +133,6 @@ void genNetlistCode(SoftNetlist& net, std::ostream& os) {
 		}
 	}
 
-	/* Optimize operations */
-	// std::map<std::string, uint> nbDependOf;
-	// int iOpCur = 0;
-	// for (Variable& var : allvars) {
-	// 	nbDependOf[var.name] = 0;
-	// 	idOpOfVar[var.name] = iOpCur++;
-	// }
-	// for (Variable& var : allvars) {
-	// 	for (Arg& arg : var.args) {
-	// 		if (arg.type == ArgVariable) {
-	// 			nbDependOf[arg.repr] += 1;
-	// 		}
-	// 	}
-	// }
-	// Optimize concats
-	// for (Variable& var : allvars) {
-	// 	if (var.operation == OpConcat) {
-	// 		std::vector<Arg> concatArgs;
-	// 		for (Arg& arg : var.args) {
-	// 			if (arg.type == ArgVariable && allvars[idOpOfVar[arg.repr]].operation == OpConcat) {
-	// 				nbDependOf[arg.repr] -= 1;
-	// 				for (Arg& arg2 : allvars[idOpOfVar[arg.repr]].args) {
-	// 					concatArgs.push_back(arg2);
-	// 				}
-	// 			}
-	// 			else {
-	// 				concatArgs.push_back(arg);
-	// 			}
-	// 		}
-	// 		var.args = concatArgs;
-	// 	}
-	// }
-
-
 	/* Create the init function */
 
 	os << "#import \"../src/netsim/comp_netlist_sim.hpp\"\n\n";
@@ -263,7 +236,7 @@ void genNetlistCode(SoftNetlist& net, std::ostream& os) {
 			}
 			else if (var.operation == OpXor) {
 				os << "(" << REPR(var.args[0]) << " ^ " << REPR(var.args[1])
-					<< ") & " << ((1ull << var.loc.size) - 1);
+					<< ") & " << maskFor(var.loc);
 			}
 			else if (var.operation == OpNand) {
 				os << "~(" << REPR(var.args[0]) << " & " << REPR(var.args[1]) << ")";
@@ -272,7 +245,7 @@ void genNetlistCode(SoftNetlist& net, std::ostream& os) {
 		}
 		else if (var.operation == OpNot) {
 			os << "var_" << var.loc.pos << " = (~" << REPR(var.args[0]) << ") &"
-				<< ((1ull << var.loc.size) - 1)
+				<< maskFor(var.loc)
 				<< ";\n";
 		}
 		else if (var.operation == OpMux) {

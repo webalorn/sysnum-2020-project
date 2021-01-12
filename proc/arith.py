@@ -96,8 +96,8 @@ class ALU:
             hdl.sign_extend(size + 1, operand2),
         )
         operand2 = mux(self.inv, operand2, hdl.negative_of_int(operand2))
-        num, self.carry = adder_function(operand1, operand2)
-        self.result = num[1:], num[0]
+        self.num_result, self.carry = adder_function(operand1, operand2)
+        self.result = self.num_result[1:], self.num_result[0]
 
     def get(self, i):
         return self.result[i]
@@ -116,8 +116,8 @@ class ALU:
             second = mux(signed, hdl.extend(self.word_size, second),
                          hdl.sign_extend(self.word_size, second))
         self.add(control, first, second, True)
-        return self.result[0][0]
+        return self.num_result[0]
 
     def first_less_than(self, control, first, second, unsigned=False):
-        r = self.comp(control, first, second, not unsigned)
+        r = self.comp(control, first, second, bit(not unsigned))
         return '0' * (self.word_size - 1) + r

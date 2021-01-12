@@ -1,23 +1,28 @@
-CXX=clang --target=riscv32 -march=rv32i -std=c++17 -fno-exceptions
+CXX=clang --target=riscv32 -std=c++17 -fno-exceptions
+CXX_I=$(CXX) -march=rv32i
 LIB_HPP=$(wildcard slib/*.hpp)
 GAME_HPP=$(wildcard game/*.hpp)
 
-all: prepare build/boot.s build/clock.s build/main.s build/clock_fast.s build/screen_clock.s
+all: prepare build/boot.s build/clock.s build/main.s build/clock_fast.s build/screen_clock.s build/mul.s
 
 prepare:
 	mkdir -p build
 
 build/boot.s: boot.cpp
-	$(CXX) -O2 -S boot.cpp -o build/boot.s
+	$(CXX_I) -O2 -S boot.cpp -o build/boot.s
 
 build/main.s: main.cpp $(LIB_HPP) $(GAME_HPP)
-	$(CXX) -O2 -S main.cpp -o build/main.s
+	$(CXX_I) -O2 -S main.cpp -o build/main.s
+
+build/mul.s: mul.cpp $(LIB_HPP) $(GAME_HPP)
+	# This file don't use O2 to force using the mul / div operations
+	$(CXX) -march=rv32im -S mul.cpp -o build/mul.s
 
 build/clock.s: clock.cpp
-	$(CXX) -O1 -S clock.cpp -o build/clock.s
+	$(CXX_I) -O1 -S clock.cpp -o build/clock.s
 
 build/clock_fast.s: clock.cpp
-	$(CXX) -O2 -S clock.cpp -DFAST=1 -o build/clock_fast.s
+	$(CXX_I) -O2 -S clock.cpp -DFAST=1 -o build/clock_fast.s
 
 build/screen_clock.s: screen_clock.cpp $(LIB_HPP)
 	$(CXX) -O2 -S screen_clock.cpp -o build/screen_clock.s

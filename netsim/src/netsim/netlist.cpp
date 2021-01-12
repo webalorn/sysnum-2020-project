@@ -73,8 +73,6 @@ void SoftNetlist::checkVarArgs() {
 		if (var.operation == OpReg && var.args.size() && var.args[0].type == ArgBool) {
 			var.operation = OpConst;
 		}
-
-		// TODO : check all variables refs, args types, size...
 	}
 }
 
