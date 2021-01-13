@@ -68,7 +68,7 @@ public:
 	}
 
 	void push_back(const T& val) {
-		if (_size >= _reserved) {
+		if (_size + 1 >= _reserved) {
 			reserve(_reserved + _reserved);
 		}
 		this->tab[_size] = val;

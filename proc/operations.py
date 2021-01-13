@@ -144,14 +144,10 @@ class OperationController:
 
     def op_slli(self, control, rd, rs1, imm):
         self.left_shifts.append((control, imm[-5:]))
-        # result = arith.left_shift(self.reg_rs1, imm[-5:])
-        # self.write(0, control, rd, result)
 
     def op_srli_srai(self, control, rd, rs1, imm):
         lead_bit = imm[1] & self.reg_rs1[0]
         self.right_shifts.append((control, imm[-5:], lead_bit))
-        # result = arith.right_shift(self.reg_rs1, imm[-5:], lead_bit)
-        # self.write(0, control, rd, result)
 
     # ---------- Integer Register-Register Instructions
     def op_op_reg_reg(self, control, rd, funct3, rs1, rs2, funct7):
@@ -198,14 +194,10 @@ class OperationController:
 
     def op_sll(self, control, rd, rs1, rs2, funct7):
         self.left_shifts.append((control, self.reg_rs2[-5:]))
-        # result = arith.left_shift(self.reg_rs1, self.reg_rs2[-5:])
-        # self.write(0, control, rd, result)
 
     def op_srl_sra(self, control, rd, rs1, rs2, funct7):
         lead_bit = funct7[1] & self.reg_rs1[0]
         self.right_shifts.append((control, self.reg_rs2[-5:], lead_bit))
-        # result = arith.right_shift(self.reg_rs1, self.reg_rs2[-5:], lead_bit)
-        # self.write(0, control, rd, result)
 
     # ---------- M standard extension for integer multiplication / division
 
@@ -320,14 +312,14 @@ class OperationController:
         # Do not overwrite previous data
         prev = self.proc.memory.read_at(control & (~width[1]), addr)
 
-        p1 = mux((~addr[-1]) & (~addr[-2]), prev[0:8], data_32[0:8])
-        p2 = mux(addr[-1] & (~addr[-2]), prev[8:16], data_32[8:16])
-        p3 = mux((~addr[-1]) & addr[-2], prev[16:24], data_32[16:24])
+        p1 = mux((~addr[-1]) & (~addr[-2]), prev[0:8], data_32[24:])
+        p2 = mux(addr[-1] & (~addr[-2]), prev[8:16], data_32[24:])
+        p3 = mux((~addr[-1]) & addr[-2], prev[16:24], data_32[24:])
         p4 = mux(addr[-1] & addr[-2], prev[24:], data_32[24:])
 
         # SH : 001
         # SB : 000
-        data_16 = mux(addr[-2], data_32[0:16] + prev[16:],
+        data_16 = mux(addr[-2], data_32[16:] + prev[16:],
                       prev[0:16] + data_32[16:])
         data_8 = p1 + p2 + p3 + p4
 

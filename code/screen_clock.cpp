@@ -5,7 +5,7 @@
 #include "slib/string.hpp"
 #include "slib/hdd.hpp"
 #include "slib/screen.hpp"
-#include "game/tiles.hpp"
+#include "app/tiles.hpp"
 
 int main() {
 	initMemManager();

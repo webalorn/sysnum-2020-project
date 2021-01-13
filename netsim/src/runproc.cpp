@@ -12,7 +12,7 @@
 class ProcRunner : public NetsimCompRunner {
 	VirtualScreen screen;
 public:
-	ProcRunner(uint maxCycles, VirtualDrive& drive) : screen(100, 100, 5) {
+	ProcRunner(uint maxCycles, VirtualDrive& drive) : screen(100, 100, 8) {
 		nbCycles = maxCycles;
 		this->init();
 
@@ -20,8 +20,10 @@ public:
 		outDevices.push_back(new DriveOutput(drive));
 		outDevices.push_back(new ScreenOutput(screen));
 
-		inDevices.push_back(new ClockDevice);
+		inDevices.push_back(new OctoClockDevice);
 		inDevices.push_back(new DriveInput(drive));
+		inDevices.push_back(new KeyboardInput(screen));
+		inDevices.push_back(new InitTimeDevice);
 
 		inputVals.resize(inputs.size(), 0);
 	}

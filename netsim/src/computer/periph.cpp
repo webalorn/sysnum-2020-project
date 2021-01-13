@@ -1,6 +1,7 @@
 #include "periph.hpp"
 #include <iostream>
 #include <ctime>
+#include <chrono>
 
 ProcInQueue::ProcInQueue(int maxSizeVal) {
 	maxSize = maxSizeVal;
@@ -85,6 +86,24 @@ void ClockDevice::run() {
 	if (std::time(nullptr) > lastTick) {
 		inQueue.push(1);
 		lastTick++;
+	}
+}
+
+// OctoClock (a tic every 1/8 s)
+
+OctoClockDevice::OctoClockDevice() {
+	lastTick = getTimeMilli();
+}
+
+uint64_t OctoClockDevice::getTimeMilli() {
+	using namespace std::chrono;
+	return duration_cast<microseconds>(system_clock::now().time_since_epoch()).count();
+}
+
+void OctoClockDevice::run() {
+	if (getTimeMilli() > lastTick + TIME_INTERVAL) {
+		inQueue.push(1);
+		lastTick += TIME_INTERVAL;
 	}
 }
 

@@ -48,6 +48,9 @@ void load_alphabet_tiles(uint dir) {
 	load_tile('?', dir, U"?.sbi");
 	load_tile('/', dir, U"slash.sbi");
 	load_tile('\\', dir, U"backslash.sbi");
+	load_tile('\\', dir, U"backslash.sbi");
+	load_tile('<', dir, U"Layer 1_alpha_82.sbi");
+	load_tile('>', dir, U"Layer 1_alpha_83.sbi");
 }
 
 void load_game_tiles(uint dir) {

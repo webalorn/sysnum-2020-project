@@ -1,7 +1,7 @@
 CXX=clang --target=riscv32 -std=c++17 -fno-exceptions
 CXX_I=$(CXX) -march=rv32i
 LIB_HPP=$(wildcard slib/*.hpp)
-GAME_HPP=$(wildcard game/*.hpp)
+APP_HPP=$(wildcard app/*.hpp)
 
 all: prepare build/boot.s build/clock.s build/main.s build/clock_fast.s build/screen_clock.s build/mul.s
 
@@ -11,11 +11,11 @@ prepare:
 build/boot.s: boot.cpp
 	$(CXX_I) -O2 -S boot.cpp -o build/boot.s
 
-build/main.s: main.cpp $(LIB_HPP) $(GAME_HPP)
+build/main.s: main.cpp $(LIB_HPP) $(APP_HPP)
 	$(CXX_I) -O2 -S main.cpp -o build/main.s
 
-build/mul.s: mul.cpp $(LIB_HPP) $(GAME_HPP)
-	# This file don't use O2 to force using the mul / div operations
+# This file don't use O2 to force using the mul / div operations
+build/mul.s: mul.cpp $(LIB_HPP) $(APP_HPP)
 	$(CXX) -march=rv32im -S mul.cpp -o build/mul.s
 
 build/clock.s: clock.cpp

@@ -11,6 +11,8 @@ class Proc:
     INPUTS = [
         ("tic", 1),
         ("hdd", 32),
+        ("keyboard", 32),
+        ("init_time", 32),
     ]
     OUTPUTS = [  # Size must be at most 32
         ("input_signal", 7),  # Can't be written on

@@ -49,6 +49,16 @@ public:
 	ClockDevice();
 };
 
+class OctoClockDevice : public InputDevice {
+protected:
+	uint64_t lastTick;
+	uint64_t getTimeMilli();
+	static const int TIME_INTERVAL = 1000 * 1000 / 8;
+public:
+	virtual void run();
+	OctoClockDevice();
+};
+
 class InitTimeDevice : public InputDevice {
 public:
 	virtual void run();

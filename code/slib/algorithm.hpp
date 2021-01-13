@@ -36,9 +36,6 @@ template<class T> void fill(T* start_at, T* end_at, const T& value) {
 template<class T> void sort(T* start_at, T* end_at) {
 	if (start_at + 1 < end_at) {
 		T* center = start_at + ((end_at - start_at) >> 1);
-		*(out_addr + 1) = (uint)start_at;
-		*(out_addr + 1) = (uint)end_at;
-		*(out_addr + 1) = (uint)center;
 
 		swap(*center, *start_at);
 		T* lower_end = start_at;

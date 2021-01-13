@@ -1,9 +1,9 @@
 	.text
 	.file	"mul.cpp"
-	.globl	memcpy                  # -- Begin function memcpy
+	.globl	_Z10memcpyCharPcPKcj    # -- Begin function _Z10memcpyCharPcPKcj
 	.p2align	2
-	.type	memcpy,@function
-memcpy:                                 # @memcpy
+	.type	_Z10memcpyCharPcPKcj,@function
+_Z10memcpyCharPcPKcj:                   # @_Z10memcpyCharPcPKcj
 # %bb.0:
 	addi	sp, sp, -32
 	sw	ra, 28(sp)
@@ -39,7 +39,100 @@ memcpy:                                 # @memcpy
 	addi	sp, sp, 32
 	ret
 .Lfunc_end0:
-	.size	memcpy, .Lfunc_end0-memcpy
+	.size	_Z10memcpyCharPcPKcj, .Lfunc_end0-_Z10memcpyCharPcPKcj
+                                        # -- End function
+	.globl	memcpy                  # -- Begin function memcpy
+	.p2align	2
+	.type	memcpy,@function
+memcpy:                                 # @memcpy
+# %bb.0:
+	addi	sp, sp, -32
+	sw	ra, 28(sp)
+	sw	s0, 24(sp)
+	addi	s0, sp, 32
+	sw	a0, -12(s0)
+	sw	a1, -16(s0)
+	sw	a2, -20(s0)
+	j	.LBB1_1
+.LBB1_1:                                # =>This Inner Loop Header: Depth=1
+	lw	a0, -20(s0)
+	addi	a1, zero, 4
+	bltu	a0, a1, .LBB1_3
+	j	.LBB1_2
+.LBB1_2:                                #   in Loop: Header=BB1_1 Depth=1
+	lw	a0, -20(s0)
+	addi	a0, a0, -4
+	sw	a0, -20(s0)
+	lw	a0, -16(s0)
+	lw	a0, 0(a0)
+	lw	a1, -12(s0)
+	sw	a0, 0(a1)
+	lw	a0, -12(s0)
+	addi	a0, a0, 4
+	sw	a0, -12(s0)
+	lw	a0, -16(s0)
+	addi	a0, a0, 4
+	sw	a0, -16(s0)
+	j	.LBB1_1
+.LBB1_3:
+	lw	a0, -20(s0)
+	mv	a1, zero
+	beq	a0, a1, .LBB1_5
+	j	.LBB1_4
+.LBB1_4:
+	lw	a0, -12(s0)
+	lw	a1, -16(s0)
+	lw	a2, -20(s0)
+	call	_Z10memcpyCharPcPKcj
+	j	.LBB1_5
+.LBB1_5:
+	lw	s0, 24(sp)
+	lw	ra, 28(sp)
+	addi	sp, sp, 32
+	ret
+.Lfunc_end1:
+	.size	memcpy, .Lfunc_end1-memcpy
+                                        # -- End function
+	.globl	memset                  # -- Begin function memset
+	.p2align	2
+	.type	memset,@function
+memset:                                 # @memset
+# %bb.0:
+	addi	sp, sp, -32
+	sw	ra, 28(sp)
+	sw	s0, 24(sp)
+	addi	s0, sp, 32
+	mv	a3, a1
+	sw	a0, -12(s0)
+	sb	a1, -13(s0)
+	sw	a2, -20(s0)
+	j	.LBB2_1
+.LBB2_1:                                # =>This Inner Loop Header: Depth=1
+	lw	a0, -20(s0)
+	mv	a1, zero
+	beq	a0, a1, .LBB2_3
+	j	.LBB2_2
+.LBB2_2:                                #   in Loop: Header=BB2_1 Depth=1
+	lw	a0, -20(s0)
+	addi	a0, a0, -1
+	sw	a0, -20(s0)
+	lb	a0, -13(s0)
+	lw	a1, -12(s0)
+	sb	a0, 0(a1)
+	lw	a0, -12(s0)
+	addi	a0, a0, 1
+	sw	a0, -12(s0)
+	lb	a0, -13(s0)
+	addi	a0, a0, 1
+	sb	a0, -13(s0)
+	j	.LBB2_1
+.LBB2_3:
+	lw	s0, 24(sp)
+	lw	ra, 28(sp)
+	addi	sp, sp, 32
+	ret
+.Lfunc_end2:
+	.size	memset, .Lfunc_end2-memset
                                         # -- End function
 	.globl	_Z6malloci              # -- Begin function _Z6malloci
 	.p2align	2
@@ -51,16 +144,25 @@ _Z6malloci:                             # @_Z6malloci
 	sw	s0, 24(sp)
 	addi	s0, sp, 32
 	sw	a0, -16(s0)
+	lw	a0, -16(s0)
+	mv	a1, zero
+	bne	a0, a1, .LBB3_2
+	j	.LBB3_1
+.LBB3_1:
+	mv	a0, zero
+	sw	a0, -12(s0)
+	j	.LBB3_11
+.LBB3_2:
 	mv	a0, zero
 	sw	a0, -20(s0)
-	j	.LBB1_1
-.LBB1_1:                                # =>This Inner Loop Header: Depth=1
+	j	.LBB3_3
+.LBB3_3:                                # =>This Inner Loop Header: Depth=1
 	lw	a0, -20(s0)
 	lui	a1, %hi(nbBlocks)
 	lw	a1, %lo(nbBlocks)(a1)
-	bgeu	a0, a1, .LBB1_6
-	j	.LBB1_2
-.LBB1_2:                                #   in Loop: Header=BB1_1 Depth=1
+	bgeu	a0, a1, .LBB3_8
+	j	.LBB3_4
+.LBB3_4:                                #   in Loop: Header=BB3_3 Depth=1
 	lui	a0, %hi(allocSize)
 	lw	a0, %lo(allocSize)(a0)
 	lw	a1, -20(s0)
@@ -68,9 +170,9 @@ _Z6malloci:                             # @_Z6malloci
 	add	a0, a0, a1
 	lw	a0, 0(a0)
 	lw	a1, -16(s0)
-	blt	a0, a1, .LBB1_4
-	j	.LBB1_3
-.LBB1_3:
+	blt	a0, a1, .LBB3_6
+	j	.LBB3_5
+.LBB3_5:
 	lui	a0, %hi(allocSize)
 	lw	a0, %lo(allocSize)(a0)
 	lw	a1, -20(s0)
@@ -87,25 +189,25 @@ _Z6malloci:                             # @_Z6malloci
 	add	a0, a0, a1
 	lw	a0, 0(a0)
 	sw	a0, -12(s0)
-	j	.LBB1_9
-.LBB1_4:                                #   in Loop: Header=BB1_1 Depth=1
-	j	.LBB1_5
-.LBB1_5:                                #   in Loop: Header=BB1_1 Depth=1
+	j	.LBB3_11
+.LBB3_6:                                #   in Loop: Header=BB3_3 Depth=1
+	j	.LBB3_7
+.LBB3_7:                                #   in Loop: Header=BB3_3 Depth=1
 	lw	a0, -20(s0)
 	addi	a0, a0, 1
 	sw	a0, -20(s0)
-	j	.LBB1_1
-.LBB1_6:
+	j	.LBB3_3
+.LBB3_8:
 	lui	a0, %hi(nbBlocks)
 	lw	a0, %lo(nbBlocks)(a0)
 	addi	a1, zero, 100
-	bne	a0, a1, .LBB1_8
-	j	.LBB1_7
-.LBB1_7:
+	bne	a0, a1, .LBB3_10
+	j	.LBB3_9
+.LBB3_9:
 	addi	a0, zero, 29
 	call	exit
-	j	.LBB1_8
-.LBB1_8:
+	j	.LBB3_10
+.LBB3_10:
 	lui	a0, %hi(__asm__freept)
 	lw	a1, %lo(__asm__freept)(a0)
 	sw	a1, -24(s0)
@@ -135,15 +237,15 @@ _Z6malloci:                             # @_Z6malloci
 	sw	a1, %lo(__asm__freept)(a0)
 	lw	a0, -24(s0)
 	sw	a0, -12(s0)
-	j	.LBB1_9
-.LBB1_9:
+	j	.LBB3_11
+.LBB3_11:
 	lw	a0, -12(s0)
 	lw	s0, 24(sp)
 	lw	ra, 28(sp)
 	addi	sp, sp, 32
 	ret
-.Lfunc_end1:
-	.size	_Z6malloci, .Lfunc_end1-_Z6malloci
+.Lfunc_end3:
+	.size	_Z6malloci, .Lfunc_end3-_Z6malloci
                                         # -- End function
 	.globl	_Z4freePv               # -- Begin function _Z4freePv
 	.p2align	2
@@ -155,16 +257,23 @@ _Z4freePv:                              # @_Z4freePv
 	sw	s0, 8(sp)
 	addi	s0, sp, 16
 	sw	a0, -12(s0)
+	lw	a0, -12(s0)
+	mv	a1, zero
+	bne	a0, a1, .LBB4_2
+	j	.LBB4_1
+.LBB4_1:
+	j	.LBB4_9
+.LBB4_2:
 	mv	a0, zero
 	sw	a0, -16(s0)
-	j	.LBB2_1
-.LBB2_1:                                # =>This Inner Loop Header: Depth=1
+	j	.LBB4_3
+.LBB4_3:                                # =>This Inner Loop Header: Depth=1
 	lw	a0, -16(s0)
 	lui	a1, %hi(nbBlocks)
 	lw	a1, %lo(nbBlocks)(a1)
-	bgeu	a0, a1, .LBB2_6
-	j	.LBB2_2
-.LBB2_2:                                #   in Loop: Header=BB2_1 Depth=1
+	bgeu	a0, a1, .LBB4_8
+	j	.LBB4_4
+.LBB4_4:                                #   in Loop: Header=BB4_3 Depth=1
 	lui	a0, %hi(allocPos)
 	lw	a0, %lo(allocPos)(a0)
 	lw	a1, -16(s0)
@@ -172,9 +281,9 @@ _Z4freePv:                              # @_Z4freePv
 	add	a0, a0, a1
 	lw	a0, 0(a0)
 	lw	a1, -12(s0)
-	bne	a0, a1, .LBB2_4
-	j	.LBB2_3
-.LBB2_3:
+	bne	a0, a1, .LBB4_6
+	j	.LBB4_5
+.LBB4_5:
 	lui	a0, %hi(allocSize)
 	lw	a0, %lo(allocSize)(a0)
 	lw	a1, -16(s0)
@@ -184,25 +293,25 @@ _Z4freePv:                              # @_Z4freePv
 	mv	a2, zero
 	sub	a1, a2, a1
 	sw	a1, 0(a0)
-	j	.LBB2_7
-.LBB2_4:                                #   in Loop: Header=BB2_1 Depth=1
-	j	.LBB2_5
-.LBB2_5:                                #   in Loop: Header=BB2_1 Depth=1
+	j	.LBB4_9
+.LBB4_6:                                #   in Loop: Header=BB4_3 Depth=1
+	j	.LBB4_7
+.LBB4_7:                                #   in Loop: Header=BB4_3 Depth=1
 	lw	a0, -16(s0)
 	addi	a0, a0, 1
 	sw	a0, -16(s0)
-	j	.LBB2_1
-.LBB2_6:
+	j	.LBB4_3
+.LBB4_8:
 	addi	a0, zero, 40
 	call	exit
-	j	.LBB2_7
-.LBB2_7:
+	j	.LBB4_9
+.LBB4_9:
 	lw	s0, 8(sp)
 	lw	ra, 12(sp)
 	addi	sp, sp, 16
 	ret
-.Lfunc_end2:
-	.size	_Z4freePv, .Lfunc_end2-_Z4freePv
+.Lfunc_end4:
+	.size	_Z4freePv, .Lfunc_end4-_Z4freePv
                                         # -- End function
 	.globl	_Znwj                   # -- Begin function _Znwj
 	.p2align	2
@@ -220,8 +329,8 @@ _Znwj:                                  # @_Znwj
 	lw	ra, 12(sp)
 	addi	sp, sp, 16
 	ret
-.Lfunc_end3:
-	.size	_Znwj, .Lfunc_end3-_Znwj
+.Lfunc_end5:
+	.size	_Znwj, .Lfunc_end5-_Znwj
                                         # -- End function
 	.globl	_Znaj                   # -- Begin function _Znaj
 	.p2align	2
@@ -239,8 +348,8 @@ _Znaj:                                  # @_Znaj
 	lw	ra, 12(sp)
 	addi	sp, sp, 16
 	ret
-.Lfunc_end4:
-	.size	_Znaj, .Lfunc_end4-_Znaj
+.Lfunc_end6:
+	.size	_Znaj, .Lfunc_end6-_Znaj
                                         # -- End function
 	.globl	_ZdaPv                  # -- Begin function _ZdaPv
 	.p2align	2
@@ -258,8 +367,8 @@ _ZdaPv:                                 # @_ZdaPv
 	lw	ra, 12(sp)
 	addi	sp, sp, 16
 	ret
-.Lfunc_end5:
-	.size	_ZdaPv, .Lfunc_end5-_ZdaPv
+.Lfunc_end7:
+	.size	_ZdaPv, .Lfunc_end7-_ZdaPv
                                         # -- End function
 	.globl	_ZdlPv                  # -- Begin function _ZdlPv
 	.p2align	2
@@ -277,8 +386,8 @@ _ZdlPv:                                 # @_ZdlPv
 	lw	ra, 12(sp)
 	addi	sp, sp, 16
 	ret
-.Lfunc_end6:
-	.size	_ZdlPv, .Lfunc_end6-_ZdlPv
+.Lfunc_end8:
+	.size	_ZdlPv, .Lfunc_end8-_ZdlPv
                                         # -- End function
 	.globl	_Z14initMemManagerv     # -- Begin function _Z14initMemManagerv
 	.p2align	2
@@ -294,20 +403,22 @@ _Z14initMemManagerv:                    # @_Z14initMemManagerv
 	lui	a2, %hi(allocPos)
 	sw	a1, %lo(allocPos)(a2)
 	lw	a1, %lo(__asm__freept)(a0)
-	addi	a1, a1, 400
+	lui	a2, 1
+	addi	a2, a2, -896
+	add	a1, a1, a2
 	sw	a1, %lo(__asm__freept)(a0)
 	lw	a1, %lo(__asm__freept)(a0)
-	lui	a2, %hi(allocSize)
-	sw	a1, %lo(allocSize)(a2)
+	lui	a3, %hi(allocSize)
+	sw	a1, %lo(allocSize)(a3)
 	lw	a1, %lo(__asm__freept)(a0)
-	addi	a1, a1, 400
+	add	a1, a1, a2
 	sw	a1, %lo(__asm__freept)(a0)
 	lw	s0, 8(sp)
 	lw	ra, 12(sp)
 	addi	sp, sp, 16
 	ret
-.Lfunc_end7:
-	.size	_Z14initMemManagerv, .Lfunc_end7-_Z14initMemManagerv
+.Lfunc_end9:
+	.size	_Z14initMemManagerv, .Lfunc_end9-_Z14initMemManagerv
                                         # -- End function
 	.globl	_ZlsR13TextOutStreamc   # -- Begin function _ZlsR13TextOutStreamc
 	.p2align	2
@@ -332,8 +443,8 @@ _ZlsR13TextOutStreamc:                  # @_ZlsR13TextOutStreamc
 	lw	ra, 28(sp)
 	addi	sp, sp, 32
 	ret
-.Lfunc_end8:
-	.size	_ZlsR13TextOutStreamc, .Lfunc_end8-_ZlsR13TextOutStreamc
+.Lfunc_end10:
+	.size	_ZlsR13TextOutStreamc, .Lfunc_end10-_ZlsR13TextOutStreamc
                                         # -- End function
 	.globl	_ZlsR13TextOutStreamPKDi # -- Begin function _ZlsR13TextOutStreamPKDi
 	.p2align	2
@@ -346,14 +457,14 @@ _ZlsR13TextOutStreamPKDi:               # @_ZlsR13TextOutStreamPKDi
 	addi	s0, sp, 16
 	sw	a0, -12(s0)
 	sw	a1, -16(s0)
-	j	.LBB9_1
-.LBB9_1:                                # =>This Inner Loop Header: Depth=1
+	j	.LBB11_1
+.LBB11_1:                               # =>This Inner Loop Header: Depth=1
 	lw	a0, -16(s0)
 	lw	a0, 0(a0)
 	mv	a1, zero
-	beq	a0, a1, .LBB9_3
-	j	.LBB9_2
-.LBB9_2:                                #   in Loop: Header=BB9_1 Depth=1
+	beq	a0, a1, .LBB11_3
+	j	.LBB11_2
+.LBB11_2:                               #   in Loop: Header=BB11_1 Depth=1
 	lw	a0, -12(s0)
 	lw	a1, -16(s0)
 	lw	a1, 0(a1)
@@ -363,15 +474,15 @@ _ZlsR13TextOutStreamPKDi:               # @_ZlsR13TextOutStreamPKDi
 	lw	a0, -16(s0)
 	addi	a0, a0, 4
 	sw	a0, -16(s0)
-	j	.LBB9_1
-.LBB9_3:
+	j	.LBB11_1
+.LBB11_3:
 	lw	a0, -12(s0)
 	lw	s0, 8(sp)
 	lw	ra, 12(sp)
 	addi	sp, sp, 16
 	ret
-.Lfunc_end9:
-	.size	_ZlsR13TextOutStreamPKDi, .Lfunc_end9-_ZlsR13TextOutStreamPKDi
+.Lfunc_end11:
+	.size	_ZlsR13TextOutStreamPKDi, .Lfunc_end11-_ZlsR13TextOutStreamPKDi
                                         # -- End function
 	.globl	_ZlsR13TextOutStreamPKc # -- Begin function _ZlsR13TextOutStreamPKc
 	.p2align	2
@@ -384,14 +495,14 @@ _ZlsR13TextOutStreamPKc:                # @_ZlsR13TextOutStreamPKc
 	addi	s0, sp, 16
 	sw	a0, -12(s0)
 	sw	a1, -16(s0)
-	j	.LBB10_1
-.LBB10_1:                               # =>This Inner Loop Header: Depth=1
+	j	.LBB12_1
+.LBB12_1:                               # =>This Inner Loop Header: Depth=1
 	lw	a0, -16(s0)
 	lbu	a0, 0(a0)
 	mv	a1, zero
-	beq	a0, a1, .LBB10_3
-	j	.LBB10_2
-.LBB10_2:                               #   in Loop: Header=BB10_1 Depth=1
+	beq	a0, a1, .LBB12_3
+	j	.LBB12_2
+.LBB12_2:                               #   in Loop: Header=BB12_1 Depth=1
 	lw	a0, -12(s0)
 	lw	a1, -16(s0)
 	lbu	a1, 0(a1)
@@ -401,15 +512,15 @@ _ZlsR13TextOutStreamPKc:                # @_ZlsR13TextOutStreamPKc
 	lw	a0, -16(s0)
 	addi	a0, a0, 1
 	sw	a0, -16(s0)
-	j	.LBB10_1
-.LBB10_3:
+	j	.LBB12_1
+.LBB12_3:
 	lw	a0, -12(s0)
 	lw	s0, 8(sp)
 	lw	ra, 12(sp)
 	addi	sp, sp, 16
 	ret
-.Lfunc_end10:
-	.size	_ZlsR13TextOutStreamPKc, .Lfunc_end10-_ZlsR13TextOutStreamPKc
+.Lfunc_end12:
+	.size	_ZlsR13TextOutStreamPKc, .Lfunc_end12-_ZlsR13TextOutStreamPKc
                                         # -- End function
 	.globl	_ZlsR13TextOutStreamj   # -- Begin function _ZlsR13TextOutStreamj
 	.p2align	2
@@ -431,8 +542,8 @@ _ZlsR13TextOutStreamj:                  # @_ZlsR13TextOutStreamj
 	lw	ra, 12(sp)
 	addi	sp, sp, 16
 	ret
-.Lfunc_end11:
-	.size	_ZlsR13TextOutStreamj, .Lfunc_end11-_ZlsR13TextOutStreamj
+.Lfunc_end13:
+	.size	_ZlsR13TextOutStreamj, .Lfunc_end13-_ZlsR13TextOutStreamj
                                         # -- End function
 	.section	.text._ZN13TextOutStream11send_digitsEjj,"axG",@progbits,_ZN13TextOutStream11send_digitsEjj,comdat
 	.weak	_ZN13TextOutStream11send_digitsEjj # -- Begin function _ZN13TextOutStream11send_digitsEjj
@@ -451,9 +562,9 @@ _ZN13TextOutStream11send_digitsEjj:     # @_ZN13TextOutStream11send_digitsEjj
 	lw	a1, -16(s0)
 	mv	a2, zero
 	sw	a0, -24(s0)
-	bne	a1, a2, .LBB12_2
-	j	.LBB12_1
-.LBB12_1:
+	bne	a1, a2, .LBB14_2
+	j	.LBB14_1
+.LBB14_1:
 	lw	a0, -24(s0)
 	lw	a1, 0(a0)
 	lw	a1, 0(a1)
@@ -462,19 +573,19 @@ _ZN13TextOutStream11send_digitsEjj:     # @_ZN13TextOutStream11send_digitsEjj
 	mv	a1, a2
 	lw	a2, -28(s0)
 	jalr	a2
-	j	.LBB12_3
-.LBB12_2:
+	j	.LBB14_3
+.LBB14_2:
 	lw	a1, -16(s0)
 	lw	a0, -24(s0)
 	call	_ZN13TextOutStream12print_digitsEj
-	j	.LBB12_3
-.LBB12_3:
+	j	.LBB14_3
+.LBB14_3:
 	lw	s0, 24(sp)
 	lw	ra, 28(sp)
 	addi	sp, sp, 32
 	ret
-.Lfunc_end12:
-	.size	_ZN13TextOutStream11send_digitsEjj, .Lfunc_end12-_ZN13TextOutStream11send_digitsEjj
+.Lfunc_end14:
+	.size	_ZN13TextOutStream11send_digitsEjj, .Lfunc_end14-_ZN13TextOutStream11send_digitsEjj
                                         # -- End function
 	.text
 	.globl	_ZlsR13TextOutStreami   # -- Begin function _ZlsR13TextOutStreami
@@ -497,8 +608,8 @@ _ZlsR13TextOutStreami:                  # @_ZlsR13TextOutStreami
 	lw	ra, 12(sp)
 	addi	sp, sp, 16
 	ret
-.Lfunc_end13:
-	.size	_ZlsR13TextOutStreami, .Lfunc_end13-_ZlsR13TextOutStreami
+.Lfunc_end15:
+	.size	_ZlsR13TextOutStreami, .Lfunc_end15-_ZlsR13TextOutStreami
                                         # -- End function
 	.section	.text._ZN13TextOutStream11send_digitsEij,"axG",@progbits,_ZN13TextOutStream11send_digitsEij,comdat
 	.weak	_ZN13TextOutStream11send_digitsEij # -- Begin function _ZN13TextOutStream11send_digitsEij
@@ -517,9 +628,9 @@ _ZN13TextOutStream11send_digitsEij:     # @_ZN13TextOutStream11send_digitsEij
 	lw	a1, -16(s0)
 	addi	a2, zero, -1
 	sw	a0, -24(s0)
-	blt	a2, a1, .LBB14_2
-	j	.LBB14_1
-.LBB14_1:
+	blt	a2, a1, .LBB16_2
+	j	.LBB16_1
+.LBB16_1:
 	lw	a0, -16(s0)
 	mv	a1, zero
 	sub	a0, a1, a0
@@ -532,8 +643,8 @@ _ZN13TextOutStream11send_digitsEij:     # @_ZN13TextOutStream11send_digitsEij
 	mv	a1, a2
 	lw	a2, -28(s0)
 	jalr	a2
-	j	.LBB14_2
-.LBB14_2:
+	j	.LBB16_2
+.LBB16_2:
 	lw	a1, -16(s0)
 	addi	a2, zero, 10
 	lw	a0, -24(s0)
@@ -542,8 +653,8 @@ _ZN13TextOutStream11send_digitsEij:     # @_ZN13TextOutStream11send_digitsEij
 	lw	ra, 28(sp)
 	addi	sp, sp, 32
 	ret
-.Lfunc_end14:
-	.size	_ZN13TextOutStream11send_digitsEij, .Lfunc_end14-_ZN13TextOutStream11send_digitsEij
+.Lfunc_end16:
+	.size	_ZN13TextOutStream11send_digitsEij, .Lfunc_end16-_ZN13TextOutStream11send_digitsEij
                                         # -- End function
 	.text
 	.globl	_ZlsR13TextOutStreamDi  # -- Begin function _ZlsR13TextOutStreamDi
@@ -567,8 +678,8 @@ _ZlsR13TextOutStreamDi:                 # @_ZlsR13TextOutStreamDi
 	lw	ra, 12(sp)
 	addi	sp, sp, 16
 	ret
-.Lfunc_end15:
-	.size	_ZlsR13TextOutStreamDi, .Lfunc_end15-_ZlsR13TextOutStreamDi
+.Lfunc_end17:
+	.size	_ZlsR13TextOutStreamDi, .Lfunc_end17-_ZlsR13TextOutStreamDi
                                         # -- End function
 	.globl	_Z11show_resultii       # -- Begin function _Z11show_resultii
 	.p2align	2
@@ -601,9 +712,9 @@ _Z11show_resultii:                      # @_Z11show_resultii
 	call	_ZlsR13TextOutStreamPKc
 	lw	a1, -16(s0)
 	mv	a2, zero
-	beq	a1, a2, .LBB16_2
-	j	.LBB16_1
-.LBB16_1:
+	beq	a1, a2, .LBB18_2
+	j	.LBB18_1
+.LBB18_1:
 	lw	a1, -12(s0)
 	lui	a0, %hi(_ZL4cout)
 	addi	a0, a0, %lo(_ZL4cout)
@@ -642,14 +753,14 @@ _Z11show_resultii:                      # @_Z11show_resultii
 	call	_ZlsR13TextOutStreami
 	lw	a1, -28(s0)
 	call	_ZlsR13TextOutStreamPKc
-	j	.LBB16_2
-.LBB16_2:
+	j	.LBB18_2
+.LBB18_2:
 	lw	s0, 24(sp)
 	lw	ra, 28(sp)
 	addi	sp, sp, 32
 	ret
-.Lfunc_end16:
-	.size	_Z11show_resultii, .Lfunc_end16-_Z11show_resultii
+.Lfunc_end18:
+	.size	_Z11show_resultii, .Lfunc_end18-_Z11show_resultii
                                         # -- End function
 	.globl	_Z13show_result_ujj     # -- Begin function _Z13show_result_ujj
 	.p2align	2
@@ -682,9 +793,9 @@ _Z13show_result_ujj:                    # @_Z13show_result_ujj
 	call	_ZlsR13TextOutStreamPKc
 	lw	a1, -16(s0)
 	mv	a2, zero
-	beq	a1, a2, .LBB17_2
-	j	.LBB17_1
-.LBB17_1:
+	beq	a1, a2, .LBB19_2
+	j	.LBB19_1
+.LBB19_1:
 	lw	a1, -12(s0)
 	lui	a0, %hi(_ZL4cout)
 	addi	a0, a0, %lo(_ZL4cout)
@@ -723,14 +834,14 @@ _Z13show_result_ujj:                    # @_Z13show_result_ujj
 	call	_ZlsR13TextOutStreamj
 	lw	a1, -28(s0)
 	call	_ZlsR13TextOutStreamPKc
-	j	.LBB17_2
-.LBB17_2:
+	j	.LBB19_2
+.LBB19_2:
 	lw	s0, 24(sp)
 	lw	ra, 28(sp)
 	addi	sp, sp, 32
 	ret
-.Lfunc_end17:
-	.size	_Z13show_result_ujj, .Lfunc_end17-_Z13show_result_ujj
+.Lfunc_end19:
+	.size	_Z13show_result_ujj, .Lfunc_end19-_Z13show_result_ujj
                                         # -- End function
 	.globl	main                    # -- Begin function main
 	.p2align	2
@@ -772,8 +883,8 @@ main:                                   # @main
 	lw	ra, 28(sp)
 	addi	sp, sp, 32
 	ret
-.Lfunc_end18:
-	.size	main, .Lfunc_end18-main
+.Lfunc_end20:
+	.size	main, .Lfunc_end20-main
                                         # -- End function
 	.section	.text._ZN13TextOutStream12print_digitsEj,"axG",@progbits,_ZN13TextOutStream12print_digitsEj,comdat
 	.weak	_ZN13TextOutStream12print_digitsEj # -- Begin function _ZN13TextOutStream12print_digitsEj
@@ -791,9 +902,9 @@ _ZN13TextOutStream12print_digitsEj:     # @_ZN13TextOutStream12print_digitsEj
 	lw	a1, -16(s0)
 	mv	a2, zero
 	sw	a0, -20(s0)
-	beq	a1, a2, .LBB19_2
-	j	.LBB19_1
-.LBB19_1:
+	beq	a1, a2, .LBB21_2
+	j	.LBB21_1
+.LBB21_1:
 	lw	a0, -16(s0)
 	lui	a1, 838861
 	addi	a1, a1, -819
@@ -818,14 +929,14 @@ _ZN13TextOutStream12print_digitsEj:     # @_ZN13TextOutStream12print_digitsEj
 	lw	a2, 0(a0)
 	lw	a2, 0(a2)
 	jalr	a2
-	j	.LBB19_2
-.LBB19_2:
+	j	.LBB21_2
+.LBB21_2:
 	lw	s0, 24(sp)
 	lw	ra, 28(sp)
 	addi	sp, sp, 32
 	ret
-.Lfunc_end19:
-	.size	_ZN13TextOutStream12print_digitsEj, .Lfunc_end19-_ZN13TextOutStream12print_digitsEj
+.Lfunc_end21:
+	.size	_ZN13TextOutStream12print_digitsEj, .Lfunc_end21-_ZN13TextOutStream12print_digitsEj
                                         # -- End function
 	.section	.text._ZN17StandardOutStream9send_wordEj,"axG",@progbits,_ZN17StandardOutStream9send_wordEj,comdat
 	.weak	_ZN17StandardOutStream9send_wordEj # -- Begin function _ZN17StandardOutStream9send_wordEj
@@ -846,8 +957,8 @@ _ZN17StandardOutStream9send_wordEj:     # @_ZN17StandardOutStream9send_wordEj
 	lw	ra, 12(sp)
 	addi	sp, sp, 16
 	ret
-.Lfunc_end20:
-	.size	_ZN17StandardOutStream9send_wordEj, .Lfunc_end20-_ZN17StandardOutStream9send_wordEj
+.Lfunc_end22:
+	.size	_ZN17StandardOutStream9send_wordEj, .Lfunc_end22-_ZN17StandardOutStream9send_wordEj
                                         # -- End function
 	.type	__asm__freept,@object   # @__asm__freept
 	.section	.sbss,"aw",@nobits
@@ -959,6 +1070,7 @@ _ZTI17StandardOutStream:
 	.ident	"clang version 10.0.0-4ubuntu1 "
 	.section	".note.GNU-stack","",@progbits
 	.addrsig
+	.addrsig_sym _Z10memcpyCharPcPKcj
 	.addrsig_sym _Z6malloci
 	.addrsig_sym exit
 	.addrsig_sym _Z4freePv

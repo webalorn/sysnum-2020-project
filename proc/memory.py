@@ -136,7 +136,7 @@ class MemoryController:
 
     @hdl.f
     def write_at(self, control: 'bit', addr: 32, value: 32):
-        dest, addr = addr[:3], addr[3:] + bit('000')
+        dest, addr = addr[:3], addr[3:-2] + bit('00000')
         for dest_id, dest_obj, is_memory in self.sources:
             isdest = bit(True)
             for a, b in zip(dest_id, dest):

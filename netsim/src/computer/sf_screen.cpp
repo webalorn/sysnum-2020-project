@@ -11,6 +11,10 @@ void VirtualScreen::loop() {
 			window.close();
 			throw StopCycling();
 		}
+		else if (event.type == sf::Event::KeyPressed) {
+			uint code = event.key.code + 1;
+			keyQueue.push_back(code);
+		}
 	}
 }
 
@@ -20,6 +24,17 @@ void VirtualScreen::drawRectangle(uint x, uint y, uint width, uint height, sf::C
 	rect.setFillColor(color);
 	window.draw(rect);
 }
+
+void VirtualScreen::drawTriangle(uint x1, uint y1, uint x2, uint y2, uint x3, uint y3, sf::Color color) {
+	sf::ConvexShape triangle;
+	triangle.setFillColor(color);
+	triangle.setPointCount(3);
+	triangle.setPoint(0, sf::Vector2f(ratio * x1, ratio * y1));
+	triangle.setPoint(1, sf::Vector2f(ratio * x2, ratio * y2));
+	triangle.setPoint(2, sf::Vector2f(ratio * x3, ratio * y3));
+	window.draw(triangle);
+}
+
 void VirtualScreen::drawTexture(uint x, uint y, uint id) {
 	sf::Texture tex = textures[id];
 	sf::Sprite sprite;
@@ -61,6 +76,9 @@ void VirtualScreen::refresh() {
 	- 4 <w:8> <h:8> : Draw a rectangle (current color & position)
 	- 5 <id:16> : Draw a texture (current position)
 	- 6 <id:16> : Define or replace a texture. The size will be x*y. The next x*y operations should be <r> <g> <b> <alpha>, and can't be 0 0 0 0
+	- 7 <x:8> <y:8> : Set the second position on the screen
+	- 8 <x:8> <y:8> : Set the third on the screen
+	- 9 <r:8> <g:8> <b:8> : Draw a triangle (of color <r> <b> <g>)
 
 	- 42 : Refrash screen (display)
 */
@@ -84,7 +102,6 @@ void ScreenOutput::send(uint cmd) {
 			}
 		}
 		else {
-
 			switch (op) {
 			case 1:
 				pos_x = arg1;
@@ -111,6 +128,18 @@ void ScreenOutput::send(uint cmd) {
 					curId = cmd >> 8;
 				}
 				break;
+			case 7:
+				pos2_x = arg1;
+				pos2_y = arg2;
+				break;
+			case 8:
+				pos3_x = arg1;
+				pos3_y = arg2;
+				break;
+			case 9:
+				screen.drawTriangle(pos_x, pos_y, pos2_x, pos2_y, pos3_x, pos3_y,
+					sf::Color(arg1, arg2, arg3));
+				break;
 			case 42:
 				screen.refresh();
 				break;
@@ -119,5 +148,18 @@ void ScreenOutput::send(uint cmd) {
 				break;
 			}
 		}
+	}
+}
+
+
+// Keyboard input
+
+KeyboardInput::KeyboardInput(VirtualScreen& screen) : screen(screen) {}
+
+void KeyboardInput::run() {
+	while (screen.keyQueue.size()) {
+		inQueue.push(screen.keyQueue.front());
+		std::cerr << "Pressed " << screen.keyQueue.front() << "\n";
+		screen.keyQueue.pop_front();
 	}
 }

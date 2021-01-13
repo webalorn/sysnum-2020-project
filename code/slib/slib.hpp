@@ -48,14 +48,18 @@ void uint2str(uint num, char32_t* arr, uint nbdigits, char16_t blank) {
 	bool before = false;
 	for (uint i = 10 - nbdigits; i < 10; i++) {
 		int cur = 0;
-		while (nbdigits >= digits32[i]) {
+		while (num >= digits32[i]) {
 			cur += 1;
 			num -= digits32[i];
 		}
 		if (cur || before) {
 			before = true;
-			// this->send_word('0' + cur);
+			*arr = '0' + cur;
 		}
+		else {
+			*arr = blank;
+		}
+		arr++;
 	}
 }
 #endif
@@ -81,8 +85,39 @@ int* allocSize;
 // uint __asm__freept = 0;
 
 
+// void* malloc(uint size) {
+// 	for (uint iBlock = 0; iBlock < nbBlocks; iBlock++) {
+// 		if (allocSize[iBlock] >= size) {
+// 			allocSize[iBlock] = -allocSize[iBlock]; // Negative means used
+// 			return allocPos[iBlock];
+// 		}
+// 	}
+// 	if (nbBlocks == MAX_BLOCKS) {
+// 		exit(29); // M
+// 	}
+// 	void* pt = (void*)__asm__freept;
+// 	allocPos[nbBlocks] = pt;
+// 	allocSize[nbBlocks] = -size;
+// 	nbBlocks++;
+// 	__asm__freept += size;
+// 	return pt;
+// }
+
+// void free(void* pos) {
+// 	for (int iBlock = 0; iBlock < nbBlocks; iBlock++) {
+// 		if (allocPos[iBlock] == pos) {
+// 			allocSize[iBlock] = -allocSize[iBlock]; // Set positive again
+// 			return;
+// 		}
+// 	}
+// 	exit(40); // X
+// }
+
 void* malloc(int size) {
-	for (int iBlock = 0; iBlock < nbBlocks; iBlock++) {
+	if (size == 0) {
+		return 0;
+	}
+	for (uint iBlock = 0; iBlock < nbBlocks; iBlock++) {
 		if (allocSize[iBlock] >= size) {
 			allocSize[iBlock] = -allocSize[iBlock]; // Negative means used
 			return allocPos[iBlock];
@@ -100,6 +135,9 @@ void* malloc(int size) {
 }
 
 void free(void* pos) {
+	if (pos == 0) {
+		return;
+	}
 	for (int iBlock = 0; iBlock < nbBlocks; iBlock++) {
 		if (allocPos[iBlock] == pos) {
 			allocSize[iBlock] = -allocSize[iBlock]; // Set positive again
@@ -133,9 +171,9 @@ void _ZdlPv(void* pt) {
 
 void initMemManager() {
 	allocPos = (void**)__asm__freept;
-	__asm__freept += MAX_BLOCKS << 2;
+	__asm__freept += MAX_BLOCKS << 5;
 	allocSize = (int*)__asm__freept;
-	__asm__freept += MAX_BLOCKS << 2;
+	__asm__freept += MAX_BLOCKS << 5;
 }
 
 #endif // SLIB_HPP
