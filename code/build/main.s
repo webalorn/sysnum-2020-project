@@ -1,9 +1,9 @@
 	.text
 	.file	"main.cpp"
-	.globl	_Z10memcpyCharPcPKcj    # -- Begin function _Z10memcpyCharPcPKcj
+	.globl	_Z6memcpyPcPKcj         # -- Begin function _Z6memcpyPcPKcj
 	.p2align	2
-	.type	_Z10memcpyCharPcPKcj,@function
-_Z10memcpyCharPcPKcj:                   # @_Z10memcpyCharPcPKcj
+	.type	_Z6memcpyPcPKcj,@function
+_Z6memcpyPcPKcj:                        # @_Z6memcpyPcPKcj
 # %bb.0:
 	beqz	a2, .LBB0_2
 .LBB0_1:                                # =>This Inner Loop Header: Depth=1
@@ -16,7 +16,7 @@ _Z10memcpyCharPcPKcj:                   # @_Z10memcpyCharPcPKcj
 .LBB0_2:
 	ret
 .Lfunc_end0:
-	.size	_Z10memcpyCharPcPKcj, .Lfunc_end0-_Z10memcpyCharPcPKcj
+	.size	_Z6memcpyPcPKcj, .Lfunc_end0-_Z6memcpyPcPKcj
                                         # -- End function
 	.globl	memcpy                  # -- Begin function memcpy
 	.p2align	2
@@ -2058,6 +2058,11 @@ _Z19load_alphabet_tilesj:               # @_Z19load_alphabet_tilesj
 	addi	a2, a0, %lo(.L.str.16)
 	addi	a0, zero, 62
 	mv	a1, s2
+	call	_Z9load_tilejjPKDi
+	lui	a0, %hi(.L.str.17)
+	addi	a2, a0, %lo(.L.str.17)
+	addi	a0, zero, 64
+	mv	a1, s2
 	lw	s3, 60(sp)
 	lw	s2, 64(sp)
 	lw	s1, 68(sp)
@@ -2118,8 +2123,8 @@ _Z14load_all_tilesj:                    # @_Z14load_all_tilesj
 # %bb.1:
 	mv	t2, zero
 	addi	a5, a0, 8
-	lui	a0, %hi(.L.str.17)
-	addi	a6, a0, %lo(.L.str.17)
+	lui	a0, %hi(.L.str.18)
+	addi	a6, a0, %lo(.L.str.18)
 .LBB45_2:                               # =>This Loop Header: Depth=1
                                         #     Child Loop BB45_5 Depth 2
 	sw	a5, 8(t0)
@@ -2714,99 +2719,35 @@ _Z12initGeometryv:                      # @_Z12initGeometryv
 	.type	_Z12projOnScreenRK4Vect,@function
 _Z12projOnScreenRK4Vect:                # @_Z12projOnScreenRK4Vect
 # %bb.0:
-	addi	sp, sp, -64
-	sw	ra, 60(sp)
-	sw	s0, 56(sp)
-	sw	s1, 52(sp)
-	sw	s2, 48(sp)
-	sw	s3, 44(sp)
-	sw	s4, 40(sp)
-	sw	s5, 36(sp)
-	sw	s6, 32(sp)
-	sw	s7, 28(sp)
-	sw	s8, 24(sp)
-	sw	s9, 20(sp)
-	sw	s10, 16(sp)
-	sw	s11, 12(sp)
-	lw	s7, 0(a0)
-	lui	a1, %hi(cameraPos)
-	lw	s9, %lo(cameraPos)(a1)
-	lw	s2, 4(a0)
-	addi	a1, a1, %lo(cameraPos)
-	lw	s10, 4(a1)
-	lw	a0, 8(a0)
-	lw	s11, 8(a1)
-	lui	s0, %hi(cameraVect)
-	lw	s5, %lo(cameraVect)(s0)
-	sub	a1, s7, s9
-	sub	s3, s2, s10
-	sub	s1, a0, s11
-	mv	a0, s5
-	call	__mulsi3
-	addi	s0, s0, %lo(cameraVect)
-	lw	s6, 4(s0)
-	mv	s4, a0
-	mv	a0, s6
-	mv	a1, s3
-	call	__mulsi3
-	lw	s8, 8(s0)
-	add	s0, a0, s4
-	mv	a0, s8
-	sw	s1, 8(sp)
-	mv	a1, s1
-	call	__mulsi3
-	add	s4, s0, a0
-	beqz	s4, .LBB53_2
+	addi	sp, sp, -16
+	sw	ra, 12(sp)
+	sw	s0, 8(sp)
+	sw	s1, 4(sp)
+	mv	s0, a0
+	lw	a0, 0(a0)
+	lw	a1, 4(s0)
+	addi	s1, a0, 64
+	beqz	s1, .LBB53_2
 # %bb.1:
-	lui	a0, %hi(origin)
-	lw	a1, %lo(origin)(a0)
-	addi	a0, a0, %lo(origin)
-	lw	a2, 4(a0)
-	lw	a3, 8(a0)
-	sub	a0, a1, s9
-	sub	s0, a2, s10
-	sub	s7, a3, s11
-	mv	a1, s5
-	call	__mulsi3
-	mv	s1, a0
-	mv	a0, s0
-	mv	a1, s6
-	call	__mulsi3
-	add	s0, a0, s1
-	mv	a0, s7
-	mv	a1, s8
-	call	__mulsi3
-	add	s0, s0, a0
-	mv	a0, s0
-	mv	a1, s3
-	call	__mulsi3
-	mv	a1, s4
+	slli	a0, a1, 6
+	mv	a1, s1
 	call	__divsi3
-	addi	s7, a0, 50
-	mv	a0, s0
-	lw	a1, 8(sp)
-	call	__mulsi3
-	mv	a1, s4
+	lw	a1, 8(s0)
+	addi	s0, a0, 50
+	slli	a0, a1, 6
+	mv	a1, s1
 	call	__divsi3
 	addi	a1, zero, 50
-	sub	s2, a1, a0
+	sub	a1, a1, a0
+	j	.LBB53_3
 .LBB53_2:
-	mv	a0, s7
-	mv	a1, s2
-	lw	s11, 12(sp)
-	lw	s10, 16(sp)
-	lw	s9, 20(sp)
-	lw	s8, 24(sp)
-	lw	s7, 28(sp)
-	lw	s6, 32(sp)
-	lw	s5, 36(sp)
-	lw	s4, 40(sp)
-	lw	s3, 44(sp)
-	lw	s2, 48(sp)
-	lw	s1, 52(sp)
-	lw	s0, 56(sp)
-	lw	ra, 60(sp)
-	addi	sp, sp, 64
+	addi	s0, zero, -64
+.LBB53_3:
+	mv	a0, s0
+	lw	s1, 4(sp)
+	lw	s0, 8(sp)
+	lw	ra, 12(sp)
+	addi	sp, sp, 16
 	ret
 .Lfunc_end53:
 	.size	_Z12projOnScreenRK4Vect, .Lfunc_end53-_Z12projOnScreenRK4Vect
@@ -2816,461 +2757,220 @@ _Z12projOnScreenRK4Vect:                # @_Z12projOnScreenRK4Vect
 	.type	_Z4drawRK8Trianglejjj,@function
 _Z4drawRK8Trianglejjj:                  # @_Z4drawRK8Trianglejjj
 # %bb.0:
-	addi	sp, sp, -96
-	sw	ra, 92(sp)
-	sw	s0, 88(sp)
-	sw	s1, 84(sp)
-	sw	s2, 80(sp)
-	sw	s3, 76(sp)
-	sw	s4, 72(sp)
-	sw	s5, 68(sp)
-	sw	s6, 64(sp)
-	sw	s7, 60(sp)
-	sw	s8, 56(sp)
-	sw	s9, 52(sp)
-	sw	s10, 48(sp)
-	sw	s11, 44(sp)
-	sw	a3, 20(sp)
-	sw	a2, 24(sp)
-	sw	a1, 28(sp)
-	mv	s4, a0
-	lw	s2, 0(a0)
-	lui	a0, %hi(cameraPos)
-	lw	s10, %lo(cameraPos)(a0)
-	lw	s11, 4(s4)
-	addi	a0, a0, %lo(cameraPos)
-	lw	a3, 4(a0)
-	lw	a2, 8(s4)
-	lw	a0, 8(a0)
-	lui	s0, %hi(cameraVect)
-	lw	s5, %lo(cameraVect)(s0)
-	sub	a1, s2, s10
-	sw	a3, 40(sp)
-	sub	s9, s11, a3
-	sw	a0, 36(sp)
-	sub	s8, a2, a0
-	mv	a0, s5
-	call	__mulsi3
-	addi	s1, s0, %lo(cameraVect)
-	lw	s6, 4(s1)
-	mv	s0, a0
-	mv	a0, s6
-	mv	a1, s9
-	call	__mulsi3
-	lw	s7, 8(s1)
-	add	s0, a0, s0
-	mv	a0, s7
-	mv	a1, s8
-	call	__mulsi3
-	add	s3, s0, a0
-	sw	s10, 32(sp)
-	beqz	s3, .LBB54_2
-# %bb.1:
-	lui	a0, %hi(origin)
-	lw	a1, %lo(origin)(a0)
-	addi	a0, a0, %lo(origin)
-	lw	a2, 4(a0)
-	lw	a3, 8(a0)
-	sub	a0, a1, s10
-	lw	a1, 40(sp)
-	sub	s10, a2, a1
-	lw	a1, 36(sp)
-	sub	s11, a3, a1
-	mv	a1, s5
-	call	__mulsi3
-	mv	s2, a0
-	mv	a0, s10
-	lw	s10, 32(sp)
-	mv	a1, s6
-	call	__mulsi3
-	add	s0, a0, s2
-	mv	a0, s11
-	mv	a1, s7
-	call	__mulsi3
-	add	s0, s0, a0
-	mv	a0, s0
-	mv	a1, s9
-	call	__mulsi3
-	mv	a1, s3
-	call	__divsi3
-	addi	s2, a0, 50
-	mv	a0, s0
-	mv	a1, s8
-	call	__mulsi3
-	mv	a1, s3
-	call	__divsi3
-	addi	a1, zero, 50
-	sub	s11, a1, a0
-.LBB54_2:
-	sw	s11, 12(sp)
-	sw	s2, 16(sp)
-	lw	s1, 12(s4)
-	lw	s11, 16(s4)
-	lw	a1, 20(s4)
-	sub	a0, s1, s10
-	lw	a2, 40(sp)
-	sub	s9, s11, a2
-	lw	a2, 36(sp)
-	sub	s8, a1, a2
-	mv	a1, s5
-	call	__mulsi3
-	mv	s0, a0
-	mv	a0, s9
-	mv	a1, s6
-	call	__mulsi3
-	add	s0, a0, s0
-	mv	a0, s8
-	mv	a1, s7
-	call	__mulsi3
-	add	s10, s0, a0
-	beqz	s10, .LBB54_4
-# %bb.3:
-	lui	a0, %hi(origin)
-	lw	a1, %lo(origin)(a0)
-	addi	a0, a0, %lo(origin)
-	lw	a2, 4(a0)
-	lw	a3, 8(a0)
-	lw	a0, 32(sp)
-	sub	a0, a1, a0
-	lw	a1, 40(sp)
-	sub	s2, a2, a1
-	lw	a1, 36(sp)
-	sub	s3, a3, a1
-	mv	a1, s5
-	call	__mulsi3
-	mv	s0, a0
-	mv	a0, s2
-	mv	a1, s6
-	call	__mulsi3
-	add	s0, a0, s0
-	mv	a0, s3
-	mv	a1, s7
-	call	__mulsi3
-	add	s0, s0, a0
-	mv	a0, s0
-	mv	a1, s9
-	call	__mulsi3
-	mv	a1, s10
-	call	__divsi3
-	addi	s1, a0, 50
-	mv	a0, s0
-	mv	a1, s8
-	call	__mulsi3
-	mv	a1, s10
-	call	__divsi3
-	addi	a1, zero, 50
-	sub	s11, a1, a0
-.LBB54_4:
-	mv	s10, s1
-	lw	s3, 24(s4)
-	lw	s1, 28(s4)
-	lw	a1, 32(s4)
-	lw	s4, 32(sp)
-	sub	a0, s3, s4
-	lw	a2, 40(sp)
-	sub	s2, s1, a2
-	lw	a2, 36(sp)
-	sub	s8, a1, a2
-	mv	a1, s5
-	call	__mulsi3
-	mv	s0, a0
-	mv	a0, s2
-	mv	a1, s6
-	call	__mulsi3
-	add	s0, a0, s0
-	mv	a0, s8
-	mv	a1, s7
-	call	__mulsi3
-	add	s0, s0, a0
-	beqz	s0, .LBB54_6
-# %bb.5:
-	lui	a0, %hi(origin)
-	lw	a1, %lo(origin)(a0)
-	addi	a0, a0, %lo(origin)
-	lw	a2, 4(a0)
-	lw	a3, 8(a0)
-	sub	a0, a1, s4
-	lw	a1, 40(sp)
-	sub	s9, a2, a1
-	lw	a1, 36(sp)
-	sub	s3, a3, a1
-	mv	a1, s5
-	call	__mulsi3
+	addi	sp, sp, -48
+	sw	ra, 44(sp)
+	sw	s0, 40(sp)
+	sw	s1, 36(sp)
+	sw	s2, 32(sp)
+	sw	s3, 28(sp)
+	sw	s4, 24(sp)
+	sw	s5, 20(sp)
+	sw	s6, 16(sp)
+	sw	s7, 12(sp)
+	sw	s8, 8(sp)
 	mv	s1, a0
-	mv	a0, s9
-	mv	a1, s6
-	call	__mulsi3
-	add	s1, a0, s1
-	mv	a0, s3
-	mv	a1, s7
-	call	__mulsi3
-	add	s1, s1, a0
-	mv	a0, s1
-	mv	a1, s2
-	call	__mulsi3
+	lw	a0, 0(a0)
+	lw	s7, 4(s1)
+	mv	s4, a3
+	mv	s3, a2
+	mv	s2, a1
+	addi	s0, a0, 64
+	addi	s5, zero, -64
+	beqz	s0, .LBB54_2
+# %bb.1:
+	slli	a0, s7, 6
 	mv	a1, s0
 	call	__divsi3
-	addi	s3, a0, 50
-	mv	a0, s1
-	mv	a1, s8
-	call	__mulsi3
+	lw	a1, 8(s1)
+	addi	s6, a0, 50
+	slli	a0, a1, 6
 	mv	a1, s0
 	call	__divsi3
 	addi	a1, zero, 50
-	sub	s1, a1, a0
-.LBB54_6:
-	lw	a0, 12(sp)
+	sub	s7, a1, a0
+	j	.LBB54_3
+.LBB54_2:
+	addi	s6, zero, -64
+.LBB54_3:
+	lw	a0, 12(s1)
+	lw	s8, 16(s1)
+	addi	s0, a0, 64
+	beqz	s0, .LBB54_5
+# %bb.4:
+	slli	a0, s8, 6
+	mv	a1, s0
+	call	__divsi3
+	lw	a1, 20(s1)
+	addi	s5, a0, 50
+	slli	a0, a1, 6
+	mv	a1, s0
+	call	__divsi3
+	addi	a1, zero, 50
+	sub	s8, a1, a0
+.LBB54_5:
+	lw	a1, 24(s1)
+	lw	a0, 28(s1)
+	addi	s0, a1, 64
+	beqz	s0, .LBB54_7
+# %bb.6:
+	slli	a0, a0, 6
+	mv	a1, s0
+	call	__divsi3
+	lw	a1, 32(s1)
+	addi	s1, a0, 50
+	slli	a0, a1, 6
+	mv	a1, s0
+	call	__divsi3
+	addi	a1, zero, 50
+	sub	a0, a1, a0
+	j	.LBB54_8
+.LBB54_7:
+	addi	s1, zero, -64
+.LBB54_8:
+	slli	a1, s7, 8
+	add	a1, a1, s6
+	slli	a1, a1, 8
+	ori	a1, a1, 1
+	lui	a2, 655360
+	sw	a1, 12(a2)
+	slli	a1, s8, 8
+	add	a1, a1, s5
+	slli	a1, a1, 8
+	ori	a1, a1, 7
+	sw	a1, 12(a2)
 	slli	a0, a0, 8
-	lw	a1, 16(sp)
-	add	a0, a0, a1
-	slli	a0, a0, 8
-	ori	a0, a0, 1
-	lui	a1, 655360
-	sw	a0, 12(a1)
-	slli	a0, s11, 8
-	add	a0, a0, s10
-	slli	a0, a0, 8
-	ori	a0, a0, 7
-	sw	a0, 12(a1)
-	slli	a0, s1, 8
-	add	a0, a0, s3
+	add	a0, a0, s1
 	slli	a0, a0, 8
 	ori	a0, a0, 8
-	sw	a0, 12(a1)
-	lw	a0, 20(sp)
+	sw	a0, 12(a2)
+	slli	a0, s4, 8
+	add	a0, a0, s3
 	slli	a0, a0, 8
-	lw	a2, 24(sp)
-	add	a0, a0, a2
-	slli	a0, a0, 8
-	lw	a2, 28(sp)
-	add	a0, a0, a2
+	add	a0, a0, s2
 	slli	a0, a0, 8
 	ori	a0, a0, 9
-	sw	a0, 12(a1)
-	lw	s11, 44(sp)
-	lw	s10, 48(sp)
-	lw	s9, 52(sp)
-	lw	s8, 56(sp)
-	lw	s7, 60(sp)
-	lw	s6, 64(sp)
-	lw	s5, 68(sp)
-	lw	s4, 72(sp)
-	lw	s3, 76(sp)
-	lw	s2, 80(sp)
-	lw	s1, 84(sp)
-	lw	s0, 88(sp)
-	lw	ra, 92(sp)
-	addi	sp, sp, 96
+	sw	a0, 12(a2)
+	lw	s8, 8(sp)
+	lw	s7, 12(sp)
+	lw	s6, 16(sp)
+	lw	s5, 20(sp)
+	lw	s4, 24(sp)
+	lw	s3, 28(sp)
+	lw	s2, 32(sp)
+	lw	s1, 36(sp)
+	lw	s0, 40(sp)
+	lw	ra, 44(sp)
+	addi	sp, sp, 48
 	ret
 .Lfunc_end54:
 	.size	_Z4drawRK8Trianglejjj, .Lfunc_end54-_Z4drawRK8Trianglejjj
-                                        # -- End function
-	.globl	_ZltRK8TriangleS1_      # -- Begin function _ZltRK8TriangleS1_
-	.p2align	2
-	.type	_ZltRK8TriangleS1_,@function
-_ZltRK8TriangleS1_:                     # @_ZltRK8TriangleS1_
-# %bb.0:
-	addi	sp, sp, -32
-	sw	ra, 28(sp)
-	sw	s0, 24(sp)
-	sw	s1, 20(sp)
-	sw	s2, 16(sp)
-	sw	s3, 12(sp)
-	sw	s4, 8(sp)
-	sw	s5, 4(sp)
-	sw	s6, 0(sp)
-	mv	s0, a0
-	lw	a2, 36(a0)
-	lui	s3, %hi(cameraPos)
-	lw	s2, %lo(cameraPos)(s3)
-	mv	s6, a1
-	mv	a0, s2
-	mv	a1, a2
-	call	__mulsi3
-	lw	a1, 40(s0)
-	addi	s1, s3, %lo(cameraPos)
-	lw	s3, 4(s1)
-	mv	s4, a0
-	mv	a0, s3
-	call	__mulsi3
-	lw	a1, 44(s0)
-	lw	s5, 8(s1)
-	add	s0, a0, s4
-	mv	a0, s5
-	call	__mulsi3
-	lw	a1, 36(s6)
-	add	s1, s0, a0
-	mv	a0, a1
-	mv	a1, s2
-	call	__mulsi3
-	lw	a1, 40(s6)
-	mv	s0, a0
-	mv	a0, a1
-	mv	a1, s3
-	call	__mulsi3
-	lw	a1, 44(s6)
-	add	s0, a0, s0
-	mv	a0, a1
-	mv	a1, s5
-	call	__mulsi3
-	add	a0, s0, a0
-	slt	a0, s1, a0
-	lw	s6, 0(sp)
-	lw	s5, 4(sp)
-	lw	s4, 8(sp)
-	lw	s3, 12(sp)
-	lw	s2, 16(sp)
-	lw	s1, 20(sp)
-	lw	s0, 24(sp)
-	lw	ra, 28(sp)
-	addi	sp, sp, 32
-	ret
-.Lfunc_end55:
-	.size	_ZltRK8TriangleS1_, .Lfunc_end55-_ZltRK8TriangleS1_
                                         # -- End function
 	.globl	_Z13sortTrianglesP8TrianglePji # -- Begin function _Z13sortTrianglesP8TrianglePji
 	.p2align	2
 	.type	_Z13sortTrianglesP8TrianglePji,@function
 _Z13sortTrianglesP8TrianglePji:         # @_Z13sortTrianglesP8TrianglePji
 # %bb.0:
-	addi	sp, sp, -64
-	sw	ra, 60(sp)
-	sw	s0, 56(sp)
-	sw	s1, 52(sp)
-	sw	s2, 48(sp)
-	sw	s3, 44(sp)
-	sw	s4, 40(sp)
-	sw	s5, 36(sp)
-	sw	s6, 32(sp)
-	sw	s7, 28(sp)
-	sw	s8, 24(sp)
-	sw	s9, 20(sp)
-	sw	s10, 16(sp)
-	sw	s11, 12(sp)
+	addi	sp, sp, -48
+	sw	ra, 44(sp)
+	sw	s0, 40(sp)
+	sw	s1, 36(sp)
+	sw	s2, 32(sp)
+	sw	s3, 28(sp)
+	sw	s4, 24(sp)
+	sw	s5, 20(sp)
+	sw	s6, 16(sp)
+	sw	s7, 12(sp)
+	sw	s8, 8(sp)
+	sw	s9, 4(sp)
+	sw	s10, 0(sp)
 	addi	a3, zero, 2
-	blt	a2, a3, .LBB56_11
+	blt	a2, a3, .LBB55_11
 # %bb.1:
-	mv	a4, a1
+	mv	s2, a1
 	mv	s3, a0
-	lui	a0, %hi(cameraPos)
-	addi	a0, a0, %lo(cameraPos)
-	sw	a0, 8(sp)
-	j	.LBB56_3
-.LBB56_2:                               #   in Loop: Header=BB56_3 Depth=1
-	lw	a1, 4(sp)
-	sub	a0, s2, a1
+	addi	s4, zero, 1
+	addi	s5, zero, 8
+	j	.LBB55_3
+.LBB55_2:                               #   in Loop: Header=BB55_3 Depth=1
+	sub	a0, s8, s2
 	srai	a2, a0, 2
 	mv	a0, s3
+	mv	a1, s2
 	call	_Z13sortTrianglesP8TrianglePji
-	addi	a4, s2, 8
-	lw	a0, 0(sp)
-	sub	a0, a0, s2
+	addi	s2, s8, 4
+	sub	a0, s6, s8
 	srai	a1, a0, 2
-	addi	a2, a1, -2
-	addi	a1, zero, 12
-	bge	a1, a0, .LBB56_11
-.LBB56_3:                               # =>This Loop Header: Depth=1
-                                        #     Child Loop BB56_8 Depth 2
+	addi	a2, a1, -1
+	bge	s5, a0, .LBB55_11
+.LBB55_3:                               # =>This Loop Header: Depth=1
+                                        #     Child Loop BB55_8 Depth 2
 	slli	a0, a2, 1
 	andi	a0, a0, -4
-	add	a0, a4, a0
+	add	a0, s2, a0
 	lw	a1, 0(a0)
-	lw	a3, 0(a4)
-	sw	a1, 0(a4)
+	lw	a3, 0(s2)
+	sw	a1, 0(s2)
 	sw	a3, 0(a0)
 	slli	a0, a2, 2
-	add	a1, a4, a0
-	sw	a1, 0(sp)
-	sw	a4, 4(sp)
-	mv	s2, a4
-	addi	a1, zero, 1
-	beq	a2, a1, .LBB56_2
-# %bb.4:                                #   in Loop: Header=BB56_3 Depth=1
-	lw	s2, 4(sp)
-	lw	s4, 0(s2)
-	addi	s8, a0, -4
-	mv	s9, s2
-	j	.LBB56_8
-.LBB56_5:                               #   in Loop: Header=BB56_8 Depth=2
-	sw	a0, 4(s9)
-	lw	s4, 0(s2)
-	sw	s5, 4(s2)
-.LBB56_6:                               #   in Loop: Header=BB56_8 Depth=2
-	sw	s4, 4(s2)
-	addi	a0, s2, 4
-	sw	s5, 0(s2)
-	mv	s2, a0
-.LBB56_7:                               #   in Loop: Header=BB56_8 Depth=2
-	addi	s8, s8, -4
-	addi	s9, s9, 4
-	beqz	s8, .LBB56_2
-.LBB56_8:                               #   Parent Loop BB56_3 Depth=1
+	add	s6, s2, a0
+	mv	s8, s2
+	beq	a2, s4, .LBB55_2
+# %bb.4:                                #   in Loop: Header=BB55_3 Depth=1
+	lw	s7, 0(s2)
+	addi	s1, a0, -4
+	mv	s0, s2
+	mv	s8, s2
+	j	.LBB55_8
+.LBB55_5:                               #   in Loop: Header=BB55_8 Depth=2
+	sw	a0, 4(s0)
+	lw	s7, 0(s8)
+	sw	s9, 4(s8)
+.LBB55_6:                               #   in Loop: Header=BB55_8 Depth=2
+	sw	s7, 4(s8)
+	addi	a0, s8, 4
+	sw	s9, 0(s8)
+	mv	s8, a0
+.LBB55_7:                               #   in Loop: Header=BB55_8 Depth=2
+	addi	s1, s1, -4
+	addi	s0, s0, 4
+	beqz	s1, .LBB55_2
+.LBB55_8:                               #   Parent Loop BB55_3 Depth=1
                                         # =>  This Inner Loop Header: Depth=2
-	lw	s5, 4(s9)
-	addi	a1, zero, 48
-	mv	a0, s5
+	lw	s9, 4(s0)
+	addi	a1, zero, 40
+	mv	a0, s9
 	call	__mulsi3
-	add	s0, s3, a0
-	lw	a1, 36(s0)
-	lui	a0, %hi(cameraPos)
-	lw	s6, %lo(cameraPos)(a0)
-	mv	a0, s6
-	call	__mulsi3
-	lw	a1, 40(s0)
-	lw	s1, 8(sp)
-	lw	s7, 4(s1)
-	mv	s10, a0
+	add	a0, s3, a0
+	lw	s10, 36(a0)
+	addi	a1, zero, 40
 	mv	a0, s7
 	call	__mulsi3
-	lw	a1, 44(s0)
-	lw	s0, 8(s1)
-	add	s1, a0, s10
-	mv	a0, s0
-	call	__mulsi3
-	add	s10, s1, a0
-	addi	a1, zero, 48
-	mv	a0, s4
-	call	__mulsi3
-	add	s11, s3, a0
-	lw	a0, 36(s11)
-	mv	a1, s6
-	call	__mulsi3
-	lw	a1, 40(s11)
-	mv	s1, a0
-	mv	a0, a1
-	mv	a1, s7
-	call	__mulsi3
-	lw	a1, 44(s11)
-	add	s1, a0, s1
-	mv	a0, a1
-	mv	a1, s0
-	call	__mulsi3
-	add	a0, s1, a0
-	bge	s10, a0, .LBB56_7
-# %bb.9:                                #   in Loop: Header=BB56_8 Depth=2
-	lw	a0, 4(s2)
-	bne	s9, s2, .LBB56_5
-# %bb.10:                               #   in Loop: Header=BB56_8 Depth=2
-	mv	s5, a0
-	j	.LBB56_6
-.LBB56_11:
-	lw	s11, 12(sp)
-	lw	s10, 16(sp)
-	lw	s9, 20(sp)
-	lw	s8, 24(sp)
-	lw	s7, 28(sp)
-	lw	s6, 32(sp)
-	lw	s5, 36(sp)
-	lw	s4, 40(sp)
-	lw	s3, 44(sp)
-	lw	s2, 48(sp)
-	lw	s1, 52(sp)
-	lw	s0, 56(sp)
-	lw	ra, 60(sp)
-	addi	sp, sp, 64
+	add	a0, s3, a0
+	lw	a0, 36(a0)
+	bge	s10, a0, .LBB55_7
+# %bb.9:                                #   in Loop: Header=BB55_8 Depth=2
+	lw	a0, 4(s8)
+	bne	s0, s8, .LBB55_5
+# %bb.10:                               #   in Loop: Header=BB55_8 Depth=2
+	mv	s9, a0
+	j	.LBB55_6
+.LBB55_11:
+	lw	s10, 0(sp)
+	lw	s9, 4(sp)
+	lw	s8, 8(sp)
+	lw	s7, 12(sp)
+	lw	s6, 16(sp)
+	lw	s5, 20(sp)
+	lw	s4, 24(sp)
+	lw	s3, 28(sp)
+	lw	s2, 32(sp)
+	lw	s1, 36(sp)
+	lw	s0, 40(sp)
+	lw	ra, 44(sp)
+	addi	sp, sp, 48
 	ret
-.Lfunc_end56:
-	.size	_Z13sortTrianglesP8TrianglePji, .Lfunc_end56-_Z13sortTrianglesP8TrianglePji
+.Lfunc_end55:
+	.size	_Z13sortTrianglesP8TrianglePji, .Lfunc_end55-_Z13sortTrianglesP8TrianglePji
                                         # -- End function
 	.globl	_Z13cos32_computei      # -- Begin function _Z13cos32_computei
 	.p2align	2
@@ -3306,8 +3006,8 @@ _Z13cos32_computei:                     # @_Z13cos32_computei
 	lw	ra, 12(sp)
 	addi	sp, sp, 16
 	ret
-.Lfunc_end57:
-	.size	_Z13cos32_computei, .Lfunc_end57-_Z13cos32_computei
+.Lfunc_end56:
+	.size	_Z13cos32_computei, .Lfunc_end56-_Z13cos32_computei
                                         # -- End function
 	.globl	_Z5cos32i               # -- Begin function _Z5cos32i
 	.p2align	2
@@ -3321,6 +3021,111 @@ _Z5cos32i:                              # @_Z5cos32i
 	sw	s2, 16(sp)
 	sw	s3, 12(sp)
 	sw	s4, 8(sp)
+	addi	a1, zero, -1
+	addi	a2, zero, 360
+	j	.LBB57_2
+.LBB57_1:                               #   in Loop: Header=BB57_2 Depth=1
+	add	a0, a0, a3
+.LBB57_2:                               # =>This Inner Loop Header: Depth=1
+	addi	a3, zero, 360
+	bge	a1, a0, .LBB57_1
+# %bb.3:                                #   in Loop: Header=BB57_2 Depth=1
+	addi	a3, zero, -360
+	blt	a2, a0, .LBB57_1
+# %bb.4:
+	lui	a1, 1048569
+	addi	s3, a1, -1445
+	lui	a1, 16
+	addi	s2, a1, -40
+	lui	s0, 1
+	addi	a1, zero, 271
+	addi	s4, s0, -1685
+	blt	a0, a1, .LBB57_6
+# %bb.5:
+	addi	a1, zero, 360
+	sub	a0, a1, a0
+	mv	a1, a0
+	call	__mulsi3
+	mv	s1, a0
+	mv	a1, s4
+	call	__mulsi3
+	addi	s0, s0, -813
+	j	.LBB57_12
+.LBB57_6:
+	addi	a1, zero, 181
+	blt	a0, a1, .LBB57_8
+# %bb.7:
+	addi	a0, a0, -180
+	j	.LBB57_10
+.LBB57_8:
+	addi	a1, zero, 91
+	blt	a0, a1, .LBB57_11
+# %bb.9:
+	addi	a1, zero, 180
+	sub	a0, a1, a0
+.LBB57_10:
+	mv	a1, a0
+	call	__mulsi3
+	mv	s1, a0
+	mv	a1, s4
+	call	__mulsi3
+	lui	a1, 1
+	addi	s0, a1, -813
+	mv	a1, s0
+	call	__udivsi3
+	add	a0, a0, s3
+	mv	a1, s1
+	call	__mulsi3
+	mv	a1, s0
+	call	__divsi3
+	add	a0, a0, s2
+	srai	a0, a0, 6
+	neg	a0, a0
+	j	.LBB57_13
+.LBB57_11:
+	mv	a1, a0
+	call	__mulsi3
+	mv	s1, a0
+	mv	a1, s4
+	call	__mulsi3
+	lui	a1, 1
+	addi	s0, a1, -813
+.LBB57_12:
+	mv	a1, s0
+	call	__udivsi3
+	add	a0, a0, s3
+	mv	a1, s1
+	call	__mulsi3
+	mv	a1, s0
+	call	__divsi3
+	add	a0, a0, s2
+	srai	a0, a0, 6
+.LBB57_13:
+	lw	s4, 8(sp)
+	lw	s3, 12(sp)
+	lw	s2, 16(sp)
+	lw	s1, 20(sp)
+	lw	s0, 24(sp)
+	lw	ra, 28(sp)
+	addi	sp, sp, 32
+	ret
+.Lfunc_end57:
+	.size	_Z5cos32i, .Lfunc_end57-_Z5cos32i
+                                        # -- End function
+	.globl	_Z5sin32i               # -- Begin function _Z5sin32i
+	.p2align	2
+	.type	_Z5sin32i,@function
+_Z5sin32i:                              # @_Z5sin32i
+# %bb.0:
+	addi	sp, sp, -32
+	sw	ra, 28(sp)
+	sw	s0, 24(sp)
+	sw	s1, 20(sp)
+	sw	s2, 16(sp)
+	sw	s3, 12(sp)
+	sw	s4, 8(sp)
+	addi	a1, zero, 90
+	sub	a0, a1, a0
 	addi	a1, zero, -1
 	addi	a2, zero, 360
 	j	.LBB58_2
@@ -3410,24 +3215,35 @@ _Z5cos32i:                              # @_Z5cos32i
 	addi	sp, sp, 32
 	ret
 .Lfunc_end58:
-	.size	_Z5cos32i, .Lfunc_end58-_Z5cos32i
+	.size	_Z5sin32i, .Lfunc_end58-_Z5sin32i
                                         # -- End function
-	.globl	_Z5sin32i               # -- Begin function _Z5sin32i
+	.globl	_Z13applyRotationP8TriangleS0_j4Vecti # -- Begin function _Z13applyRotationP8TriangleS0_j4Vecti
 	.p2align	2
-	.type	_Z5sin32i,@function
-_Z5sin32i:                              # @_Z5sin32i
+	.type	_Z13applyRotationP8TriangleS0_j4Vecti,@function
+_Z13applyRotationP8TriangleS0_j4Vecti:  # @_Z13applyRotationP8TriangleS0_j4Vecti
 # %bb.0:
-	addi	sp, sp, -32
-	sw	ra, 28(sp)
-	sw	s0, 24(sp)
-	sw	s1, 20(sp)
-	sw	s2, 16(sp)
-	sw	s3, 12(sp)
-	sw	s4, 8(sp)
-	addi	a1, zero, 90
-	sub	a0, a1, a0
+	addi	sp, sp, -64
+	sw	ra, 60(sp)
+	sw	s0, 56(sp)
+	sw	s1, 52(sp)
+	sw	s2, 48(sp)
+	sw	s3, 44(sp)
+	sw	s4, 40(sp)
+	sw	s5, 36(sp)
+	sw	s6, 32(sp)
+	sw	s7, 28(sp)
+	sw	s8, 24(sp)
+	sw	s9, 20(sp)
+	sw	s10, 16(sp)
+	sw	s11, 12(sp)
+	mv	s6, a4
+	mv	s2, a3
+	mv	s3, a2
+	mv	s8, a1
+	mv	s7, a0
 	addi	a1, zero, -1
 	addi	a2, zero, 360
+	mv	a0, a4
 	j	.LBB59_2
 .LBB59_1:                               #   in Loop: Header=BB59_2 Depth=1
 	add	a0, a0, a3
@@ -3439,22 +3255,22 @@ _Z5sin32i:                              # @_Z5sin32i
 	blt	a2, a0, .LBB59_1
 # %bb.4:
 	lui	a1, 1048569
-	addi	s3, a1, -1445
+	addi	s0, a1, -1445
 	lui	a1, 16
-	addi	s2, a1, -40
-	lui	s0, 1
+	addi	s9, a1, -40
+	lui	s1, 1
 	addi	a1, zero, 271
-	addi	s4, s0, -1685
+	addi	s5, s1, -1685
 	blt	a0, a1, .LBB59_6
 # %bb.5:
 	addi	a1, zero, 360
 	sub	a0, a1, a0
 	mv	a1, a0
 	call	__mulsi3
-	mv	s1, a0
-	mv	a1, s4
+	mv	s4, a0
+	mv	a1, s5
 	call	__mulsi3
-	addi	s0, s0, -813
+	addi	s1, s1, -813
 	j	.LBB59_12
 .LBB59_6:
 	addi	a1, zero, 181
@@ -3471,190 +3287,74 @@ _Z5sin32i:                              # @_Z5sin32i
 .LBB59_10:
 	mv	a1, a0
 	call	__mulsi3
-	mv	s1, a0
-	mv	a1, s4
+	mv	s4, a0
+	mv	a1, s5
 	call	__mulsi3
 	lui	a1, 1
-	addi	s0, a1, -813
-	mv	a1, s0
-	call	__udivsi3
-	add	a0, a0, s3
+	addi	s1, a1, -813
 	mv	a1, s1
+	call	__udivsi3
+	add	a0, a0, s0
+	mv	a1, s4
 	call	__mulsi3
-	mv	a1, s0
+	mv	a1, s1
 	call	__divsi3
-	add	a0, a0, s2
+	add	a0, a0, s9
 	srai	a0, a0, 6
-	neg	a0, a0
+	neg	s11, a0
 	j	.LBB59_13
 .LBB59_11:
 	mv	a1, a0
 	call	__mulsi3
-	mv	s1, a0
-	mv	a1, s4
+	mv	s4, a0
+	mv	a1, s5
 	call	__mulsi3
 	lui	a1, 1
-	addi	s0, a1, -813
+	addi	s1, a1, -813
 .LBB59_12:
-	mv	a1, s0
-	call	__udivsi3
-	add	a0, a0, s3
 	mv	a1, s1
+	call	__udivsi3
+	add	a0, a0, s0
+	mv	a1, s4
 	call	__mulsi3
-	mv	a1, s0
+	mv	a1, s1
 	call	__divsi3
-	add	a0, a0, s2
-	srai	a0, a0, 6
+	add	a0, a0, s9
+	srai	s11, a0, 6
 .LBB59_13:
-	lw	s4, 8(sp)
-	lw	s3, 12(sp)
-	lw	s2, 16(sp)
-	lw	s1, 20(sp)
-	lw	s0, 24(sp)
-	lw	ra, 28(sp)
-	addi	sp, sp, 32
-	ret
-.Lfunc_end59:
-	.size	_Z5sin32i, .Lfunc_end59-_Z5sin32i
-                                        # -- End function
-	.globl	_Z13applyRotationP8TriangleS0_j4Vecti # -- Begin function _Z13applyRotationP8TriangleS0_j4Vecti
-	.p2align	2
-	.type	_Z13applyRotationP8TriangleS0_j4Vecti,@function
-_Z13applyRotationP8TriangleS0_j4Vecti:  # @_Z13applyRotationP8TriangleS0_j4Vecti
-# %bb.0:
-	addi	sp, sp, -80
-	sw	ra, 76(sp)
-	sw	s0, 72(sp)
-	sw	s1, 68(sp)
-	sw	s2, 64(sp)
-	sw	s3, 60(sp)
-	sw	s4, 56(sp)
-	sw	s5, 52(sp)
-	sw	s6, 48(sp)
-	sw	s7, 44(sp)
-	sw	s8, 40(sp)
-	sw	s9, 36(sp)
-	sw	s10, 32(sp)
-	sw	s11, 28(sp)
-	mv	s6, a4
-	mv	s7, a3
-	mv	s0, a2
-	mv	s11, a1
-	mv	s3, a0
-	addi	a1, zero, -1
-	addi	a2, zero, 360
-	mv	a0, a4
-	j	.LBB60_2
-.LBB60_1:                               #   in Loop: Header=BB60_2 Depth=1
-	add	a0, a0, a3
-.LBB60_2:                               # =>This Inner Loop Header: Depth=1
-	addi	a3, zero, 360
-	bge	a1, a0, .LBB60_1
-# %bb.3:                                #   in Loop: Header=BB60_2 Depth=1
-	addi	a3, zero, -360
-	blt	a2, a0, .LBB60_1
-# %bb.4:
-	lui	a1, 1048569
-	addi	s2, a1, -1445
-	lui	a1, 16
-	addi	s9, a1, -40
-	lui	s1, 1
-	addi	a1, zero, 271
-	addi	s5, s1, -1685
-	blt	a0, a1, .LBB60_6
-# %bb.5:
-	addi	a1, zero, 360
-	sub	a0, a1, a0
-	mv	a1, a0
-	call	__mulsi3
-	mv	s4, a0
-	mv	a1, s5
-	call	__mulsi3
-	addi	s1, s1, -813
-	j	.LBB60_12
-.LBB60_6:
-	addi	a1, zero, 181
-	blt	a0, a1, .LBB60_8
-# %bb.7:
-	addi	a0, a0, -180
-	j	.LBB60_10
-.LBB60_8:
-	addi	a1, zero, 91
-	blt	a0, a1, .LBB60_11
-# %bb.9:
-	addi	a1, zero, 180
-	sub	a0, a1, a0
-.LBB60_10:
-	mv	a1, a0
-	call	__mulsi3
-	mv	s4, a0
-	mv	a1, s5
-	call	__mulsi3
-	lui	a1, 1
-	addi	s1, a1, -813
-	mv	a1, s1
-	call	__udivsi3
-	add	a0, a0, s2
-	mv	a1, s4
-	call	__mulsi3
-	mv	a1, s1
-	call	__divsi3
-	add	a0, a0, s9
-	srai	a0, a0, 6
-	neg	s8, a0
-	j	.LBB60_13
-.LBB60_11:
-	mv	a1, a0
-	call	__mulsi3
-	mv	s4, a0
-	mv	a1, s5
-	call	__mulsi3
-	lui	a1, 1
-	addi	s1, a1, -813
-.LBB60_12:
-	mv	a1, s1
-	call	__udivsi3
-	add	a0, a0, s2
-	mv	a1, s4
-	call	__mulsi3
-	mv	a1, s1
-	call	__divsi3
-	add	a0, a0, s9
-	srai	s8, a0, 6
-.LBB60_13:
 	addi	a0, zero, 90
 	sub	a0, a0, s6
 	addi	a1, zero, -1
 	addi	a2, zero, 360
-	j	.LBB60_15
-.LBB60_14:                              #   in Loop: Header=BB60_15 Depth=1
+	j	.LBB59_15
+.LBB59_14:                              #   in Loop: Header=BB59_15 Depth=1
 	add	a0, a0, a3
-.LBB60_15:                              # =>This Inner Loop Header: Depth=1
+.LBB59_15:                              # =>This Inner Loop Header: Depth=1
 	addi	a3, zero, 360
-	bge	a1, a0, .LBB60_14
-# %bb.16:                               #   in Loop: Header=BB60_15 Depth=1
+	bge	a1, a0, .LBB59_14
+# %bb.16:                               #   in Loop: Header=BB59_15 Depth=1
 	addi	a3, zero, -360
-	blt	a2, a0, .LBB60_14
+	blt	a2, a0, .LBB59_14
 # %bb.17:
 	addi	a1, zero, 271
-	blt	a0, a1, .LBB60_19
+	blt	a0, a1, .LBB59_19
 # %bb.18:
 	addi	a1, zero, 360
 	sub	a0, a1, a0
-	j	.LBB60_24
-.LBB60_19:
+	j	.LBB59_24
+.LBB59_19:
 	addi	a1, zero, 181
-	blt	a0, a1, .LBB60_21
+	blt	a0, a1, .LBB59_21
 # %bb.20:
 	addi	a0, a0, -180
-	j	.LBB60_23
-.LBB60_21:
+	j	.LBB59_23
+.LBB59_21:
 	addi	a1, zero, 91
-	blt	a0, a1, .LBB60_24
+	blt	a0, a1, .LBB59_24
 # %bb.22:
 	addi	a1, zero, 180
 	sub	a0, a1, a0
-.LBB60_23:
+.LBB59_23:
 	mv	a1, a0
 	call	__mulsi3
 	mv	s6, a0
@@ -3664,17 +3364,17 @@ _Z13applyRotationP8TriangleS0_j4Vecti:  # @_Z13applyRotationP8TriangleS0_j4Vecti
 	addi	s1, a1, -813
 	mv	a1, s1
 	call	__udivsi3
-	add	a0, a0, s2
+	add	a0, a0, s0
 	mv	a1, s6
 	call	__mulsi3
 	mv	a1, s1
 	call	__divsi3
 	add	a0, a0, s9
 	srai	a0, a0, 6
-	neg	s2, a0
-	bnez	s0, .LBB60_25
-	j	.LBB60_27
-.LBB60_24:
+	neg	s5, a0
+	bnez	s3, .LBB59_25
+	j	.LBB59_26
+.LBB59_24:
 	mv	a1, a0
 	call	__mulsi3
 	mv	s6, a0
@@ -3684,207 +3384,502 @@ _Z13applyRotationP8TriangleS0_j4Vecti:  # @_Z13applyRotationP8TriangleS0_j4Vecti
 	addi	s1, a1, -813
 	mv	a1, s1
 	call	__udivsi3
-	add	a0, a0, s2
+	add	a0, a0, s0
 	mv	a1, s6
 	call	__mulsi3
 	mv	a1, s1
 	call	__divsi3
 	add	a0, a0, s9
-	srai	s2, a0, 6
-	beqz	s0, .LBB60_27
-.LBB60_25:
-	mv	s5, s8
-.LBB60_26:                              # =>This Inner Loop Header: Depth=1
-	sw	s0, 24(sp)
-	lw	a0, 0(s3)
-	lw	s1, 0(s7)
-	lw	a1, 4(s3)
-	lw	s10, 4(s7)
+	srai	s5, a0, 6
+	beqz	s3, .LBB59_26
+.LBB59_25:                              # =>This Inner Loop Header: Depth=1
+	lw	a0, 0(s7)
+	lw	s1, 0(s2)
+	lw	a1, 4(s7)
+	lw	s10, 4(s2)
 	sub	s0, a0, s1
 	sub	s6, a1, s10
 	mv	a0, s0
-	mv	a1, s5
+	mv	a1, s11
 	call	__mulsi3
 	mv	s9, a0
 	mv	a0, s6
-	mv	a1, s2
+	mv	a1, s5
 	call	__mulsi3
 	sub	a0, s9, a0
 	srai	a0, a0, 10
 	add	a0, a0, s1
-	sw	a0, 20(sp)
-	sw	a0, 0(s11)
+	sw	a0, 8(sp)
+	sw	a0, 0(s8)
 	mv	a0, s0
-	mv	a1, s2
+	mv	a1, s5
 	call	__mulsi3
 	mv	s0, a0
 	mv	a0, s6
-	mv	a1, s5
+	mv	a1, s11
 	call	__mulsi3
 	add	a0, a0, s0
 	srai	a0, a0, 10
 	add	a0, a0, s10
-	sw	a0, 16(sp)
-	sw	a0, 4(s11)
-	lw	a0, 8(s3)
-	sw	a0, 12(sp)
-	sw	a0, 8(s11)
-	lw	a0, 12(s3)
-	mv	s8, s2
-	lw	s2, 0(s7)
-	lw	a1, 16(s3)
-	lw	s4, 4(s7)
-	sub	s0, a0, s2
-	sub	s6, a1, s4
+	sw	a0, 4(s8)
+	lw	a0, 8(s7)
+	sw	a0, 8(s8)
+	lw	a0, 12(s7)
+	lw	s1, 0(s2)
+	lw	a1, 16(s7)
+	mv	s9, s11
+	lw	s11, 4(s2)
+	sub	s0, a0, s1
+	sub	s6, a1, s11
 	mv	a0, s0
+	mv	a1, s9
+	call	__mulsi3
+	mv	s10, a0
+	mv	a0, s6
 	mv	a1, s5
 	call	__mulsi3
-	mv	s1, a0
-	mv	a0, s6
-	mv	a1, s8
-	call	__mulsi3
-	sub	a0, s1, a0
+	sub	a0, s10, a0
 	srai	a0, a0, 10
-	add	s2, a0, s2
-	sw	s2, 12(s11)
+	add	s10, a0, s1
+	sw	s10, 12(s8)
 	mv	a0, s0
-	mv	a1, s8
+	mv	a1, s5
 	call	__mulsi3
 	mv	s0, a0
 	mv	a0, s6
-	mv	a1, s5
+	mv	a1, s9
 	call	__mulsi3
 	add	a0, a0, s0
 	srai	a0, a0, 10
-	add	a0, a0, s4
-	sw	a0, 8(sp)
-	sw	a0, 16(s11)
-	lw	s4, 20(s3)
-	sw	s4, 20(s11)
-	lw	a0, 24(s3)
-	lw	s9, 0(s7)
-	lw	a1, 28(s3)
-	mv	s10, s7
-	lw	s7, 4(s7)
-	sub	s0, a0, s9
-	sub	s6, a1, s7
+	add	a0, a0, s11
+	sw	a0, 16(s8)
+	lw	a0, 20(s7)
+	sw	a0, 20(s8)
+	lw	a0, 24(s7)
+	lw	s1, 0(s2)
+	lw	a1, 28(s7)
+	mv	s4, s3
+	mv	s3, s2
+	lw	s2, 4(s2)
+	sub	s0, a0, s1
+	sub	s6, a1, s2
 	mv	a0, s0
+	mv	a1, s9
+	call	__mulsi3
+	mv	s11, a0
+	mv	a0, s6
 	mv	a1, s5
 	call	__mulsi3
-	mv	s1, a0
-	mv	a0, s6
-	mv	a1, s8
-	call	__mulsi3
-	sub	a0, s1, a0
+	sub	a0, s11, a0
+	mv	s11, s9
 	srai	a0, a0, 10
-	add	s1, a0, s9
-	sw	s1, 24(s11)
+	add	s1, a0, s1
+	sw	s1, 24(s8)
 	mv	a0, s0
-	mv	a1, s8
+	mv	a1, s5
 	call	__mulsi3
 	mv	s0, a0
 	mv	a0, s6
-	mv	a1, s5
+	mv	a1, s9
 	call	__mulsi3
 	add	a0, a0, s0
 	srai	a0, a0, 10
-	add	a0, a0, s7
-	mv	s7, s10
-	sw	a0, 28(s11)
-	lw	a1, 32(s3)
-	sw	a1, 32(s11)
-	lw	a2, 20(sp)
-	add	a2, s2, a2
-	mv	s2, s8
-	lw	s0, 24(sp)
-	add	a2, a2, s1
-	lw	a3, 16(sp)
-	lw	a4, 8(sp)
-	add	a3, a4, a3
-	add	a0, a3, a0
-	lw	a3, 12(sp)
-	add	a3, s4, a3
-	add	a1, a3, a1
-	sw	a2, 36(s11)
-	sw	a0, 40(s11)
-	sw	a1, 44(s11)
-	addi	s0, s0, -1
-	addi	s3, s3, 48
-	addi	s11, s11, 48
-	bnez	s0, .LBB60_26
-.LBB60_27:
-	lw	s11, 28(sp)
-	lw	s10, 32(sp)
-	lw	s9, 36(sp)
-	lw	s8, 40(sp)
-	lw	s7, 44(sp)
-	lw	s6, 48(sp)
-	lw	s5, 52(sp)
-	lw	s4, 56(sp)
-	lw	s3, 60(sp)
-	lw	s2, 64(sp)
-	lw	s1, 68(sp)
-	lw	s0, 72(sp)
-	lw	ra, 76(sp)
-	addi	sp, sp, 80
+	add	a0, a0, s2
+	mv	s2, s3
+	mv	s3, s4
+	sw	a0, 28(s8)
+	lw	a0, 32(s7)
+	sw	a0, 32(s8)
+	lw	a0, 8(sp)
+	add	a0, s10, a0
+	add	a0, a0, s1
+	sw	a0, 36(s8)
+	addi	s3, s4, -1
+	addi	s7, s7, 40
+	addi	s8, s8, 40
+	bnez	s3, .LBB59_25
+.LBB59_26:
+	lw	s11, 12(sp)
+	lw	s10, 16(sp)
+	lw	s9, 20(sp)
+	lw	s8, 24(sp)
+	lw	s7, 28(sp)
+	lw	s6, 32(sp)
+	lw	s5, 36(sp)
+	lw	s4, 40(sp)
+	lw	s3, 44(sp)
+	lw	s2, 48(sp)
+	lw	s1, 52(sp)
+	lw	s0, 56(sp)
+	lw	ra, 60(sp)
+	addi	sp, sp, 64
 	ret
-.Lfunc_end60:
-	.size	_Z13applyRotationP8TriangleS0_j4Vecti, .Lfunc_end60-_Z13applyRotationP8TriangleS0_j4Vecti
+.Lfunc_end59:
+	.size	_Z13applyRotationP8TriangleS0_j4Vecti, .Lfunc_end59-_Z13applyRotationP8TriangleS0_j4Vecti
                                         # -- End function
-	.globl	_Z13drawTrianglesP8Trianglej # -- Begin function _Z13drawTrianglesP8Trianglej
+	.globl	_Z8getLightRK8Triangle  # -- Begin function _Z8getLightRK8Triangle
 	.p2align	2
-	.type	_Z13drawTrianglesP8Trianglej,@function
-_Z13drawTrianglesP8Trianglej:           # @_Z13drawTrianglesP8Trianglej
+	.type	_Z8getLightRK8Triangle,@function
+_Z8getLightRK8Triangle:                 # @_Z8getLightRK8Triangle
 # %bb.0:
 	addi	sp, sp, -16
 	sw	ra, 12(sp)
 	sw	s0, 8(sp)
 	sw	s1, 4(sp)
-	beqz	a1, .LBB61_3
+	lw	a5, 0(a0)
+	lw	a4, 12(a0)
+	lw	a2, 16(a0)
+	lw	a1, 4(a0)
+	mv	s1, a2
+	mv	s0, a4
+	blt	a4, a5, .LBB60_2
 # %bb.1:
-	mv	s0, a1
-	mv	s1, a0
-.LBB61_2:                               # =>This Inner Loop Header: Depth=1
-	addi	a1, zero, 255
+	mv	s1, a1
+	mv	s0, a5
+.LBB60_2:
+	blt	a5, a4, .LBB60_4
+# %bb.3:
+	mv	a2, a1
+	mv	a4, a5
+.LBB60_4:
+	lw	a1, 24(a0)
+	lw	a5, 28(a0)
+	mv	a3, a5
+	mv	a0, a1
+	blt	a1, s0, .LBB60_6
+# %bb.5:
+	mv	a3, s1
+	mv	a0, s0
+.LBB60_6:
+	blt	a4, a1, .LBB60_8
+# %bb.7:
+	mv	a5, a2
+	mv	a1, a4
+.LBB60_8:
+	sub	a0, a1, a0
+	sub	s1, a5, a3
+	mv	a1, a0
+	call	__mulsi3
+	mv	s0, a0
 	mv	a0, s1
-	mv	a2, zero
-	mv	a3, zero
-	call	_Z4drawRK8Trianglejjj
-	addi	s0, s0, -1
-	addi	s1, s1, 48
-	bnez	s0, .LBB61_2
-.LBB61_3:
-	lui	a0, 655360
-	addi	a1, zero, 42
-	sw	a1, 12(a0)
+	mv	a1, s1
+	call	__mulsi3
+	mv	s1, a0
+	or	a0, s0, a0
+	beqz	a0, .LBB60_12
+# %bb.9:
+	addi	a1, zero, 250
+	mv	a0, s1
+	call	__mulsi3
+	add	a1, s0, s1
+	call	__udivsi3
+	addi	a1, zero, 200
+	blt	a0, a1, .LBB60_11
+# %bb.10:
+	addi	a0, zero, 200
+.LBB60_11:
+	addi	a0, a0, 55
+	j	.LBB60_13
+.LBB60_12:
+	addi	a0, zero, 255
+.LBB60_13:
 	lw	s1, 4(sp)
 	lw	s0, 8(sp)
 	lw	ra, 12(sp)
 	addi	sp, sp, 16
 	ret
-.Lfunc_end61:
-	.size	_Z13drawTrianglesP8Trianglej, .Lfunc_end61-_Z13drawTrianglesP8Trianglej
+.Lfunc_end60:
+	.size	_Z8getLightRK8Triangle, .Lfunc_end60-_Z8getLightRK8Triangle
                                         # -- End function
-	.globl	_Z10run3dScenev         # -- Begin function _Z10run3dScenev
+	.globl	_Z13drawTrianglesPK8TrianglePKjj # -- Begin function _Z13drawTrianglesPK8TrianglePKjj
 	.p2align	2
-	.type	_Z10run3dScenev,@function
-_Z10run3dScenev:                        # @_Z10run3dScenev
+	.type	_Z13drawTrianglesPK8TrianglePKjj,@function
+_Z13drawTrianglesPK8TrianglePKjj:       # @_Z13drawTrianglesPK8TrianglePKjj
 # %bb.0:
-	addi	sp, sp, -176
-	sw	ra, 172(sp)
-	sw	s0, 168(sp)
-	sw	s1, 164(sp)
-	sw	s2, 160(sp)
-	sw	s3, 156(sp)
-	sw	s4, 152(sp)
-	sw	s5, 148(sp)
-	sw	s6, 144(sp)
-	sw	s7, 140(sp)
-	sw	s8, 136(sp)
-	sw	s9, 132(sp)
-	sw	s10, 128(sp)
-	sw	s11, 124(sp)
-	mv	s6, zero
+	addi	sp, sp, -64
+	sw	ra, 60(sp)
+	sw	s0, 56(sp)
+	sw	s1, 52(sp)
+	sw	s2, 48(sp)
+	sw	s3, 44(sp)
+	sw	s4, 40(sp)
+	sw	s5, 36(sp)
+	sw	s6, 32(sp)
+	sw	s7, 28(sp)
+	sw	s8, 24(sp)
+	sw	s9, 20(sp)
+	sw	s10, 16(sp)
+	sw	s11, 12(sp)
+	addi	s6, a2, -1
+	sw	a0, 8(sp)
+	bltz	s6, .LBB61_28
+# %bb.1:
+	slli	a0, s6, 2
+	add	s7, a1, a0
+	j	.LBB61_5
+.LBB61_2:                               #   in Loop: Header=BB61_5 Depth=1
+	mv	a0, s5
+	mv	a1, zero
+	mv	a2, zero
+.LBB61_3:                               #   in Loop: Header=BB61_5 Depth=1
+	call	_Z4drawRK8Trianglejjj
+.LBB61_4:                               #   in Loop: Header=BB61_5 Depth=1
+	addi	s6, s6, -1
+	addi	s7, s7, -4
+	addi	a0, zero, -1
+	bge	a0, s6, .LBB61_28
+.LBB61_5:                               # =>This Inner Loop Header: Depth=1
+	lw	s4, 0(s7)
+	addi	a1, zero, 40
+	mv	a0, s4
+	call	__mulsi3
+	lw	a1, 8(sp)
+	add	s5, a1, a0
+	lw	s3, 0(s5)
+	lw	s2, 12(s5)
+	lw	s10, 16(s5)
+	lw	s8, 4(s5)
+	mv	a0, s10
+	mv	a2, s2
+	blt	s2, s3, .LBB61_7
+# %bb.6:                                #   in Loop: Header=BB61_5 Depth=1
+	mv	a0, s8
+	mv	a2, s3
+.LBB61_7:                               #   in Loop: Header=BB61_5 Depth=1
+	mv	a1, s10
+	mv	a3, s2
+	blt	s3, s2, .LBB61_9
+# %bb.8:                                #   in Loop: Header=BB61_5 Depth=1
+	mv	a1, s8
+	mv	a3, s3
+.LBB61_9:                               #   in Loop: Header=BB61_5 Depth=1
+	lw	s9, 24(s5)
+	lw	s11, 28(s5)
+	mv	a4, s11
+	mv	a5, s9
+	blt	s9, a2, .LBB61_11
+# %bb.10:                               #   in Loop: Header=BB61_5 Depth=1
+	mv	a4, a0
+	mv	a5, a2
+.LBB61_11:                              #   in Loop: Header=BB61_5 Depth=1
+	mv	a2, s11
+	mv	a0, s9
+	blt	a3, s9, .LBB61_13
+# %bb.12:                               #   in Loop: Header=BB61_5 Depth=1
+	mv	a2, a1
+	mv	a0, a3
+.LBB61_13:                              #   in Loop: Header=BB61_5 Depth=1
+	sub	a0, a0, a5
+	sub	s0, a2, a4
+	mv	a1, a0
+	call	__mulsi3
+	mv	s1, a0
+	mv	a0, s0
+	mv	a1, s0
+	call	__mulsi3
+	mv	s0, a0
+	or	a0, s1, a0
+	beqz	a0, .LBB61_22
+# %bb.14:                               #   in Loop: Header=BB61_5 Depth=1
+	addi	a1, zero, 250
+	mv	a0, s0
+	call	__mulsi3
+	add	a1, s1, s0
+	call	__udivsi3
+	addi	a1, zero, 200
+	blt	a0, a1, .LBB61_16
+# %bb.15:                               #   in Loop: Header=BB61_5 Depth=1
+	addi	a0, zero, 200
+.LBB61_16:                              #   in Loop: Header=BB61_5 Depth=1
+	addi	a3, a0, 55
+	addi	a0, zero, 3
+	bltu	a0, s4, .LBB61_23
+.LBB61_17:                              #   in Loop: Header=BB61_5 Depth=1
+	addi	s0, s3, 64
+	addi	s3, zero, -64
+	sw	a3, 4(sp)
+	beqz	s0, .LBB61_25
+# %bb.18:                               #   in Loop: Header=BB61_5 Depth=1
+	slli	a0, s8, 6
+	mv	a1, s0
+	call	__divsi3
+	addi	s5, a0, 50
+	addi	a1, zero, 40
+	mv	a0, s4
+	call	__mulsi3
+	lw	a1, 8(sp)
+	add	a0, a1, a0
+	lw	a0, 8(a0)
+	slli	a0, a0, 6
+	mv	a1, s0
+	call	__divsi3
+	addi	a1, zero, 50
+	sub	s8, a1, a0
+	addi	s0, s2, 64
+	beqz	s0, .LBB61_20
+.LBB61_19:                              #   in Loop: Header=BB61_5 Depth=1
+	slli	a0, s10, 6
+	mv	a1, s0
+	call	__divsi3
+	addi	s3, a0, 50
+	addi	a1, zero, 40
+	mv	a0, s4
+	call	__mulsi3
+	lw	a1, 8(sp)
+	add	a0, a1, a0
+	lw	a0, 20(a0)
+	slli	a0, a0, 6
+	mv	a1, s0
+	call	__divsi3
+	addi	a1, zero, 50
+	sub	s10, a1, a0
+.LBB61_20:                              #   in Loop: Header=BB61_5 Depth=1
+	addi	s0, s9, 64
+	beqz	s0, .LBB61_26
+# %bb.21:                               #   in Loop: Header=BB61_5 Depth=1
+	slli	a0, s11, 6
+	mv	a1, s0
+	call	__divsi3
+	addi	s1, a0, 50
+	addi	a1, zero, 40
+	mv	a0, s4
+	call	__mulsi3
+	lw	a1, 8(sp)
+	add	a0, a1, a0
+	lw	a0, 32(a0)
+	slli	a0, a0, 6
+	mv	a1, s0
+	call	__divsi3
+	addi	a1, zero, 50
+	sub	s11, a1, a0
+	j	.LBB61_27
+.LBB61_22:                              #   in Loop: Header=BB61_5 Depth=1
+	addi	a3, zero, 255
+	addi	a0, zero, 3
+	bgeu	a0, s4, .LBB61_17
+.LBB61_23:                              #   in Loop: Header=BB61_5 Depth=1
+	addi	a0, zero, 7
+	bltu	a0, s4, .LBB61_2
+# %bb.24:                               #   in Loop: Header=BB61_5 Depth=1
+	mv	a0, s5
+	mv	a1, zero
+	mv	a2, a3
+	mv	a3, zero
+	j	.LBB61_3
+.LBB61_25:                              #   in Loop: Header=BB61_5 Depth=1
+	addi	s5, zero, -64
+	addi	s0, s2, 64
+	bnez	s0, .LBB61_19
+	j	.LBB61_20
+.LBB61_26:                              #   in Loop: Header=BB61_5 Depth=1
+	addi	s1, zero, -64
+.LBB61_27:                              #   in Loop: Header=BB61_5 Depth=1
+	lw	a2, 4(sp)
+	slli	a0, s8, 8
+	add	a0, a0, s5
+	slli	a0, a0, 8
+	ori	a0, a0, 1
+	lui	a1, 655360
+	sw	a0, 12(a1)
+	slli	a0, s10, 8
+	add	a0, a0, s3
+	slli	a0, a0, 8
+	ori	a0, a0, 7
+	sw	a0, 12(a1)
+	slli	a0, s11, 8
+	add	a0, a0, s1
+	slli	a0, a0, 8
+	ori	a0, a0, 8
+	sw	a0, 12(a1)
+	slli	a0, a2, 8
+	ori	a0, a0, 9
+	sw	a0, 12(a1)
+	j	.LBB61_4
+.LBB61_28:
+	lw	s11, 12(sp)
+	lw	s10, 16(sp)
+	lw	s9, 20(sp)
+	lw	s8, 24(sp)
+	lw	s7, 28(sp)
+	lw	s6, 32(sp)
+	lw	s5, 36(sp)
+	lw	s4, 40(sp)
+	lw	s3, 44(sp)
+	lw	s2, 48(sp)
+	lw	s1, 52(sp)
+	lw	s0, 56(sp)
+	lw	ra, 60(sp)
+	addi	sp, sp, 64
+	ret
+.Lfunc_end61:
+	.size	_Z13drawTrianglesPK8TrianglePKjj, .Lfunc_end61-_Z13drawTrianglesPK8TrianglePKjj
+                                        # -- End function
+	.globl	_Z9applyMoveP8Trianglejiii # -- Begin function _Z9applyMoveP8Trianglejiii
+	.p2align	2
+	.type	_Z9applyMoveP8Trianglejiii,@function
+_Z9applyMoveP8Trianglejiii:             # @_Z9applyMoveP8Trianglejiii
+# %bb.0:
+	beqz	a1, .LBB62_2
+.LBB62_1:                               # =>This Inner Loop Header: Depth=1
+	lw	a5, 0(a0)
+	lw	a6, 4(a0)
+	add	a5, a5, a2
+	sw	a5, 0(a0)
+	lw	a7, 8(a0)
+	add	a5, a6, a3
+	sw	a5, 4(a0)
+	lw	a6, 12(a0)
+	add	a5, a7, a4
+	sw	a5, 8(a0)
+	lw	a7, 16(a0)
+	add	a5, a6, a2
+	sw	a5, 12(a0)
+	lw	a6, 20(a0)
+	add	a5, a7, a3
+	sw	a5, 16(a0)
+	lw	a7, 24(a0)
+	add	a5, a6, a4
+	sw	a5, 20(a0)
+	lw	a6, 28(a0)
+	add	a7, a7, a2
+	lw	t0, 32(a0)
+	sw	a7, 24(a0)
+	add	a5, a6, a3
+	sw	a5, 28(a0)
+	add	a5, t0, a4
+	sw	a5, 32(a0)
+	addi	a1, a1, -1
+	addi	a0, a0, 40
+	bnez	a1, .LBB62_1
+.LBB62_2:
+	ret
+.Lfunc_end62:
+	.size	_Z9applyMoveP8Trianglejiii, .Lfunc_end62-_Z9applyMoveP8Trianglejiii
+                                        # -- End function
+	.globl	_Z16run3dSceneObjectP8Triangle4VectPjj # -- Begin function _Z16run3dSceneObjectP8Triangle4VectPjj
+	.p2align	2
+	.type	_Z16run3dSceneObjectP8Triangle4VectPjj,@function
+_Z16run3dSceneObjectP8Triangle4VectPjj: # @_Z16run3dSceneObjectP8Triangle4VectPjj
+# %bb.0:
+	addi	sp, sp, -112
+	sw	ra, 108(sp)
+	sw	s0, 104(sp)
+	sw	s1, 100(sp)
+	sw	s2, 96(sp)
+	sw	s3, 92(sp)
+	sw	s4, 88(sp)
+	sw	s5, 84(sp)
+	sw	s6, 80(sp)
+	sw	s7, 76(sp)
+	sw	s8, 72(sp)
+	sw	s9, 68(sp)
+	sw	s10, 64(sp)
+	sw	s11, 60(sp)
+	mv	s0, a3
+	mv	a6, a2
+	mv	s1, a1
+	mv	a7, a0
+	mv	t0, zero
 	lui	a0, %hi(cameraPos)
 	addi	a1, zero, -64
 	sw	a1, %lo(cameraPos)(a0)
@@ -3902,150 +3897,1104 @@ _Z10run3dScenev:                        # @_Z10run3dScenev
 	addi	a0, a0, %lo(origin)
 	sw	zero, 4(a0)
 	sw	zero, 8(a0)
-	addi	a0, zero, 410
-	sw	a0, 24(sp)
-	addi	a1, zero, -100
-	sw	a1, 28(sp)
-	sw	zero, 32(sp)
+	addi	s9, a7, 20
+	addi	s10, a7, 16
+	addi	t1, zero, 45
+	addi	ra, zero, 5
+	addi	s11, zero, 1
+	addi	t2, zero, 10
+	lui	a1, %hi(app)
+	lui	s2, 524288
+	addi	t3, zero, 360
+	addi	t4, zero, 29
+	addi	t5, zero, -29
+	lui	t6, 655360
+	lui	a0, 16
+	addi	a0, a0, 256
 	sw	a0, 36(sp)
-	addi	a1, zero, 120
-	sw	a1, 40(sp)
-	sw	a1, 44(sp)
-	sw	a0, 48(sp)
-	sw	zero, 52(sp)
-	sw	zero, 56(sp)
-	addi	a0, zero, 1230
-	sw	a0, 60(sp)
-	addi	a0, zero, 20
-	sw	a0, 64(sp)
-	sw	a1, 68(sp)
-	addi	s5, zero, 400
-	sw	s5, 72(sp)
-	addi	a0, zero, 100
-	sw	a0, 76(sp)
-	sw	zero, 80(sp)
-	sw	s5, 84(sp)
-	sw	zero, 88(sp)
-	sw	a0, 92(sp)
-	sw	s5, 96(sp)
-	sw	zero, 100(sp)
-	sw	zero, 104(sp)
-	addi	a1, zero, 1200
-	sw	a1, 108(sp)
-	sw	a0, 112(sp)
-	sw	a0, 116(sp)
-	addi	s0, zero, 1
-	sw	s0, 20(sp)
-	sw	zero, 16(sp)
-	lui	s7, %hi(app)
-	lui	s1, 524288
-	addi	a3, zero, 349
+	lui	a0, 903366
+	addi	a0, a0, 1026
+	sw	a0, 32(sp)
+	lui	a0, 1606
+	addi	a0, a0, 1028
+	sw	a0, 28(sp)
 	lui	a0, %hi(triangleArray)
-	addi	s8, a0, %lo(triangleArray)
-	addi	s10, sp, 24
-	mv	s3, sp
-	addi	s4, sp, 16
-	addi	s11, zero, 42
-	addi	s9, zero, 37
-	addi	s2, zero, 8
-.LBB62_1:                               # =>This Loop Header: Depth=1
-                                        #     Child Loop BB62_4 Depth 2
-                                        #     Child Loop BB62_8 Depth 2
-	lw	a4, %lo(app)(s7)
-	lw	a1, 0(s1)
-	beqz	a1, .LBB62_6
-# %bb.2:                                #   in Loop: Header=BB62_1 Depth=1
-	lw	a1, 8(a4)
-	j	.LBB62_4
-.LBB62_3:                               #   in Loop: Header=BB62_4 Depth=2
-	lw	a2, 0(s1)
-	beqz	a2, .LBB62_6
-.LBB62_4:                               #   Parent Loop BB62_1 Depth=1
-                                        # =>  This Inner Loop Header: Depth=2
+	addi	a0, a0, %lo(triangleArray)
+	sw	a0, 40(sp)
+	addi	s6, zero, 72
+	addi	s7, zero, 71
+	addi	s8, zero, 73
+	addi	s3, zero, 74
+	addi	s4, zero, 75
+	addi	s5, zero, 8
+	addi	a0, zero, 1
+	sw	a0, 44(sp)
+.LBB63_1:                               # =>This Loop Header: Depth=1
+                                        #     Child Loop BB63_3 Depth 2
+                                        #       Child Loop BB63_6 Depth 3
+                                        #       Child Loop BB63_10 Depth 3
+                                        #         Child Loop BB63_22 Depth 4
+                                        #         Child Loop BB63_34 Depth 4
+                                        #         Child Loop BB63_30 Depth 4
+                                        #         Child Loop BB63_16 Depth 4
+	lw	a0, %lo(app)(a1)
+	j	.LBB63_3
+.LBB63_2:                               #   in Loop: Header=BB63_3 Depth=2
+	lw	a1, 16(a0)
+	bnez	a1, .LBB63_37
+.LBB63_3:                               #   Parent Loop BB63_1 Depth=1
+                                        # =>  This Loop Header: Depth=2
+                                        #       Child Loop BB63_6 Depth 3
+                                        #       Child Loop BB63_10 Depth 3
+                                        #         Child Loop BB63_22 Depth 4
+                                        #         Child Loop BB63_34 Depth 4
+                                        #         Child Loop BB63_30 Depth 4
+                                        #         Child Loop BB63_16 Depth 4
+	lw	a1, 0(s2)
+	beqz	a1, .LBB63_8
+# %bb.4:                                #   in Loop: Header=BB63_3 Depth=2
+	lw	a1, 8(a0)
+	j	.LBB63_6
+.LBB63_5:                               #   in Loop: Header=BB63_6 Depth=3
+	lw	a2, 0(s2)
+	beqz	a2, .LBB63_8
+.LBB63_6:                               #   Parent Loop BB63_1 Depth=1
+                                        #     Parent Loop BB63_3 Depth=2
+                                        # =>    This Inner Loop Header: Depth=3
 	addi	a1, a1, 1
-	sw	a1, 8(a4)
-	sw	s0, 16(a4)
-	bne	a1, s2, .LBB62_3
-# %bb.5:                                #   in Loop: Header=BB62_4 Depth=2
-	lw	a2, 4(a4)
+	sw	a1, 8(a0)
+	sw	s11, 16(a0)
+	bne	a1, s5, .LBB63_5
+# %bb.7:                                #   in Loop: Header=BB63_6 Depth=3
+	lw	a2, 4(a0)
 	mv	a1, zero
 	addi	a2, a2, 1
-	sw	a2, 4(a4)
-	sw	zero, 8(a4)
-	j	.LBB62_3
-.LBB62_6:                               #   in Loop: Header=BB62_1 Depth=1
-	lw	a1, 12(a4)
-	j	.LBB62_8
-.LBB62_7:                               #   in Loop: Header=BB62_8 Depth=2
-	mv	a2, a1
-	sw	zero, 12(a4)
+	sw	a2, 4(a0)
+	sw	zero, 8(a0)
+	j	.LBB63_5
+.LBB63_8:                               #   in Loop: Header=BB63_3 Depth=2
+	lw	a1, 12(a0)
+	j	.LBB63_10
+.LBB63_9:                               #   in Loop: Header=BB63_10 Depth=3
+	lw	a2, 4(s1)
 	mv	a1, zero
-	beq	a2, s9, .LBB62_13
-.LBB62_8:                               #   Parent Loop BB62_1 Depth=1
-                                        # =>  This Inner Loop Header: Depth=2
-	bnez	a1, .LBB62_7
-# %bb.9:                                #   in Loop: Header=BB62_8 Depth=2
-	lw	a1, 8(s1)
-	sw	a1, 12(a4)
-	bnez	a1, .LBB62_7
-# %bb.10:                               #   in Loop: Header=BB62_1 Depth=1
-	addi	a1, zero, -350
-	blt	a3, s6, .LBB62_12
-# %bb.11:                               #   in Loop: Header=BB62_1 Depth=1
-	addi	a1, zero, 10
-.LBB62_12:                              #   in Loop: Header=BB62_1 Depth=1
-	add	s6, a1, s6
-	sw	s5, 0(sp)
+	addi	a2, a2, -25
+	sw	a2, 4(s1)
+.LBB63_10:                              #   Parent Loop BB63_1 Depth=1
+                                        #     Parent Loop BB63_3 Depth=2
+                                        # =>    This Loop Header: Depth=3
+                                        #         Child Loop BB63_22 Depth 4
+                                        #         Child Loop BB63_34 Depth 4
+                                        #         Child Loop BB63_30 Depth 4
+                                        #         Child Loop BB63_16 Depth 4
+	mv	a2, a1
+	bnez	a1, .LBB63_12
+# %bb.11:                               #   in Loop: Header=BB63_10 Depth=3
+	lw	a2, 8(s2)
+	sw	a2, 12(a0)
+	beqz	a2, .LBB63_2
+.LBB63_12:                              #   in Loop: Header=BB63_10 Depth=3
+	mv	a1, zero
+	sw	zero, 12(a0)
+	blt	s6, a2, .LBB63_17
+# %bb.13:                               #   in Loop: Header=BB63_10 Depth=3
+	bge	s7, a2, .LBB63_24
+# %bb.14:                               #   in Loop: Header=BB63_10 Depth=3
+	beqz	s0, .LBB63_9
+# %bb.15:                               #   in Loop: Header=BB63_10 Depth=3
+	mv	a1, s10
+	mv	a2, s0
+.LBB63_16:                              #   Parent Loop BB63_1 Depth=1
+                                        #     Parent Loop BB63_3 Depth=2
+                                        #       Parent Loop BB63_10 Depth=3
+                                        # =>      This Inner Loop Header: Depth=4
+	lw	a3, -12(a1)
+	lw	a4, 0(a1)
+	addi	a3, a3, -25
+	lw	a5, 12(a1)
+	sw	a3, -12(a1)
+	addi	a3, a4, -25
+	sw	a3, 0(a1)
+	addi	a3, a5, -25
+	sw	a3, 12(a1)
+	addi	a2, a2, -1
+	addi	a1, a1, 40
+	bnez	a2, .LBB63_16
+	j	.LBB63_9
+.LBB63_17:                              #   in Loop: Header=BB63_10 Depth=3
+	beq	a2, s8, .LBB63_28
+# %bb.18:                               #   in Loop: Header=BB63_10 Depth=3
+	beq	a2, s3, .LBB63_32
+# %bb.19:                               #   in Loop: Header=BB63_10 Depth=3
+	bne	a2, s4, .LBB63_10
+# %bb.20:                               #   in Loop: Header=BB63_10 Depth=3
+	beqz	s0, .LBB63_23
+# %bb.21:                               #   in Loop: Header=BB63_10 Depth=3
+	mv	a1, s9
+	mv	a2, s0
+.LBB63_22:                              #   Parent Loop BB63_1 Depth=1
+                                        #     Parent Loop BB63_3 Depth=2
+                                        #       Parent Loop BB63_10 Depth=3
+                                        # =>      This Inner Loop Header: Depth=4
+	lw	a3, -12(a1)
+	lw	a4, 0(a1)
+	addi	a3, a3, -25
+	lw	a5, 12(a1)
+	sw	a3, -12(a1)
+	addi	a3, a4, -25
+	sw	a3, 0(a1)
+	addi	a3, a5, -25
+	sw	a3, 12(a1)
+	addi	a2, a2, -1
+	addi	a1, a1, 40
+	bnez	a2, .LBB63_22
+.LBB63_23:                              #   in Loop: Header=BB63_10 Depth=3
+	lw	a2, 8(s1)
+	mv	a1, zero
+	addi	a2, a2, -25
+	sw	a2, 8(s1)
+	j	.LBB63_10
+.LBB63_24:                              #   in Loop: Header=BB63_10 Depth=3
+	addi	a3, zero, 9
+	beq	a2, a3, .LBB63_36
+# %bb.25:                               #   in Loop: Header=BB63_10 Depth=3
+	addi	a3, zero, 37
+	beq	a2, a3, .LBB63_47
+# %bb.26:                               #   in Loop: Header=BB63_10 Depth=3
+	addi	a3, zero, 58
+	bne	a2, a3, .LBB63_10
+# %bb.27:                               #   in Loop: Header=BB63_10 Depth=3
+	mv	a1, zero
+	lw	a2, 44(sp)
+	xori	a2, a2, 1
+	sw	a2, 44(sp)
+	j	.LBB63_10
+.LBB63_28:                              #   in Loop: Header=BB63_10 Depth=3
+	beqz	s0, .LBB63_31
+# %bb.29:                               #   in Loop: Header=BB63_10 Depth=3
+	mv	a1, s10
+	mv	a2, s0
+.LBB63_30:                              #   Parent Loop BB63_1 Depth=1
+                                        #     Parent Loop BB63_3 Depth=2
+                                        #       Parent Loop BB63_10 Depth=3
+                                        # =>      This Inner Loop Header: Depth=4
+	lw	a3, -12(a1)
+	lw	a4, 0(a1)
+	addi	a3, a3, 25
+	lw	a5, 12(a1)
+	sw	a3, -12(a1)
+	addi	a3, a4, 25
+	sw	a3, 0(a1)
+	addi	a3, a5, 25
+	sw	a3, 12(a1)
+	addi	a2, a2, -1
+	addi	a1, a1, 40
+	bnez	a2, .LBB63_30
+.LBB63_31:                              #   in Loop: Header=BB63_10 Depth=3
+	lw	a2, 4(s1)
+	mv	a1, zero
+	addi	a2, a2, 25
+	sw	a2, 4(s1)
+	j	.LBB63_10
+.LBB63_32:                              #   in Loop: Header=BB63_10 Depth=3
+	beqz	s0, .LBB63_35
+# %bb.33:                               #   in Loop: Header=BB63_10 Depth=3
+	mv	a1, s9
+	mv	a2, s0
+.LBB63_34:                              #   Parent Loop BB63_1 Depth=1
+                                        #     Parent Loop BB63_3 Depth=2
+                                        #       Parent Loop BB63_10 Depth=3
+                                        # =>      This Inner Loop Header: Depth=4
+	lw	a3, -12(a1)
+	lw	a4, 0(a1)
+	addi	a3, a3, 25
+	lw	a5, 12(a1)
+	sw	a3, -12(a1)
+	addi	a3, a4, 25
+	sw	a3, 0(a1)
+	addi	a3, a5, 25
+	sw	a3, 12(a1)
+	addi	a2, a2, -1
+	addi	a1, a1, 40
+	bnez	a2, .LBB63_34
+.LBB63_35:                              #   in Loop: Header=BB63_10 Depth=3
+	lw	a2, 8(s1)
+	mv	a1, zero
+	addi	a2, a2, 25
+	sw	a2, 8(s1)
+	j	.LBB63_10
+.LBB63_36:                              #   in Loop: Header=BB63_10 Depth=3
+	mv	a1, zero
+	neg	t2, t2
+	j	.LBB63_10
+.LBB63_37:                              #   in Loop: Header=BB63_1 Depth=1
+	lw	a1, 44(sp)
+	andi	a1, a1, 1
+	sw	zero, 16(a0)
+	beqz	a1, .LBB63_42
+# %bb.38:                               #   in Loop: Header=BB63_1 Depth=1
+	add	t1, t2, t1
+	blt	t1, t3, .LBB63_40
+# %bb.39:                               #   in Loop: Header=BB63_1 Depth=1
+	addi	t1, t1, -360
+	j	.LBB63_42
+.LBB63_40:                              #   in Loop: Header=BB63_1 Depth=1
+	bgez	t1, .LBB63_42
+# %bb.41:                               #   in Loop: Header=BB63_1 Depth=1
+	addi	t1, t1, 360
+.LBB63_42:                              #   in Loop: Header=BB63_1 Depth=1
+	add	t0, ra, t0
+	addi	a0, zero, -5
+	blt	t4, t0, .LBB63_44
+# %bb.43:                               #   in Loop: Header=BB63_1 Depth=1
+	mv	a0, ra
+.LBB63_44:                              #   in Loop: Header=BB63_1 Depth=1
+	sw	t2, 8(sp)
+	sw	t1, 16(sp)
+	sw	a7, 20(sp)
+	sw	a6, 24(sp)
+	addi	a1, zero, 5
+	blt	t0, t5, .LBB63_46
+# %bb.45:                               #   in Loop: Header=BB63_1 Depth=1
+	mv	a1, a0
+.LBB63_46:                              #   in Loop: Header=BB63_1 Depth=1
+	sw	a1, 4(sp)
+	sw	s11, 12(t6)
+	mv	a0, t0
+	lw	a1, 36(sp)
+	sw	t0, 12(sp)
+	call	__mulsi3
+	lw	a1, 32(sp)
+	add	a0, a0, a1
+	lui	a1, 655360
+	sw	a0, 12(a1)
+	lui	a0, 655360
+	lw	a1, 28(sp)
+	sw	a1, 12(a0)
+	lw	a0, 8(s1)
+	sw	a0, 56(sp)
+	lw	a0, 4(s1)
+	sw	a0, 52(sp)
+	lw	a0, 0(s1)
+	sw	a0, 48(sp)
+	lw	a0, 20(sp)
+	lw	a1, 40(sp)
+	mv	a2, s0
+	addi	a3, sp, 48
+	lw	a4, 16(sp)
+	call	_Z13applyRotationP8TriangleS0_j4Vecti
+	lw	a0, 40(sp)
+	lw	a1, 24(sp)
+	mv	a2, s0
+	call	_Z13sortTrianglesP8TrianglePji
+	lw	a0, 40(sp)
+	lw	a1, 24(sp)
+	mv	a2, s0
+	call	_Z13drawTrianglesPK8TrianglePKjj
+	lw	ra, 4(sp)
+	lui	t6, 655360
+	lw	t1, 16(sp)
+	lw	t0, 12(sp)
+	lw	a7, 20(sp)
+	lw	a6, 24(sp)
+	addi	a0, zero, 42
+	sw	a0, 12(t6)
+	lw	t2, 8(sp)
+	lui	a1, %hi(app)
+	addi	t3, zero, 360
+	addi	t4, zero, 29
+	addi	t5, zero, -29
+	j	.LBB63_1
+.LBB63_47:
+	lw	s11, 60(sp)
+	lw	s10, 64(sp)
+	lw	s9, 68(sp)
+	lw	s8, 72(sp)
+	lw	s7, 76(sp)
+	lw	s6, 80(sp)
+	lw	s5, 84(sp)
+	lw	s4, 88(sp)
+	lw	s3, 92(sp)
+	lw	s2, 96(sp)
+	lw	s1, 100(sp)
+	lw	s0, 104(sp)
+	lw	ra, 108(sp)
+	addi	sp, sp, 112
+	ret
+.Lfunc_end63:
+	.size	_Z16run3dSceneObjectP8Triangle4VectPjj, .Lfunc_end63-_Z16run3dSceneObjectP8Triangle4VectPjj
+                                        # -- End function
+	.globl	_Z9run3dCubev           # -- Begin function _Z9run3dCubev
+	.p2align	2
+	.type	_Z9run3dCubev,@function
+_Z9run3dCubev:                          # @_Z9run3dCubev
+# %bb.0:
+	addi	sp, sp, -384
+	sw	ra, 380(sp)
+	addi	a2, zero, 300
+	sw	a2, 56(sp)
+	addi	a0, zero, -100
+	sw	a0, 60(sp)
+	addi	a1, zero, 60
+	sw	a1, 64(sp)
+	sw	a2, 68(sp)
+	addi	a4, zero, 100
+	sw	a4, 72(sp)
+	sw	a1, 76(sp)
+	sw	a2, 80(sp)
+	sw	a0, 84(sp)
+	addi	a3, zero, -140
+	sw	a3, 88(sp)
+	addi	a5, zero, 900
+	sw	a5, 92(sp)
+	sw	a2, 96(sp)
+	sw	a4, 100(sp)
+	sw	a1, 104(sp)
+	sw	a2, 108(sp)
+	sw	a4, 112(sp)
+	sw	a3, 116(sp)
+	sw	a2, 120(sp)
+	sw	a0, 124(sp)
+	sw	a3, 128(sp)
+	sw	a5, 132(sp)
+	addi	a5, zero, 500
+	sw	a5, 136(sp)
+	sw	a0, 140(sp)
+	sw	a1, 144(sp)
+	sw	a5, 148(sp)
+	sw	a4, 152(sp)
+	sw	a1, 156(sp)
+	sw	a5, 160(sp)
+	sw	a0, 164(sp)
+	sw	a3, 168(sp)
+	addi	a6, zero, 1500
+	sw	a6, 172(sp)
+	sw	a5, 176(sp)
+	sw	a4, 180(sp)
+	sw	a1, 184(sp)
+	sw	a5, 188(sp)
+	sw	a4, 192(sp)
+	sw	a3, 196(sp)
+	sw	a5, 200(sp)
+	sw	a0, 204(sp)
+	sw	a3, 208(sp)
+	sw	a6, 212(sp)
+	sw	a2, 216(sp)
+	sw	a4, 220(sp)
+	sw	a1, 224(sp)
+	sw	a5, 228(sp)
+	sw	a4, 232(sp)
+	sw	a1, 236(sp)
+	sw	a2, 240(sp)
+	sw	a4, 244(sp)
+	sw	a3, 248(sp)
+	addi	a6, zero, 1100
+	sw	a6, 252(sp)
+	sw	a2, 256(sp)
+	sw	a4, 260(sp)
+	sw	a3, 264(sp)
+	sw	a5, 268(sp)
+	sw	a4, 272(sp)
+	sw	a1, 276(sp)
+	sw	a5, 280(sp)
+	sw	a4, 284(sp)
+	sw	a3, 288(sp)
+	addi	a4, zero, 1300
+	sw	a4, 292(sp)
+	sw	a2, 296(sp)
+	sw	a0, 300(sp)
+	sw	a1, 304(sp)
+	sw	a2, 308(sp)
+	sw	a0, 312(sp)
+	sw	a3, 316(sp)
+	sw	a5, 320(sp)
+	sw	a0, 324(sp)
+	sw	a3, 328(sp)
+	sw	a6, 332(sp)
+	sw	a2, 336(sp)
+	sw	a0, 340(sp)
+	sw	a1, 344(sp)
+	sw	a5, 348(sp)
+	sw	a0, 352(sp)
+	sw	a3, 356(sp)
+	sw	a5, 360(sp)
+	sw	a0, 364(sp)
+	sw	a1, 368(sp)
+	sw	a4, 372(sp)
+	lui	a0, %hi(.L__const._Z9run3dCubev.triOrder)
+	addi	a1, a0, %lo(.L__const._Z9run3dCubev.triOrder)
+	lw	a2, 28(a1)
+	lw	a3, 24(a1)
+	lw	a4, 20(a1)
+	lw	a5, 16(a1)
+	sw	a2, 52(sp)
+	sw	a3, 48(sp)
+	sw	a4, 44(sp)
+	sw	a5, 40(sp)
+	lw	a2, 12(a1)
+	lw	a3, 8(a1)
+	lw	a1, 4(a1)
+	lw	a0, %lo(.L__const._Z9run3dCubev.triOrder)(a0)
+	sw	a2, 36(sp)
+	sw	a3, 32(sp)
+	sw	a1, 28(sp)
+	sw	a0, 24(sp)
+	addi	a0, zero, 400
+	sw	a0, 8(sp)
+	sw	zero, 12(sp)
+	sw	zero, 16(sp)
+	addi	a0, sp, 56
+	addi	a1, sp, 8
+	addi	a2, sp, 24
+	addi	a3, zero, 8
+	call	_Z16run3dSceneObjectP8Triangle4VectPjj
+	lw	ra, 380(sp)
+	addi	sp, sp, 384
+	ret
+.Lfunc_end64:
+	.size	_Z9run3dCubev, .Lfunc_end64-_Z9run3dCubev
+                                        # -- End function
+	.globl	_Z12run3dDiamondv       # -- Begin function _Z12run3dDiamondv
+	.p2align	2
+	.type	_Z12run3dDiamondv,@function
+_Z12run3dDiamondv:                      # @_Z12run3dDiamondv
+# %bb.0:
+	addi	sp, sp, -560
+	sw	ra, 556(sp)
+	sw	s0, 552(sp)
+	sw	s1, 548(sp)
+	addi	s1, zero, 400
+	sw	s1, 64(sp)
+	sw	zero, 68(sp)
+	addi	t2, zero, 160
+	sw	t2, 72(sp)
+	sw	s1, 76(sp)
+	addi	a6, zero, 100
+	sw	a6, 80(sp)
+	addi	a0, zero, -40
+	sw	a0, 84(sp)
+	addi	a2, zero, 487
+	sw	a2, 88(sp)
+	addi	a3, zero, 50
+	sw	a3, 92(sp)
+	sw	a0, 96(sp)
+	addi	a7, zero, 1287
+	sw	a7, 100(sp)
+	sw	s1, 104(sp)
+	sw	zero, 108(sp)
+	sw	t2, 112(sp)
+	sw	s1, 116(sp)
+	addi	t0, zero, -100
+	sw	t0, 120(sp)
+	sw	a0, 124(sp)
+	addi	s0, zero, 313
+	sw	s0, 128(sp)
+	addi	a1, zero, -50
+	sw	a1, 132(sp)
+	sw	a0, 136(sp)
+	addi	t1, zero, 1113
+	sw	t1, 140(sp)
+	sw	s1, 144(sp)
+	sw	zero, 148(sp)
+	addi	t3, zero, -240
+	sw	t3, 152(sp)
+	sw	a2, 156(sp)
+	sw	a3, 160(sp)
+	sw	a0, 164(sp)
+	sw	a2, 168(sp)
+	sw	a1, 172(sp)
+	sw	a0, 176(sp)
+	addi	a5, zero, 1374
+	sw	a5, 180(sp)
+	sw	s1, 184(sp)
+	sw	zero, 188(sp)
+	sw	t3, 192(sp)
+	sw	s0, 196(sp)
+	sw	a1, 200(sp)
+	sw	a0, 204(sp)
+	sw	s0, 208(sp)
+	sw	a3, 212(sp)
+	sw	a0, 216(sp)
+	addi	a4, zero, 1026
+	sw	a4, 220(sp)
+	sw	s1, 224(sp)
+	sw	zero, 228(sp)
+	sw	t2, 232(sp)
+	sw	a2, 236(sp)
+	sw	a3, 240(sp)
+	sw	a0, 244(sp)
+	sw	a2, 248(sp)
+	sw	a1, 252(sp)
+	sw	a0, 256(sp)
+	sw	a5, 260(sp)
+	sw	s1, 264(sp)
+	sw	zero, 268(sp)
+	sw	t2, 272(sp)
+	sw	s0, 276(sp)
+	sw	a1, 280(sp)
+	sw	a0, 284(sp)
+	sw	s0, 288(sp)
+	sw	a3, 292(sp)
+	sw	a0, 296(sp)
+	sw	a4, 300(sp)
+	sw	s1, 304(sp)
+	sw	zero, 308(sp)
+	sw	t3, 312(sp)
+	sw	a2, 316(sp)
+	sw	a1, 320(sp)
+	sw	a0, 324(sp)
+	sw	s1, 328(sp)
+	sw	t0, 332(sp)
+	sw	a0, 336(sp)
+	sw	a7, 340(sp)
+	sw	s1, 344(sp)
+	sw	zero, 348(sp)
+	sw	t3, 352(sp)
+	sw	s0, 356(sp)
+	sw	a3, 360(sp)
+	sw	a0, 364(sp)
+	sw	s1, 368(sp)
+	sw	a6, 372(sp)
+	sw	a0, 376(sp)
+	sw	t1, 380(sp)
+	sw	s1, 384(sp)
+	sw	zero, 388(sp)
+	sw	t2, 392(sp)
+	sw	a2, 396(sp)
+	sw	a1, 400(sp)
+	sw	a0, 404(sp)
+	sw	s1, 408(sp)
+	sw	t0, 412(sp)
+	sw	a0, 416(sp)
+	sw	a7, 420(sp)
+	sw	s1, 424(sp)
+	sw	zero, 428(sp)
+	sw	t2, 432(sp)
+	sw	s0, 436(sp)
+	sw	a3, 440(sp)
+	sw	a0, 444(sp)
+	sw	s1, 448(sp)
+	sw	a6, 452(sp)
+	sw	a0, 456(sp)
+	sw	t1, 460(sp)
+	sw	s1, 464(sp)
+	sw	zero, 468(sp)
+	sw	t3, 472(sp)
+	sw	s1, 476(sp)
+	sw	a6, 480(sp)
+	sw	a0, 484(sp)
+	sw	a2, 488(sp)
+	sw	a3, 492(sp)
+	sw	a0, 496(sp)
+	sw	a7, 500(sp)
+	sw	s1, 504(sp)
+	sw	zero, 508(sp)
+	sw	t3, 512(sp)
+	sw	s1, 516(sp)
+	sw	t0, 520(sp)
+	sw	a0, 524(sp)
+	sw	s0, 528(sp)
+	sw	a1, 532(sp)
+	sw	a0, 536(sp)
+	sw	t1, 540(sp)
+	lui	a0, %hi(.L__const._Z16run3dDiamondDiagv.triOrder)
+	addi	a1, a0, %lo(.L__const._Z16run3dDiamondDiagv.triOrder)
+	addi	s0, sp, 16
+	addi	a2, zero, 48
+	mv	a0, s0
+	call	memcpy
+	sw	s1, 0(sp)
 	sw	zero, 4(sp)
 	sw	zero, 8(sp)
-	addi	a2, zero, 2
-	mv	a0, s10
-	mv	a1, s8
-	mv	a3, s3
-	mv	a4, s6
-	call	_Z13applyRotationP8TriangleS0_j4Vecti
-	addi	a2, zero, 2
-	mv	a0, s8
-	mv	a1, s4
-	call	_Z13sortTrianglesP8TrianglePji
-	lw	a0, 16(sp)
-	addi	a1, zero, 48
-	call	__mulsi3
-	add	a0, a0, s8
-	addi	a1, zero, 255
-	mv	a2, zero
-	mv	a3, zero
-	call	_Z4drawRK8Trianglejjj
-	lw	a0, 20(sp)
-	addi	a1, zero, 48
-	call	__mulsi3
-	add	a0, a0, s8
-	addi	a1, zero, 147
-	addi	a2, zero, 112
-	addi	a3, zero, 219
-	call	_Z4drawRK8Trianglejjj
-	lui	a1, 655360
-	sw	s11, 12(a1)
-	addi	a3, zero, 349
-	j	.LBB62_1
-.LBB62_13:
-	lw	s11, 124(sp)
-	lw	s10, 128(sp)
-	lw	s9, 132(sp)
-	lw	s8, 136(sp)
-	lw	s7, 140(sp)
-	lw	s6, 144(sp)
-	lw	s5, 148(sp)
-	lw	s4, 152(sp)
-	lw	s3, 156(sp)
-	lw	s2, 160(sp)
-	lw	s1, 164(sp)
-	lw	s0, 168(sp)
-	lw	ra, 172(sp)
-	addi	sp, sp, 176
+	addi	a0, sp, 64
+	mv	a1, sp
+	addi	a3, zero, 12
+	mv	a2, s0
+	call	_Z16run3dSceneObjectP8Triangle4VectPjj
+	lw	s1, 548(sp)
+	lw	s0, 552(sp)
+	lw	ra, 556(sp)
+	addi	sp, sp, 560
 	ret
-.Lfunc_end62:
-	.size	_Z10run3dScenev, .Lfunc_end62-_Z10run3dScenev
+.Lfunc_end65:
+	.size	_Z12run3dDiamondv, .Lfunc_end65-_Z12run3dDiamondv
+                                        # -- End function
+	.globl	_Z16run3dDiamondDiagv   # -- Begin function _Z16run3dDiamondDiagv
+	.p2align	2
+	.type	_Z16run3dDiamondDiagv,@function
+_Z16run3dDiamondDiagv:                  # @_Z16run3dDiamondDiagv
+# %bb.0:
+	addi	sp, sp, -560
+	sw	ra, 556(sp)
+	sw	s0, 552(sp)
+	sw	s1, 548(sp)
+	sw	s2, 544(sp)
+	addi	t0, zero, 600
+	sw	t0, 64(sp)
+	sw	zero, 68(sp)
+	addi	t1, zero, 133
+	sw	t1, 72(sp)
+	addi	s2, zero, 500
+	sw	s2, 76(sp)
+	addi	a6, zero, 100
+	sw	a6, 80(sp)
+	addi	a0, zero, -40
+	sw	a0, 84(sp)
+	addi	a2, zero, 575
+	sw	a2, 88(sp)
+	addi	a3, zero, 50
+	sw	a3, 92(sp)
+	addi	a4, zero, -83
+	sw	a4, 96(sp)
+	addi	t4, zero, 1675
+	sw	t4, 100(sp)
+	sw	t0, 104(sp)
+	sw	zero, 108(sp)
+	sw	t1, 112(sp)
+	sw	s2, 116(sp)
+	addi	a7, zero, -100
+	sw	a7, 120(sp)
+	sw	a0, 124(sp)
+	addi	a1, zero, 425
+	sw	a1, 128(sp)
+	addi	a5, zero, -50
+	sw	a5, 132(sp)
+	addi	s0, zero, 3
+	sw	s0, 136(sp)
+	addi	t5, zero, 1525
+	sw	t5, 140(sp)
+	addi	t2, zero, 400
+	sw	t2, 144(sp)
+	sw	zero, 148(sp)
+	addi	t3, zero, -213
+	sw	t3, 152(sp)
+	sw	a2, 156(sp)
+	sw	a3, 160(sp)
+	sw	a4, 164(sp)
+	sw	a2, 168(sp)
+	sw	a5, 172(sp)
+	sw	a4, 176(sp)
+	addi	s1, zero, 1550
+	sw	s1, 180(sp)
+	sw	t2, 184(sp)
+	sw	zero, 188(sp)
+	sw	t3, 192(sp)
+	sw	a1, 196(sp)
+	sw	a5, 200(sp)
+	sw	s0, 204(sp)
+	sw	a1, 208(sp)
+	sw	a3, 212(sp)
+	sw	s0, 216(sp)
+	addi	s1, zero, 1250
+	sw	s1, 220(sp)
+	sw	t0, 224(sp)
+	sw	zero, 228(sp)
+	sw	t1, 232(sp)
+	sw	a2, 236(sp)
+	sw	a3, 240(sp)
+	sw	a4, 244(sp)
+	sw	a2, 248(sp)
+	sw	a5, 252(sp)
+	sw	a4, 256(sp)
+	addi	s1, zero, 1750
+	sw	s1, 260(sp)
+	sw	t0, 264(sp)
+	sw	zero, 268(sp)
+	sw	t1, 272(sp)
+	sw	a1, 276(sp)
+	sw	a5, 280(sp)
+	sw	s0, 284(sp)
+	sw	a1, 288(sp)
+	sw	a3, 292(sp)
+	sw	s0, 296(sp)
+	addi	s1, zero, 1450
+	sw	s1, 300(sp)
+	sw	t2, 304(sp)
+	sw	zero, 308(sp)
+	sw	t3, 312(sp)
+	sw	a2, 316(sp)
+	sw	a5, 320(sp)
+	sw	a4, 324(sp)
+	sw	s2, 328(sp)
+	sw	a7, 332(sp)
+	sw	a0, 336(sp)
+	addi	t6, zero, 1475
+	sw	t6, 340(sp)
+	sw	t2, 344(sp)
+	sw	zero, 348(sp)
+	sw	t3, 352(sp)
+	sw	a1, 356(sp)
+	sw	a3, 360(sp)
+	sw	s0, 364(sp)
+	sw	s2, 368(sp)
+	sw	a6, 372(sp)
+	sw	a0, 376(sp)
+	addi	s1, zero, 1325
+	sw	s1, 380(sp)
+	sw	t0, 384(sp)
+	sw	zero, 388(sp)
+	sw	t1, 392(sp)
+	sw	a2, 396(sp)
+	sw	a5, 400(sp)
+	sw	a4, 404(sp)
+	sw	s2, 408(sp)
+	sw	a7, 412(sp)
+	sw	a0, 416(sp)
+	sw	t4, 420(sp)
+	sw	t0, 424(sp)
+	sw	zero, 428(sp)
+	sw	t1, 432(sp)
+	sw	a1, 436(sp)
+	sw	a3, 440(sp)
+	sw	s0, 444(sp)
+	sw	s2, 448(sp)
+	sw	a6, 452(sp)
+	sw	a0, 456(sp)
+	sw	t5, 460(sp)
+	sw	t2, 464(sp)
+	sw	zero, 468(sp)
+	sw	t3, 472(sp)
+	sw	s2, 476(sp)
+	sw	a6, 480(sp)
+	sw	a0, 484(sp)
+	sw	a2, 488(sp)
+	sw	a3, 492(sp)
+	sw	a4, 496(sp)
+	sw	t6, 500(sp)
+	sw	t2, 504(sp)
+	sw	zero, 508(sp)
+	sw	t3, 512(sp)
+	sw	s2, 516(sp)
+	sw	a7, 520(sp)
+	sw	a0, 524(sp)
+	sw	a1, 528(sp)
+	sw	a5, 532(sp)
+	sw	s0, 536(sp)
+	sw	s1, 540(sp)
+	lui	a0, %hi(.L__const._Z16run3dDiamondDiagv.triOrder)
+	addi	a1, a0, %lo(.L__const._Z16run3dDiamondDiagv.triOrder)
+	addi	s0, sp, 16
+	addi	a2, zero, 48
+	mv	a0, s0
+	call	memcpy
+	sw	s2, 0(sp)
+	sw	zero, 4(sp)
+	sw	zero, 8(sp)
+	addi	a0, sp, 64
+	mv	a1, sp
+	addi	a3, zero, 12
+	mv	a2, s0
+	call	_Z16run3dSceneObjectP8Triangle4VectPjj
+	lw	s2, 544(sp)
+	lw	s1, 548(sp)
+	lw	s0, 552(sp)
+	lw	ra, 556(sp)
+	addi	sp, sp, 560
+	ret
+.Lfunc_end66:
+	.size	_Z16run3dDiamondDiagv, .Lfunc_end66-_Z16run3dDiamondDiagv
+                                        # -- End function
+	.globl	_Z10run3dScenev         # -- Begin function _Z10run3dScenev
+	.p2align	2
+	.type	_Z10run3dScenev,@function
+_Z10run3dScenev:                        # @_Z10run3dScenev
+# %bb.0:
+	addi	sp, sp, -16
+	sw	ra, 12(sp)
+	call	_Z9run3dCubev
+	call	_Z12run3dDiamondv
+	lw	ra, 12(sp)
+	addi	sp, sp, 16
+	tail	_Z16run3dDiamondDiagv
+.Lfunc_end67:
+	.size	_Z10run3dScenev, .Lfunc_end67-_Z10run3dScenev
+                                        # -- End function
+	.globl	_Z9runEditorv           # -- Begin function _Z9runEditorv
+	.p2align	2
+	.type	_Z9runEditorv,@function
+_Z9runEditorv:                          # @_Z9runEditorv
+# %bb.0:
+	addi	sp, sp, -848
+	sw	ra, 844(sp)
+	sw	s0, 840(sp)
+	sw	s1, 836(sp)
+	sw	s2, 832(sp)
+	sw	s3, 828(sp)
+	sw	s4, 824(sp)
+	sw	s5, 820(sp)
+	sw	s6, 816(sp)
+	sw	s7, 812(sp)
+	sw	s8, 808(sp)
+	sw	s9, 804(sp)
+	sw	s10, 800(sp)
+	sw	s11, 796(sp)
+	lui	s1, %hi(_ZL4cout)
+	lw	a0, %lo(_ZL4cout)(s1)
+	lw	a2, 0(a0)
+	addi	s0, s1, %lo(_ZL4cout)
+	addi	a1, zero, 101
+	mv	a0, s0
+	jalr	a2
+	lw	a0, %lo(_ZL4cout)(s1)
+	lw	a2, 0(a0)
+	addi	a1, zero, 100
+	mv	a0, s0
+	jalr	a2
+	lw	a0, %lo(_ZL4cout)(s1)
+	lw	a2, 0(a0)
+	addi	a1, zero, 105
+	mv	a0, s0
+	jalr	a2
+	lw	a0, %lo(_ZL4cout)(s1)
+	lw	a2, 0(a0)
+	addi	a1, zero, 116
+	mv	a0, s0
+	jalr	a2
+	lw	a0, %lo(_ZL4cout)(s1)
+	lw	a2, 0(a0)
+	addi	a1, zero, 111
+	mv	a0, s0
+	jalr	a2
+	lw	a0, %lo(_ZL4cout)(s1)
+	lw	a2, 0(a0)
+	addi	a1, zero, 114
+	mv	a0, s0
+	jalr	a2
+	lw	a0, %lo(_ZL4cout)(s1)
+	lw	a2, 0(a0)
+	addi	a1, zero, 46
+	mv	a0, s0
+	jalr	a2
+	lw	a0, %lo(_ZL4cout)(s1)
+	lw	a2, 0(a0)
+	addi	a1, zero, 46
+	mv	a0, s0
+	jalr	a2
+	lw	a0, %lo(_ZL4cout)(s1)
+	lw	a2, 0(a0)
+	addi	a1, zero, 46
+	mv	a0, s0
+	jalr	a2
+	lw	a0, %lo(_ZL4cout)(s1)
+	lw	a2, 0(a0)
+	addi	a1, zero, 10
+	mv	a0, s0
+	jalr	a2
+	lui	a0, %hi(.L__const._Z9runEditorv.text)
+	addi	a1, a0, %lo(.L__const._Z9runEditorv.text)
+	addi	s8, sp, 8
+	addi	a2, zero, 788
+	mv	a0, s8
+	call	memcpy
+	mv	t3, zero
+	mv	a2, zero
+	lui	a0, %hi(app)
+	lw	a0, %lo(app)(a0)
+	addi	a1, zero, 18
+	addi	a7, sp, 12
+	lui	a6, 524288
+	addi	s6, zero, 8
+	addi	a5, zero, 194
+	addi	s10, zero, 4
+	lui	t2, 655360
+	addi	t0, zero, 42
+	addi	t1, zero, 14
+	addi	s5, zero, 26
+	addi	t5, zero, 39
+	addi	t4, zero, 43
+	addi	s9, zero, 37
+	addi	t6, zero, 58
+	addi	s3, zero, 51
+	addi	s2, zero, 50
+	addi	s1, zero, 60
+	addi	s4, zero, 32
+	addi	s7, zero, 1
+.LBB68_1:                               # =>This Loop Header: Depth=1
+                                        #     Child Loop BB68_4 Depth 2
+                                        #     Child Loop BB68_8 Depth 2
+                                        #     Child Loop BB68_41 Depth 2
+	lw	a3, 0(a6)
+	beqz	a3, .LBB68_6
+# %bb.2:                                #   in Loop: Header=BB68_1 Depth=1
+	lw	a3, 8(a0)
+	j	.LBB68_4
+.LBB68_3:                               #   in Loop: Header=BB68_4 Depth=2
+	lw	a4, 0(a6)
+	beqz	a4, .LBB68_6
+.LBB68_4:                               #   Parent Loop BB68_1 Depth=1
+                                        # =>  This Inner Loop Header: Depth=2
+	addi	a3, a3, 1
+	sw	a3, 8(a0)
+	sw	s7, 16(a0)
+	bne	a3, s6, .LBB68_3
+# %bb.5:                                #   in Loop: Header=BB68_4 Depth=2
+	lw	a4, 4(a0)
+	mv	a3, zero
+	addi	a4, a4, 1
+	sw	a4, 4(a0)
+	sw	zero, 8(a0)
+	j	.LBB68_3
+.LBB68_6:                               #   in Loop: Header=BB68_1 Depth=1
+	lw	s0, 12(a0)
+	j	.LBB68_8
+.LBB68_7:                               #   in Loop: Header=BB68_8 Depth=2
+	mv	a1, a4
+	beq	a3, s9, .LBB68_44
+.LBB68_8:                               #   Parent Loop BB68_1 Depth=1
+                                        # =>  This Inner Loop Header: Depth=2
+	mv	a3, s0
+	bnez	s0, .LBB68_10
+# %bb.9:                                #   in Loop: Header=BB68_8 Depth=2
+	lw	a3, 8(a6)
+	sw	a3, 12(a0)
+	beqz	a3, .LBB68_30
+.LBB68_10:                              #   in Loop: Header=BB68_8 Depth=2
+	sw	zero, 12(a0)
+	bltu	a5, a1, .LBB68_14
+# %bb.11:                               #   in Loop: Header=BB68_8 Depth=2
+	bltu	s5, a3, .LBB68_15
+# %bb.12:                               #   in Loop: Header=BB68_8 Depth=2
+	andi	a4, a2, 1
+	addi	a2, zero, 64
+	bnez	a4, .LBB68_16
+# %bb.13:                               #   in Loop: Header=BB68_8 Depth=2
+	addi	a2, zero, 96
+	j	.LBB68_16
+.LBB68_14:                              #   in Loop: Header=BB68_8 Depth=2
+	mv	a4, a1
+	j	.LBB68_26
+.LBB68_15:                              #   in Loop: Header=BB68_8 Depth=2
+	addi	a2, zero, 21
+	bgeu	a3, s9, .LBB68_18
+.LBB68_16:                              #   in Loop: Header=BB68_8 Depth=2
+	add	a2, a3, a2
+	addi	a4, a1, 1
+	slli	a1, a1, 2
+	add	a1, s8, a1
+	sw	a2, 0(a1)
+	addi	a2, zero, 1
+	beq	a3, t5, .LBB68_26
+.LBB68_17:                              #   in Loop: Header=BB68_8 Depth=2
+	beq	a3, t4, .LBB68_26
+	j	.LBB68_25
+.LBB68_18:                              #   in Loop: Header=BB68_8 Depth=2
+	beq	a3, t6, .LBB68_22
+# %bb.19:                               #   in Loop: Header=BB68_8 Depth=2
+	beq	a3, s3, .LBB68_23
+# %bb.20:                               #   in Loop: Header=BB68_8 Depth=2
+	bne	a3, s2, .LBB68_29
+# %bb.21:                               #   in Loop: Header=BB68_8 Depth=2
+	addi	a2, zero, 44
+	j	.LBB68_24
+.LBB68_22:                              #   in Loop: Header=BB68_8 Depth=2
+	addi	a2, zero, 32
+	j	.LBB68_24
+.LBB68_23:                              #   in Loop: Header=BB68_8 Depth=2
+	addi	a2, zero, 46
+.LBB68_24:                              #   in Loop: Header=BB68_8 Depth=2
+	addi	a4, a1, 1
+	slli	a1, a1, 2
+	add	a1, s8, a1
+	sw	a2, 0(a1)
+.LBB68_25:                              #   in Loop: Header=BB68_8 Depth=2
+	mv	a2, zero
+.LBB68_26:                              #   in Loop: Header=BB68_8 Depth=2
+	mv	s0, zero
+	bne	a3, s1, .LBB68_7
+# %bb.27:                               #   in Loop: Header=BB68_8 Depth=2
+	mv	a1, zero
+	beqz	a4, .LBB68_8
+# %bb.28:                               #   in Loop: Header=BB68_8 Depth=2
+	mv	s0, zero
+	addi	a1, a4, -1
+	slli	a3, a4, 2
+	add	a3, s8, a3
+	sw	s4, 0(a3)
+	j	.LBB68_8
+.LBB68_29:                              #   in Loop: Header=BB68_8 Depth=2
+	mv	a4, a1
+	addi	a2, zero, 1
+	bne	a3, t5, .LBB68_17
+	j	.LBB68_26
+.LBB68_30:                              #   in Loop: Header=BB68_1 Depth=1
+	lw	a3, 16(a0)
+	beqz	a3, .LBB68_1
+# %bb.31:                               #   in Loop: Header=BB68_1 Depth=1
+	addi	a3, t3, 1
+	sw	zero, 16(a0)
+	mv	t3, zero
+	bne	a3, s6, .LBB68_34
+# %bb.32:                               #   in Loop: Header=BB68_1 Depth=1
+	bgeu	a5, a1, .LBB68_35
+.LBB68_33:                              #   in Loop: Header=BB68_1 Depth=1
+	lw	s0, 8(sp)
+	bnez	s0, .LBB68_38
+	j	.LBB68_43
+.LBB68_34:                              #   in Loop: Header=BB68_1 Depth=1
+	mv	t3, a3
+	bltu	a5, a1, .LBB68_33
+.LBB68_35:                              #   in Loop: Header=BB68_1 Depth=1
+	slli	a3, a1, 2
+	add	a3, s8, a3
+	addi	a4, zero, 64
+	bltu	t3, s10, .LBB68_37
+# %bb.36:                               #   in Loop: Header=BB68_1 Depth=1
+	addi	a4, zero, 32
+.LBB68_37:                              #   in Loop: Header=BB68_1 Depth=1
+	sw	a4, 0(a3)
+	lw	s0, 8(sp)
+	beqz	s0, .LBB68_43
+.LBB68_38:                              #   in Loop: Header=BB68_1 Depth=1
+	mv	ra, zero
+	addi	s11, zero, 1
+	mv	a4, a7
+	addi	s10, zero, 1
+	j	.LBB68_41
+.LBB68_39:                              #   in Loop: Header=BB68_41 Depth=2
+	addi	s11, s11, 7
+.LBB68_40:                              #   in Loop: Header=BB68_41 Depth=2
+	lw	s0, 0(a4)
+	addi	a4, a4, 4
+	beqz	s0, .LBB68_43
+.LBB68_41:                              #   Parent Loop BB68_1 Depth=1
+                                        # =>  This Inner Loop Header: Depth=2
+	slli	a3, s10, 8
+	add	a3, a3, s11
+	slli	a3, a3, 8
+	ori	a3, a3, 1
+	sw	a3, 12(t2)
+	slli	a3, s0, 8
+	ori	a3, a3, 5
+	addi	ra, ra, 1
+	sw	a3, 12(t2)
+	bne	ra, t1, .LBB68_39
+# %bb.42:                               #   in Loop: Header=BB68_41 Depth=2
+	mv	ra, zero
+	addi	s10, s10, 7
+	addi	s11, zero, 1
+	j	.LBB68_40
+.LBB68_43:                              #   in Loop: Header=BB68_1 Depth=1
+	sw	t0, 12(t2)
+	addi	s10, zero, 4
+	j	.LBB68_1
+.LBB68_44:
+	lw	s11, 796(sp)
+	lw	s10, 800(sp)
+	lw	s9, 804(sp)
+	lw	s8, 808(sp)
+	lw	s7, 812(sp)
+	lw	s6, 816(sp)
+	lw	s5, 820(sp)
+	lw	s4, 824(sp)
+	lw	s3, 828(sp)
+	lw	s2, 832(sp)
+	lw	s1, 836(sp)
+	lw	s0, 840(sp)
+	lw	ra, 844(sp)
+	addi	sp, sp, 848
+	ret
+.Lfunc_end68:
+	.size	_Z9runEditorv, .Lfunc_end68-_Z9runEditorv
                                         # -- End function
 	.globl	_Z9menuEntryiPKDi       # -- Begin function _Z9menuEntryiPKDi
 	.p2align	2
@@ -4053,7 +5002,7 @@ _Z10run3dScenev:                        # @_Z10run3dScenev
 _Z9menuEntryiPKDi:                      # @_Z9menuEntryiPKDi
 # %bb.0:
 	lw	a5, 0(a1)
-	beqz	a5, .LBB63_6
+	beqz	a5, .LBB69_6
 # %bb.1:
 	mv	a4, zero
 	slli	a0, a0, 4
@@ -4062,14 +5011,14 @@ _Z9menuEntryiPKDi:                      # @_Z9menuEntryiPKDi
 	addi	a3, zero, 30
 	lui	a7, 655360
 	addi	a6, zero, 20
-	j	.LBB63_4
-.LBB63_2:                               #   in Loop: Header=BB63_4 Depth=1
+	j	.LBB69_4
+.LBB69_2:                               #   in Loop: Header=BB69_4 Depth=1
 	addi	a3, a3, 7
-.LBB63_3:                               #   in Loop: Header=BB63_4 Depth=1
+.LBB69_3:                               #   in Loop: Header=BB69_4 Depth=1
 	lw	a5, 0(a1)
 	addi	a1, a1, 4
-	beqz	a5, .LBB63_6
-.LBB63_4:                               # =>This Inner Loop Header: Depth=1
+	beqz	a5, .LBB69_6
+.LBB69_4:                               # =>This Inner Loop Header: Depth=1
 	slli	a2, a0, 8
 	add	a2, a2, a3
 	slli	a2, a2, 8
@@ -4079,16 +5028,16 @@ _Z9menuEntryiPKDi:                      # @_Z9menuEntryiPKDi
 	ori	a2, a2, 5
 	addi	a4, a4, 1
 	sw	a2, 12(a7)
-	bne	a4, a6, .LBB63_2
-# %bb.5:                                #   in Loop: Header=BB63_4 Depth=1
+	bne	a4, a6, .LBB69_2
+# %bb.5:                                #   in Loop: Header=BB69_4 Depth=1
 	mv	a4, zero
 	addi	a0, a0, 7
 	addi	a3, zero, 30
-	j	.LBB63_3
-.LBB63_6:
+	j	.LBB69_3
+.LBB69_6:
 	ret
-.Lfunc_end63:
-	.size	_Z9menuEntryiPKDi, .Lfunc_end63-_Z9menuEntryiPKDi
+.Lfunc_end69:
+	.size	_Z9menuEntryiPKDi, .Lfunc_end69-_Z9menuEntryiPKDi
                                         # -- End function
 	.globl	_Z7runMenuv             # -- Begin function _Z7runMenuv
 	.p2align	2
@@ -4110,246 +5059,264 @@ _Z7runMenuv:                            # @_Z7runMenuv
 	sw	s10, 80(sp)
 	sw	s11, 76(sp)
 	mv	a0, zero
-	lui	a1, 1507
-	addi	a1, a1, -1024
-	sw	a1, 72(sp)
-	lui	a1, 1506
-	addi	a1, a1, -512
-	sw	a1, 68(sp)
-	lui	a1, 1250
-	addi	a1, a1, -512
-	sw	a1, 64(sp)
-	lui	a1, 995
-	addi	a1, a1, -1024
-	sw	a1, 60(sp)
-	lui	a1, 994
-	addi	a1, a1, -512
-	sw	a1, 56(sp)
-	lui	a1, 739
-	addi	a1, a1, -1024
-	sw	a1, 52(sp)
-	lui	a1, 738
-	addi	a1, a1, -512
-	sw	a1, 48(sp)
-	lui	s1, %hi(app)
-	lw	a1, %lo(app)(s1)
-	lui	s0, 524288
-	lui	s9, 655360
-	lui	a4, 4
+	lui	s0, %hi(app)
+	lw	a1, %lo(app)(s0)
+	lui	s1, 524288
+	lui	a2, 226
+	addi	a3, a2, -511
+	sw	a3, 72(sp)
+	lui	s3, 655360
+	lui	a3, 4
+	addi	a4, a3, 773
+	sw	a4, 68(sp)
+	addi	a2, a2, 1281
+	sw	a2, 64(sp)
+	lui	s7, 7
+	addi	a2, s7, -1019
+	sw	a2, 60(sp)
+	lui	a2, 227
+	addi	a4, a2, -1023
+	sw	a4, 56(sp)
+	addi	a4, s7, -251
+	sw	a4, 52(sp)
+	addi	a2, a2, 769
+	sw	a2, 48(sp)
+	lui	a4, 6
 	addi	a2, a4, 773
 	sw	a2, 44(sp)
-	lui	a5, 7
-	addi	a2, a5, -1019
+	lui	a2, 228
+	addi	a2, a2, -1535
 	sw	a2, 40(sp)
-	addi	a2, a5, -251
+	addi	a2, s7, -1275
 	sw	a2, 36(sp)
-	lui	a2, 6
-	addi	a3, a2, 773
-	sw	a3, 32(sp)
-	lui	a3, 740
-	addi	a3, a3, -1535
+	lui	a2, 482
+	addi	a5, a2, -511
+	sw	a5, 32(sp)
+	addi	a3, a3, 1541
 	sw	a3, 28(sp)
-	addi	a3, a5, -1275
-	sw	a3, 24(sp)
-	addi	a3, a4, 1541
-	sw	a3, 20(sp)
-	addi	a2, a2, 261
-	sw	a2, 16(sp)
-	addi	a2, a5, 773
-	sw	a2, 12(sp)
-	addi	s4, a5, 1029
+	addi	a2, a2, 1281
+	sw	a2, 24(sp)
+	addi	a2, a4, 261
+	sw	a2, 20(sp)
 	lui	a2, 3
 	addi	a2, a2, 773
-	sw	a2, 8(sp)
+	sw	a2, 16(sp)
 	lui	a2, 5
 	addi	a2, a2, 261
-	sw	a2, 4(sp)
-	lui	a2, 737
+	sw	a2, 12(sp)
+	lui	a2, 225
 	addi	a2, a2, 1025
-	sw	a2, 0(sp)
-	addi	s8, zero, 2
-	addi	s10, zero, 75
+	sw	a2, 8(sp)
+	addi	s9, zero, 3
+	addi	s2, zero, 75
 	addi	s11, zero, 1
-	addi	s3, zero, 74
-	addi	s5, zero, 59
-	addi	s6, zero, 3
-	addi	s7, zero, 8
-	j	.LBB64_2
-.LBB64_1:                               #   in Loop: Header=BB64_2 Depth=1
-	andi	a2, s2, 1
-	bnez	a2, .LBB64_26
-.LBB64_2:                               # =>This Loop Header: Depth=1
-                                        #     Child Loop BB64_5 Depth 2
-                                        #     Child Loop BB64_9 Depth 2
-	lw	a2, 0(s0)
-	beqz	a2, .LBB64_7
-# %bb.3:                                #   in Loop: Header=BB64_2 Depth=1
+	addi	s5, zero, 74
+	addi	s6, zero, 59
+	addi	s8, zero, 2
+	addi	s10, zero, 8
+	j	.LBB70_2
+.LBB70_1:                               #   in Loop: Header=BB70_2 Depth=1
+	andi	a2, s4, 1
+	bnez	a2, .LBB70_31
+.LBB70_2:                               # =>This Loop Header: Depth=1
+                                        #     Child Loop BB70_5 Depth 2
+                                        #     Child Loop BB70_9 Depth 2
+	lw	a2, 0(s1)
+	beqz	a2, .LBB70_7
+# %bb.3:                                #   in Loop: Header=BB70_2 Depth=1
 	lw	a2, 8(a1)
-	j	.LBB64_5
-.LBB64_4:                               #   in Loop: Header=BB64_5 Depth=2
-	lw	a3, 0(s0)
-	beqz	a3, .LBB64_7
-.LBB64_5:                               #   Parent Loop BB64_2 Depth=1
+	j	.LBB70_5
+.LBB70_4:                               #   in Loop: Header=BB70_5 Depth=2
+	lw	a3, 0(s1)
+	beqz	a3, .LBB70_7
+.LBB70_5:                               #   Parent Loop BB70_2 Depth=1
                                         # =>  This Inner Loop Header: Depth=2
 	addi	a2, a2, 1
 	sw	a2, 8(a1)
 	sw	s11, 16(a1)
-	bne	a2, s7, .LBB64_4
-# %bb.6:                                #   in Loop: Header=BB64_5 Depth=2
+	bne	a2, s10, .LBB70_4
+# %bb.6:                                #   in Loop: Header=BB70_5 Depth=2
 	lw	a3, 4(a1)
 	mv	a2, zero
 	addi	a3, a3, 1
 	sw	a3, 4(a1)
 	sw	zero, 8(a1)
-	j	.LBB64_4
-.LBB64_7:                               #   in Loop: Header=BB64_2 Depth=1
-	mv	s2, zero
-	j	.LBB64_9
-.LBB64_8:                               #   in Loop: Header=BB64_9 Depth=2
+	j	.LBB70_4
+.LBB70_7:                               #   in Loop: Header=BB70_2 Depth=1
+	mv	s4, zero
+	j	.LBB70_9
+.LBB70_8:                               #   in Loop: Header=BB70_9 Depth=2
 	addi	a0, a0, 1
-	lw	a1, %lo(app)(s1)
-.LBB64_9:                               #   Parent Loop BB64_2 Depth=1
+	lw	a1, %lo(app)(s0)
+.LBB70_9:                               #   Parent Loop BB70_2 Depth=1
                                         # =>  This Inner Loop Header: Depth=2
 	lw	a2, 12(a1)
-	bnez	a2, .LBB64_11
-# %bb.10:                               #   in Loop: Header=BB64_9 Depth=2
-	lw	a2, 8(s0)
+	bnez	a2, .LBB70_11
+# %bb.10:                               #   in Loop: Header=BB70_9 Depth=2
+	lw	a2, 8(s1)
 	sw	a2, 12(a1)
-	beqz	a2, .LBB64_24
-.LBB64_11:                              #   in Loop: Header=BB64_9 Depth=2
+	beqz	a2, .LBB70_29
+.LBB70_11:                              #   in Loop: Header=BB70_9 Depth=2
 	sw	zero, 12(a1)
-	blt	s8, a0, .LBB64_13
-# %bb.12:                               #   in Loop: Header=BB64_9 Depth=2
-	beq	a2, s10, .LBB64_8
-.LBB64_13:                              #   in Loop: Header=BB64_9 Depth=2
-	blt	a0, s11, .LBB64_16
-# %bb.14:                               #   in Loop: Header=BB64_9 Depth=2
-	bne	a2, s3, .LBB64_16
-# %bb.15:                               #   in Loop: Header=BB64_9 Depth=2
+	blt	s9, a0, .LBB70_13
+# %bb.12:                               #   in Loop: Header=BB70_9 Depth=2
+	beq	a2, s2, .LBB70_8
+.LBB70_13:                              #   in Loop: Header=BB70_9 Depth=2
+	blt	a0, s11, .LBB70_16
+# %bb.14:                               #   in Loop: Header=BB70_9 Depth=2
+	bne	a2, s5, .LBB70_16
+# %bb.15:                               #   in Loop: Header=BB70_9 Depth=2
 	addi	a0, a0, -1
-	lw	a1, %lo(app)(s1)
-	j	.LBB64_9
-.LBB64_16:                              #   in Loop: Header=BB64_9 Depth=2
-	bne	a2, s5, .LBB64_22
-# %bb.17:                               #   in Loop: Header=BB64_9 Depth=2
-	beq	a0, s6, .LBB64_21
-# %bb.18:                               #   in Loop: Header=BB64_9 Depth=2
-	beq	a0, s11, .LBB64_23
-# %bb.19:                               #   in Loop: Header=BB64_9 Depth=2
-	bnez	a0, .LBB64_22
-# %bb.20:                               #   in Loop: Header=BB64_9 Depth=2
-	call	_Z8runClockv
-	mv	a0, zero
-	lw	a1, %lo(app)(s1)
-	j	.LBB64_9
-.LBB64_21:                              #   in Loop: Header=BB64_9 Depth=2
-	addi	s2, zero, 1
-	addi	a0, zero, 3
-.LBB64_22:                              #   in Loop: Header=BB64_9 Depth=2
-	lw	a1, %lo(app)(s1)
-	j	.LBB64_9
-.LBB64_23:                              #   in Loop: Header=BB64_9 Depth=2
+	lw	a1, %lo(app)(s0)
+	j	.LBB70_9
+.LBB70_16:                              #   in Loop: Header=BB70_9 Depth=2
+	bne	a2, s6, .LBB70_27
+# %bb.17:                               #   in Loop: Header=BB70_9 Depth=2
+	bge	s11, a0, .LBB70_22
+# %bb.18:                               #   in Loop: Header=BB70_9 Depth=2
+	beq	a0, s8, .LBB70_25
+# %bb.19:                               #   in Loop: Header=BB70_9 Depth=2
+	beq	a0, s9, .LBB70_26
+# %bb.20:                               #   in Loop: Header=BB70_9 Depth=2
+	addi	a1, zero, 4
+	bne	a0, a1, .LBB70_27
+# %bb.21:                               #   in Loop: Header=BB70_9 Depth=2
+	addi	s4, zero, 1
+	addi	a0, zero, 4
+	lw	a1, %lo(app)(s0)
+	j	.LBB70_9
+.LBB70_22:                              #   in Loop: Header=BB70_9 Depth=2
+	beqz	a0, .LBB70_28
+# %bb.23:                               #   in Loop: Header=BB70_9 Depth=2
+	bne	a0, s11, .LBB70_27
+# %bb.24:                               #   in Loop: Header=BB70_9 Depth=2
 	call	_Z12runClockFastv
 	addi	a0, zero, 1
-	lw	a1, %lo(app)(s1)
-	j	.LBB64_9
-.LBB64_24:                              #   in Loop: Header=BB64_2 Depth=1
+	lw	a1, %lo(app)(s0)
+	j	.LBB70_9
+.LBB70_25:                              #   in Loop: Header=BB70_9 Depth=2
+	call	_Z9runEditorv
+	addi	a0, zero, 2
+	lw	a1, %lo(app)(s0)
+	j	.LBB70_9
+.LBB70_26:                              #   in Loop: Header=BB70_9 Depth=2
+	call	_Z9run3dCubev
+	call	_Z12run3dDiamondv
+	call	_Z16run3dDiamondDiagv
+	addi	a0, zero, 3
+.LBB70_27:                              #   in Loop: Header=BB70_9 Depth=2
+	lw	a1, %lo(app)(s0)
+	j	.LBB70_9
+.LBB70_28:                              #   in Loop: Header=BB70_9 Depth=2
+	call	_Z8runClockv
+	mv	a0, zero
+	lw	a1, %lo(app)(s0)
+	j	.LBB70_9
+.LBB70_29:                              #   in Loop: Header=BB70_2 Depth=1
 	lw	a2, 16(a1)
-	beqz	a2, .LBB64_1
-# %bb.25:                               #   in Loop: Header=BB64_2 Depth=1
+	beqz	a2, .LBB70_1
+# %bb.30:                               #   in Loop: Header=BB70_2 Depth=1
 	sw	zero, 16(a1)
-	slli	a2, a0, 20
-	lw	a3, 48(sp)
-	sub	a3, a3, a2
-	ori	a4, a3, 1
-	sw	a4, 12(s9)
-	lw	a4, 44(sp)
-	sw	a4, 12(s9)
-	addi	a3, a3, 1792
-	ori	a3, a3, 1
-	sw	a3, 12(s9)
-	lw	a3, 40(sp)
-	sw	a3, 12(s9)
-	lw	a3, 52(sp)
-	sub	a3, a3, a2
-	ori	a4, a3, 1
-	sw	a4, 12(s9)
-	lw	a4, 36(sp)
-	sw	a4, 12(s9)
-	addi	a3, a3, 1792
-	ori	a3, a3, 1
-	sw	a3, 12(s9)
-	lw	a3, 32(sp)
-	sw	a3, 12(s9)
-	lw	a3, 28(sp)
-	sub	a3, a3, a2
-	sw	a3, 12(s9)
-	lw	a3, 24(sp)
-	sw	a3, 12(s9)
-	lw	a3, 56(sp)
-	sub	a3, a3, a2
-	ori	a4, a3, 1
-	sw	a4, 12(s9)
-	lw	a4, 20(sp)
-	sw	a4, 12(s9)
-	addi	a3, a3, 1792
-	ori	a3, a3, 1
-	sw	a3, 12(s9)
-	lw	a3, 16(sp)
-	sw	a3, 12(s9)
-	lw	a3, 60(sp)
-	sub	a3, a3, a2
-	ori	a4, a3, 1
-	sw	a4, 12(s9)
+	lw	a2, 72(sp)
+	sw	a2, 12(s3)
+	lw	a2, 68(sp)
+	sw	a2, 12(s3)
+	lw	a2, 64(sp)
+	sw	a2, 12(s3)
+	lw	a2, 60(sp)
+	sw	a2, 12(s3)
+	lw	a2, 56(sp)
+	sw	a2, 12(s3)
+	lw	a7, 52(sp)
+	sw	a7, 12(s3)
+	lw	a2, 48(sp)
+	sw	a2, 12(s3)
+	lw	a2, 44(sp)
+	sw	a2, 12(s3)
+	lw	a2, 40(sp)
+	sw	a2, 12(s3)
+	lw	a2, 36(sp)
+	sw	a2, 12(s3)
+	lw	a2, 32(sp)
+	sw	a2, 12(s3)
+	lw	a2, 28(sp)
+	sw	a2, 12(s3)
+	lw	a2, 24(sp)
+	sw	a2, 12(s3)
+	lw	a2, 20(sp)
+	sw	a2, 12(s3)
+	lui	a3, 483
+	addi	a2, a3, -1023
+	sw	a2, 12(s3)
+	addi	a2, s7, 773
+	sw	a2, 12(s3)
+	addi	a2, a3, 769
+	sw	a2, 12(s3)
+	addi	a2, s7, 1029
+	sw	a2, 12(s3)
+	lui	a4, 738
+	addi	a3, a4, -511
+	sw	a3, 12(s3)
+	lui	a6, 4
+	addi	a3, a6, 1285
+	sw	a3, 12(s3)
+	addi	a3, a4, 1281
+	sw	a3, 12(s3)
+	lui	a3, 6
+	addi	a3, a3, 1029
+	sw	a3, 12(s3)
+	lui	a4, 739
+	addi	a3, a4, -1023
+	sw	a3, 12(s3)
+	addi	a3, s7, -1787
+	sw	a3, 12(s3)
+	addi	a4, a4, 769
+	sw	a4, 12(s3)
+	sw	a2, 12(s3)
+	lui	a5, 740
+	addi	a4, a5, -1535
+	sw	a4, 12(s3)
+	sw	a7, 12(s3)
+	addi	a4, a5, 257
+	sw	a4, 12(s3)
+	addi	a4, s7, 517
+	sw	a4, 12(s3)
+	lui	a5, 994
+	addi	a4, a5, -511
+	sw	a4, 12(s3)
+	lw	a4, 16(sp)
+	sw	a4, 12(s3)
+	addi	a4, a5, 1281
+	sw	a4, 12(s3)
+	addi	a4, a6, 1029
+	sw	a4, 12(s3)
+	lui	a5, 1250
+	addi	a4, a5, -511
+	sw	a4, 12(s3)
 	lw	a4, 12(sp)
-	sw	a4, 12(s9)
-	addi	a3, a3, 1792
-	ori	a3, a3, 1
-	sw	a3, 12(s9)
-	sw	s4, 12(s9)
-	lw	a3, 64(sp)
-	sub	a3, a3, a2
-	ori	a4, a3, 1
-	sw	a4, 12(s9)
-	lw	a4, 8(sp)
-	sw	a4, 12(s9)
-	addi	a3, a3, 1792
-	ori	a3, a3, 1
-	sw	a3, 12(s9)
-	lui	a5, 4
-	addi	a3, a5, 1029
-	sw	a3, 12(s9)
-	lw	a3, 68(sp)
-	sub	a3, a3, a2
-	ori	a4, a3, 1
-	sw	a4, 12(s9)
-	lw	a4, 4(sp)
-	sw	a4, 12(s9)
-	addi	a3, a3, 1792
-	ori	a3, a3, 1
-	sw	a3, 12(s9)
-	lui	a4, 7
-	addi	a3, a4, 1285
-	sw	a3, 12(s9)
-	lw	a3, 72(sp)
-	sub	a2, a3, a2
-	ori	a3, a2, 1
-	sw	a3, 12(s9)
-	addi	a3, a4, -1787
-	sw	a3, 12(s9)
-	addi	a2, a2, 1792
-	ori	a2, a2, 1
-	sw	a2, 12(s9)
-	sw	s4, 12(s9)
-	lw	a2, 0(sp)
-	sw	a2, 12(s9)
-	addi	a2, a5, -507
-	sw	a2, 12(s9)
-	addi	a2, s9, 12
+	sw	a4, 12(s3)
+	addi	a4, a5, 1281
+	sw	a4, 12(s3)
+	addi	a4, s7, 1285
+	sw	a4, 12(s3)
+	lui	a5, 1251
+	addi	a4, a5, -1023
+	sw	a4, 12(s3)
+	sw	a3, 12(s3)
+	addi	a3, a5, 769
+	sw	a3, 12(s3)
+	sw	a2, 12(s3)
+	slli	a2, a0, 20
+	lw	a3, 8(sp)
+	or	a2, a2, a3
+	sw	a2, 12(s3)
+	addi	a2, a6, -507
+	sw	a2, 12(s3)
+	addi	a2, s3, 12
 	addi	a3, zero, 42
 	sw	a3, 0(a2)
-	j	.LBB64_1
-.LBB64_26:
+	j	.LBB70_1
+.LBB70_31:
 	lw	s11, 76(sp)
 	lw	s10, 80(sp)
 	lw	s9, 84(sp)
@@ -4365,8 +5332,8 @@ _Z7runMenuv:                            # @_Z7runMenuv
 	lw	ra, 124(sp)
 	addi	sp, sp, 128
 	ret
-.Lfunc_end64:
-	.size	_Z7runMenuv, .Lfunc_end64-_Z7runMenuv
+.Lfunc_end70:
+	.size	_Z7runMenuv, .Lfunc_end70-_Z7runMenuv
                                         # -- End function
 	.globl	main                    # -- Begin function main
 	.p2align	2
@@ -4381,14 +5348,14 @@ main:                                   # @main
 	call	_ZN3AppC2Ev
 	lui	a0, %hi(app)
 	sw	s0, %lo(app)(a0)
-	call	_Z10run3dScenev
+	call	_Z7runMenuv
 	mv	a0, zero
 	lw	s0, 24(sp)
 	lw	ra, 28(sp)
 	addi	sp, sp, 32
 	ret
-.Lfunc_end65:
-	.size	main, .Lfunc_end65-main
+.Lfunc_end71:
+	.size	main, .Lfunc_end71-main
                                         # -- End function
 	.section	.text._ZN3AppC2Ev,"axG",@progbits,_ZN3AppC2Ev,comdat
 	.weak	_ZN3AppC2Ev             # -- Begin function _ZN3AppC2Ev
@@ -4508,14 +5475,14 @@ _ZN3AppC2Ev:                            # @_ZN3AppC2Ev
 	addi	a3, a2, 20
 	sw	a3, 8(a0)
 	lw	a7, 4(a1)
-	beqz	a7, .LBB66_9
+	beqz	a7, .LBB72_9
 # %bb.1:
 	mv	a4, zero
 	addi	a5, a2, 24
-	lui	a2, %hi(.L.str.27)
-	addi	a6, a2, %lo(.L.str.27)
-.LBB66_2:                               # =>This Loop Header: Depth=1
-                                        #     Child Loop BB66_5 Depth 2
+	lui	a2, %hi(.L.str.31)
+	addi	a6, a2, %lo(.L.str.31)
+.LBB72_2:                               # =>This Loop Header: Depth=1
+                                        #     Child Loop BB72_5 Depth 2
 	sw	a5, 8(a0)
 	lw	t0, 4(a1)
 	addi	a3, a5, 4
@@ -4524,84 +5491,86 @@ _ZN3AppC2Ev:                            # @_ZN3AppC2Ev
 	addi	a5, a5, 8
 	xori	a3, s0, 6
 	seqz	s1, a3
-	beqz	s0, .LBB66_7
-# %bb.3:                                #   in Loop: Header=BB66_2 Depth=1
+	beqz	s0, .LBB72_7
+# %bb.3:                                #   in Loop: Header=BB72_2 Depth=1
 	mv	a3, a6
-	j	.LBB66_5
-.LBB66_4:                               #   in Loop: Header=BB66_5 Depth=2
+	j	.LBB72_5
+.LBB72_4:                               #   in Loop: Header=BB72_5 Depth=2
 	addi	a5, a5, 4
 	addi	s0, s0, -1
 	addi	a3, a3, 4
-	beqz	s0, .LBB66_7
-.LBB66_5:                               #   Parent Loop BB66_2 Depth=1
+	beqz	s0, .LBB72_7
+.LBB72_5:                               #   Parent Loop BB72_2 Depth=1
                                         # =>  This Inner Loop Header: Depth=2
 	andi	a2, s1, 1
 	mv	s1, zero
-	beqz	a2, .LBB66_4
-# %bb.6:                                #   in Loop: Header=BB66_5 Depth=2
+	beqz	a2, .LBB72_4
+# %bb.6:                                #   in Loop: Header=BB72_5 Depth=2
 	sw	a5, 8(a0)
 	lw	a2, 4(a1)
 	lw	s1, 0(a3)
 	xor	a2, a2, s1
 	seqz	s1, a2
-	j	.LBB66_4
-.LBB66_7:                               #   in Loop: Header=BB66_2 Depth=1
-	bnez	s1, .LBB66_10
-# %bb.8:                                #   in Loop: Header=BB66_2 Depth=1
+	j	.LBB72_4
+.LBB72_7:                               #   in Loop: Header=BB72_2 Depth=1
+	bnez	s1, .LBB72_10
+# %bb.8:                                #   in Loop: Header=BB72_2 Depth=1
 	addi	a4, a4, 1
-	bne	a4, a7, .LBB66_2
-.LBB66_9:
+	bne	a4, a7, .LBB72_2
+.LBB72_9:
 	mv	t0, zero
-.LBB66_10:
+.LBB72_10:
 	addi	a2, t0, 4
 	sw	a2, 8(a0)
 	lw	a7, 4(a1)
 	addi	s2, s2, 4
-	beqz	a7, .LBB66_19
+	beqz	a7, .LBB72_19
 # %bb.11:
 	mv	a1, zero
 	addi	a2, t0, 8
 	lui	a3, 655360
 	lui	a4, 524288
-	lui	a5, %hi(.L.str.17)
-	addi	a6, a5, %lo(.L.str.17)
-.LBB66_12:                              # =>This Loop Header: Depth=1
-                                        #     Child Loop BB66_15 Depth 2
+	lui	a5, %hi(.L.str.18)
+	addi	a6, a5, %lo(.L.str.18)
+.LBB72_12:                              # =>This Loop Header: Depth=1
+                                        #     Child Loop BB72_15 Depth 2
 	sw	a2, 8(a3)
-	lw	a5, 4(a4)
+	lw	s3, 4(a4)
 	addi	a5, a2, 4
 	sw	a5, 8(a3)
-	lw	s0, 4(a4)
+	lw	s1, 4(a4)
 	addi	a2, a2, 8
-	xori	a5, s0, 8
-	seqz	s1, a5
-	beqz	s0, .LBB66_17
-# %bb.13:                               #   in Loop: Header=BB66_12 Depth=1
+	xori	a5, s1, 8
+	seqz	s0, a5
+	beqz	s1, .LBB72_17
+# %bb.13:                               #   in Loop: Header=BB72_12 Depth=1
 	mv	a5, a6
-	j	.LBB66_15
-.LBB66_14:                              #   in Loop: Header=BB66_15 Depth=2
+	j	.LBB72_15
+.LBB72_14:                              #   in Loop: Header=BB72_15 Depth=2
 	addi	a2, a2, 4
-	addi	s0, s0, -1
+	addi	s1, s1, -1
 	addi	a5, a5, 4
-	beqz	s0, .LBB66_17
-.LBB66_15:                              #   Parent Loop BB66_12 Depth=1
+	beqz	s1, .LBB72_17
+.LBB72_15:                              #   Parent Loop BB72_12 Depth=1
                                         # =>  This Inner Loop Header: Depth=2
-	andi	a0, s1, 1
-	mv	s1, zero
-	beqz	a0, .LBB66_14
-# %bb.16:                               #   in Loop: Header=BB66_15 Depth=2
+	andi	a0, s0, 1
+	mv	s0, zero
+	beqz	a0, .LBB72_14
+# %bb.16:                               #   in Loop: Header=BB72_15 Depth=2
 	sw	a2, 8(a3)
 	lw	a0, 4(a4)
-	lw	s1, 0(a5)
-	xor	a0, a0, s1
-	seqz	s1, a0
-	j	.LBB66_14
-.LBB66_17:                              #   in Loop: Header=BB66_12 Depth=1
+	lw	s0, 0(a5)
+	xor	a0, a0, s0
+	seqz	s0, a0
+	j	.LBB72_14
+.LBB72_17:                              #   in Loop: Header=BB72_12 Depth=1
+	bnez	s0, .LBB72_20
+# %bb.18:                               #   in Loop: Header=BB72_12 Depth=1
 	addi	a1, a1, 1
-	beq	a1, a7, .LBB66_19
-# %bb.18:                               #   in Loop: Header=BB66_12 Depth=1
-	beqz	s1, .LBB66_12
-.LBB66_19:
+	bne	a1, a7, .LBB72_12
+.LBB72_19:
+	mv	s3, zero
+.LBB72_20:
 	lui	s1, %hi(_ZL4cout)
 	lw	a0, %lo(_ZL4cout)(s1)
 	lw	a2, 0(a0)
@@ -4699,9 +5668,51 @@ _ZN3AppC2Ev:                            # @_ZN3AppC2Ev
 	addi	a1, zero, 10
 	mv	a0, s0
 	jalr	a2
+	mv	a0, s3
+	call	_Z19load_alphabet_tilesj
 	lw	a0, %lo(_ZL4cout)(s1)
 	lw	a2, 0(a0)
-	addi	a1, zero, 68
+	addi	a1, zero, 83
+	mv	a0, s0
+	jalr	a2
+	lw	a0, %lo(_ZL4cout)(s1)
+	lw	a2, 0(a0)
+	addi	a1, zero, 112
+	mv	a0, s0
+	jalr	a2
+	lw	a0, %lo(_ZL4cout)(s1)
+	lw	a2, 0(a0)
+	addi	a1, zero, 114
+	mv	a0, s0
+	jalr	a2
+	lw	a0, %lo(_ZL4cout)(s1)
+	lw	a2, 0(a0)
+	addi	a1, zero, 105
+	mv	a0, s0
+	jalr	a2
+	lw	a0, %lo(_ZL4cout)(s1)
+	lw	a2, 0(a0)
+	addi	a1, zero, 116
+	mv	a0, s0
+	jalr	a2
+	lw	a0, %lo(_ZL4cout)(s1)
+	lw	a2, 0(a0)
+	addi	a1, zero, 101
+	mv	a0, s0
+	jalr	a2
+	lw	a0, %lo(_ZL4cout)(s1)
+	lw	a2, 0(a0)
+	addi	a1, zero, 115
+	mv	a0, s0
+	jalr	a2
+	lw	a0, %lo(_ZL4cout)(s1)
+	lw	a2, 0(a0)
+	addi	a1, zero, 32
+	mv	a0, s0
+	jalr	a2
+	lw	a0, %lo(_ZL4cout)(s1)
+	lw	a2, 0(a0)
+	addi	a1, zero, 108
 	mv	a0, s0
 	jalr	a2
 	lw	a0, %lo(_ZL4cout)(s1)
@@ -4711,12 +5722,22 @@ _ZN3AppC2Ev:                            # @_ZN3AppC2Ev
 	jalr	a2
 	lw	a0, %lo(_ZL4cout)(s1)
 	lw	a2, 0(a0)
-	addi	a1, zero, 110
+	addi	a1, zero, 97
+	mv	a0, s0
+	jalr	a2
+	lw	a0, %lo(_ZL4cout)(s1)
+	lw	a2, 0(a0)
+	addi	a1, zero, 100
 	mv	a0, s0
 	jalr	a2
 	lw	a0, %lo(_ZL4cout)(s1)
 	lw	a2, 0(a0)
 	addi	a1, zero, 101
+	mv	a0, s0
+	jalr	a2
+	lw	a0, %lo(_ZL4cout)(s1)
+	lw	a2, 0(a0)
+	addi	a1, zero, 100
 	mv	a0, s0
 	jalr	a2
 	lw	a0, %lo(_ZL4cout)(s1)
@@ -4734,8 +5755,8 @@ _ZN3AppC2Ev:                            # @_ZN3AppC2Ev
 	lw	ra, 28(sp)
 	addi	sp, sp, 32
 	ret
-.Lfunc_end66:
-	.size	_ZN3AppC2Ev, .Lfunc_end66-_ZN3AppC2Ev
+.Lfunc_end72:
+	.size	_ZN3AppC2Ev, .Lfunc_end72-_ZN3AppC2Ev
                                         # -- End function
 	.section	.text._ZN6vectorIDiEC2EjDi,"axG",@progbits,_ZN6vectorIDiEC2EjDi,comdat
 	.weak	_ZN6vectorIDiEC2EjDi    # -- Begin function _ZN6vectorIDiEC2EjDi
@@ -4757,33 +5778,33 @@ _ZN6vectorIDiEC2EjDi:                   # @_ZN6vectorIDiEC2EjDi
 	lw	a6, %lo(nbBlocks)(s3)
 	mv	s2, a2
 	mv	s1, a1
-	beqz	a6, .LBB67_6
+	beqz	a6, .LBB73_6
 # %bb.1:
 	lui	a0, %hi(allocSize)
 	lw	a2, %lo(allocSize)(a0)
 	mv	a1, zero
 	addi	a3, zero, 7
 	mv	a4, a6
-.LBB67_2:                               # =>This Inner Loop Header: Depth=1
+.LBB73_2:                               # =>This Inner Loop Header: Depth=1
 	add	a5, a2, a1
 	lw	a0, 0(a5)
-	blt	a3, a0, .LBB67_8
-# %bb.3:                                #   in Loop: Header=BB67_2 Depth=1
+	blt	a3, a0, .LBB73_8
+# %bb.3:                                #   in Loop: Header=BB73_2 Depth=1
 	addi	a4, a4, -1
 	addi	a1, a1, 4
-	bnez	a4, .LBB67_2
+	bnez	a4, .LBB73_2
 # %bb.4:
 	addi	a0, zero, 100
-	bne	a6, a0, .LBB67_7
+	bne	a6, a0, .LBB73_7
 # %bb.5:
 	addi	a0, zero, 29
 	call	exit
 	lui	a0, %hi(nbBlocks)
 	lw	a6, %lo(nbBlocks)(a0)
-	j	.LBB67_7
-.LBB67_6:
+	j	.LBB73_7
+.LBB73_6:
 	mv	a6, zero
-.LBB67_7:
+.LBB73_7:
 	lui	a0, %hi(__asm__freept)
 	lui	a1, %hi(allocPos)
 	lw	a2, %lo(allocPos)(a1)
@@ -4802,44 +5823,44 @@ _ZN6vectorIDiEC2EjDi:                   # @_ZN6vectorIDiEC2EjDi
 	sw	a2, %lo(nbBlocks)(s3)
 	addi	a2, a3, 8
 	sw	a2, %lo(__asm__freept)(a0)
-	j	.LBB67_9
-.LBB67_8:
+	j	.LBB73_9
+.LBB73_8:
 	neg	a0, a0
 	sw	a0, 0(a5)
 	lui	a0, %hi(allocPos)
 	lw	a0, %lo(allocPos)(a0)
 	add	a0, a0, a1
 	lw	a1, 0(a0)
-.LBB67_9:
+.LBB73_9:
 	lw	a2, 0(s0)
 	sw	a1, 8(s0)
-	bgeu	a2, s1, .LBB67_16
+	bgeu	a2, s1, .LBB73_16
 # %bb.10:
 	lw	a0, 4(s0)
-	bgeu	a0, s1, .LBB67_13
-.LBB67_11:                              # =>This Inner Loop Header: Depth=1
+	bgeu	a0, s1, .LBB73_13
+.LBB73_11:                              # =>This Inner Loop Header: Depth=1
 	mv	a0, s0
 	mv	a1, s1
 	call	_ZN6vectorIDiE7reserveEj
 	lw	a0, 4(s0)
-	bltu	a0, s1, .LBB67_11
+	bltu	a0, s1, .LBB73_11
 # %bb.12:
 	lw	a2, 0(s0)
-.LBB67_13:
-	bgeu	a2, s1, .LBB67_17
+.LBB73_13:
+	bgeu	a2, s1, .LBB73_17
 # %bb.14:
 	lw	a1, 8(s0)
 	sub	a0, s1, a2
 	slli	a2, a2, 2
 	add	a1, a1, a2
-.LBB67_15:                              # =>This Inner Loop Header: Depth=1
+.LBB73_15:                              # =>This Inner Loop Header: Depth=1
 	sw	s2, 0(a1)
 	addi	a0, a0, -1
 	addi	a1, a1, 4
-	bnez	a0, .LBB67_15
-.LBB67_16:
+	bnez	a0, .LBB73_15
+.LBB73_16:
 	sw	s1, 0(s0)
-.LBB67_17:
+.LBB73_17:
 	addi	a1, zero, 2
 	mv	a0, s0
 	lw	s3, 12(sp)
@@ -4849,8 +5870,8 @@ _ZN6vectorIDiEC2EjDi:                   # @_ZN6vectorIDiEC2EjDi
 	lw	ra, 28(sp)
 	addi	sp, sp, 32
 	tail	_ZN6vectorIDiE7reserveEj
-.Lfunc_end67:
-	.size	_ZN6vectorIDiEC2EjDi, .Lfunc_end67-_ZN6vectorIDiEC2EjDi
+.Lfunc_end73:
+	.size	_ZN6vectorIDiEC2EjDi, .Lfunc_end73-_ZN6vectorIDiEC2EjDi
                                         # -- End function
 	.section	.text._ZN4File8readWordEv,"axG",@progbits,_ZN4File8readWordEv,comdat
 	.weak	_ZN4File8readWordEv     # -- Begin function _ZN4File8readWordEv
@@ -4868,8 +5889,8 @@ _ZN4File8readWordEv:                    # @_ZN4File8readWordEv
 	sw	a2, 4(a0)
 	mv	a0, a1
 	ret
-.Lfunc_end68:
-	.size	_ZN4File8readWordEv, .Lfunc_end68-_ZN4File8readWordEv
+.Lfunc_end74:
+	.size	_ZN4File8readWordEv, .Lfunc_end74-_ZN4File8readWordEv
                                         # -- End function
 	.section	.text._ZN4File8readByteEv,"axG",@progbits,_ZN4File8readByteEv,comdat
 	.weak	_ZN4File8readByteEv     # -- Begin function _ZN4File8readByteEv
@@ -4888,8 +5909,8 @@ _ZN4File8readByteEv:                    # @_ZN4File8readByteEv
 	sw	a2, 4(a0)
 	mv	a0, a1
 	ret
-.Lfunc_end69:
-	.size	_ZN4File8readByteEv, .Lfunc_end69-_ZN4File8readByteEv
+.Lfunc_end75:
+	.size	_ZN4File8readByteEv, .Lfunc_end75-_ZN4File8readByteEv
                                         # -- End function
 	.section	.text._ZN17StandardOutStream9send_wordEj,"axG",@progbits,_ZN17StandardOutStream9send_wordEj,comdat
 	.weak	_ZN17StandardOutStream9send_wordEj # -- Begin function _ZN17StandardOutStream9send_wordEj
@@ -4900,8 +5921,8 @@ _ZN17StandardOutStream9send_wordEj:     # @_ZN17StandardOutStream9send_wordEj
 	lui	a0, 655360
 	sw	a1, 4(a0)
 	ret
-.Lfunc_end70:
-	.size	_ZN17StandardOutStream9send_wordEj, .Lfunc_end70-_ZN17StandardOutStream9send_wordEj
+.Lfunc_end76:
+	.size	_ZN17StandardOutStream9send_wordEj, .Lfunc_end76-_ZN17StandardOutStream9send_wordEj
                                         # -- End function
 	.type	_ZL8digits32,@object    # @_ZL8digits32
 	.section	.rodata,"a",@progbits
@@ -5220,6 +6241,32 @@ allocSize:
 	.type	.L.str.17,@object       # @.str.17
 	.p2align	2
 .L.str.17:
+	.word	76                      # 0x4c
+	.word	97                      # 0x61
+	.word	121                     # 0x79
+	.word	101                     # 0x65
+	.word	114                     # 0x72
+	.word	32                      # 0x20
+	.word	49                      # 0x31
+	.word	95                      # 0x5f
+	.word	97                      # 0x61
+	.word	108                     # 0x6c
+	.word	112                     # 0x70
+	.word	104                     # 0x68
+	.word	97                      # 0x61
+	.word	95                      # 0x5f
+	.word	56                      # 0x38
+	.word	53                      # 0x35
+	.word	46                      # 0x2e
+	.word	115                     # 0x73
+	.word	98                      # 0x62
+	.word	105                     # 0x69
+	.word	0                       # 0x0
+	.size	.L.str.17, 84
+
+	.type	.L.str.18,@object       # @.str.18
+	.p2align	2
+.L.str.18:
 	.word	97                      # 0x61
 	.word	108                     # 0x6c
 	.word	112                     # 0x70
@@ -5229,7 +6276,7 @@ allocSize:
 	.word	101                     # 0x65
 	.word	116                     # 0x74
 	.word	0                       # 0x0
-	.size	.L.str.17, 36
+	.size	.L.str.18, 36
 
 	.type	app,@object             # @app
 	.section	.sbss,"aw",@nobits
@@ -5259,8 +6306,8 @@ app:
 	.globl	triangleArray
 	.p2align	2
 triangleArray:
-	.zero	480
-	.size	triangleArray, 480
+	.zero	400
+	.size	triangleArray, 400
 
 	.type	cameraPos,@object       # @cameraPos
 	.globl	cameraPos
@@ -5282,6 +6329,241 @@ cameraVect:
 origin:
 	.zero	12
 	.size	origin, 12
+
+	.type	.L__const._Z9run3dCubev.triOrder,@object # @__const._Z9run3dCubev.triOrder
+	.section	.rodata.cst32,"aM",@progbits,32
+	.p2align	2
+.L__const._Z9run3dCubev.triOrder:
+	.word	0                       # 0x0
+	.word	1                       # 0x1
+	.word	2                       # 0x2
+	.word	3                       # 0x3
+	.word	4                       # 0x4
+	.word	5                       # 0x5
+	.word	6                       # 0x6
+	.word	7                       # 0x7
+	.size	.L__const._Z9run3dCubev.triOrder, 32
+
+	.type	.L__const._Z16run3dDiamondDiagv.triOrder,@object # @__const._Z16run3dDiamondDiagv.triOrder
+	.section	.rodata,"a",@progbits
+	.p2align	2
+.L__const._Z16run3dDiamondDiagv.triOrder:
+	.word	0                       # 0x0
+	.word	1                       # 0x1
+	.word	2                       # 0x2
+	.word	3                       # 0x3
+	.word	4                       # 0x4
+	.word	5                       # 0x5
+	.word	6                       # 0x6
+	.word	7                       # 0x7
+	.word	8                       # 0x8
+	.word	9                       # 0x9
+	.word	10                      # 0xa
+	.word	11                      # 0xb
+	.size	.L__const._Z16run3dDiamondDiagv.triOrder, 48
+
+	.type	.L__const._Z9runEditorv.text,@object # @__const._Z9runEditorv.text
+	.section	.rodata.str4.4,"aMS",@progbits,4
+	.p2align	2
+.L__const._Z9runEditorv.text:
+	.word	87                      # 0x57
+	.word	114                     # 0x72
+	.word	105                     # 0x69
+	.word	116                     # 0x74
+	.word	101                     # 0x65
+	.word	32                      # 0x20
+	.word	115                     # 0x73
+	.word	111                     # 0x6f
+	.word	109                     # 0x6d
+	.word	101                     # 0x65
+	.word	32                      # 0x20
+	.word	116                     # 0x74
+	.word	101                     # 0x65
+	.word	120                     # 0x78
+	.word	116                     # 0x74
+	.word	46                      # 0x2e
+	.word	46                      # 0x2e
+	.word	46                      # 0x2e
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	32                      # 0x20
+	.word	0                       # 0x0
+	.size	.L__const._Z9runEditorv.text, 788
 
 	.type	_ZTV4File,@object       # @_ZTV4File
 	.section	.rodata._ZTV4File,"aG",@progbits,_ZTV4File,comdat
@@ -5326,19 +6608,6 @@ _ZTI4File:
 	.word	_ZTS4File
 	.word	_ZTI7IStream
 	.size	_ZTI4File, 12
-
-	.type	.L.str.27,@object       # @.str.27
-	.section	.rodata.str4.4,"aMS",@progbits,4
-	.p2align	2
-.L.str.27:
-	.word	105                     # 0x69
-	.word	109                     # 0x6d
-	.word	97                      # 0x61
-	.word	103                     # 0x67
-	.word	101                     # 0x65
-	.word	115                     # 0x73
-	.word	0                       # 0x0
-	.size	.L.str.27, 28
 
 	.type	_ZTV17StandardOutStream,@object # @_ZTV17StandardOutStream
 	.section	.rodata._ZTV17StandardOutStream,"aG",@progbits,_ZTV17StandardOutStream,comdat
@@ -5406,6 +6675,19 @@ _ZTI17StandardOutStream:
 	.word	_ZTS17StandardOutStream
 	.word	_ZTI13TextOutStream
 	.size	_ZTI17StandardOutStream, 12
+
+	.type	.L.str.31,@object       # @.str.31
+	.section	.rodata.str4.4,"aMS",@progbits,4
+	.p2align	2
+.L.str.31:
+	.word	105                     # 0x69
+	.word	109                     # 0x6d
+	.word	97                      # 0x61
+	.word	103                     # 0x67
+	.word	101                     # 0x65
+	.word	115                     # 0x73
+	.word	0                       # 0x0
+	.size	.L.str.31, 28
 
 	.ident	"clang version 10.0.0-4ubuntu1 "
 	.section	".note.GNU-stack","",@progbits

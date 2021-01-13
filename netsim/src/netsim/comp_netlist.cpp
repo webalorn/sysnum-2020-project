@@ -63,7 +63,6 @@ void copyArg(std::ostream& os, std::map<std::string, VarPos>& locOfVar,
 
 	uint destPos = destLoc.pos;
 	if (!destLoc.full) {
-		std::cerr << "ERROR ???\n";
 		exit(-1);
 	}
 	os << "var_" << destPos;

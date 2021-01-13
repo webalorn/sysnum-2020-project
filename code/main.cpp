@@ -5,6 +5,5 @@
 int main() {
 	App mainApp;
 	app = &mainApp;
-	// runMenu();
-	run3dScene();
+	runMenu();
 }

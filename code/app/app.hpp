@@ -41,8 +41,8 @@ public:
 		uint alphabet_path = hdd_cd(images_path, U"alphabet");
 
 		cout << "Loading sprites...\n";
-		// load_alphabet_tiles(alphabet_path); // TODO
-		cout << "Done\n";
+		load_alphabet_tiles(alphabet_path);
+		cout << "Sprites loaded\n";
 
 		// Init clock
 		curTime = *(in_addr + 3);
@@ -74,10 +74,17 @@ public:
 
 
 #define KEY_ESCAPE 37
+#define KEY_COMMA 50
+#define KEY_PERIOD 51
+#define KEY_SPACE 58
 #define KEY_ENTER 59
+#define KEY_BACK 60
 #define KEY_LEFT 72
 #define KEY_RIGHT 73
 #define KEY_UP 74
 #define KEY_DOWN 75
+
+#define KEY_LSHIFT 39
+#define KEY_RSHIFT 43
 
 #endif

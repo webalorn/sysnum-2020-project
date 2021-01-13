@@ -159,7 +159,6 @@ KeyboardInput::KeyboardInput(VirtualScreen& screen) : screen(screen) {}
 void KeyboardInput::run() {
 	while (screen.keyQueue.size()) {
 		inQueue.push(screen.keyQueue.front());
-		std::cerr << "Pressed " << screen.keyQueue.front() << "\n";
 		screen.keyQueue.pop_front();
 	}
 }

@@ -1,6 +1,7 @@
 #include "app.hpp"
 #include "clock.hpp"
 #include "3d.hpp"
+#include "editor.hpp"
 
 void menuEntry(int pos, const char32_t* text) {
 	show_screen_text(text, 30, 16 * pos + 46, 20);
@@ -8,7 +9,7 @@ void menuEntry(int pos, const char32_t* text) {
 
 void runMenu() {
 	bool quitMenu = false;
-	int pos = 0, maxPos = 3;
+	int pos = 0, maxPos = 4;
 
 	while (!quitMenu) {
 		app->loop();
@@ -23,17 +24,20 @@ void runMenu() {
 			else if (key == KEY_ENTER) {
 				if (pos == 0) runClock();
 				if (pos == 1) runClockFast();
-				if (pos == 3) quitMenu = true;
+				if (pos == 2) runEditor();
+				if (pos == 3) run3dScene();
+				if (pos == 4) quitMenu = true;
 			}
 		}
 
 		// Draw
 		if (app->needToDraw()) {
-			menuEntry(0 - pos, U"Clock");
-			menuEntry(1 - pos, U"Fast");
-			menuEntry(2 - pos, U"3D");
-			menuEntry(3 - pos, U"Quit");
-			show_screen_text(U">", 20, 46, 2);
+			menuEntry(-2, U"Clock");
+			menuEntry(-1, U"Fast");
+			menuEntry(0, U"Editor");
+			menuEntry(1, U"3D");
+			menuEntry(2, U"Quit");
+			show_screen_text(U">", 20, 14 + pos * 16, 2);
 			refreshScreen();
 		}
 	}

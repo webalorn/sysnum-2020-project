@@ -1,9 +1,9 @@
 	.text
 	.file	"screen_clock.cpp"
-	.globl	_Z10memcpyCharPcPKcj    # -- Begin function _Z10memcpyCharPcPKcj
+	.globl	_Z6memcpyPcPKcj         # -- Begin function _Z6memcpyPcPKcj
 	.p2align	1
-	.type	_Z10memcpyCharPcPKcj,@function
-_Z10memcpyCharPcPKcj:                   # @_Z10memcpyCharPcPKcj
+	.type	_Z6memcpyPcPKcj,@function
+_Z6memcpyPcPKcj:                        # @_Z6memcpyPcPKcj
 # %bb.0:
 	beqz	a2, .LBB0_2
 .LBB0_1:                                # =>This Inner Loop Header: Depth=1
@@ -16,7 +16,7 @@ _Z10memcpyCharPcPKcj:                   # @_Z10memcpyCharPcPKcj
 .LBB0_2:
 	ret
 .Lfunc_end0:
-	.size	_Z10memcpyCharPcPKcj, .Lfunc_end0-_Z10memcpyCharPcPKcj
+	.size	_Z6memcpyPcPKcj, .Lfunc_end0-_Z6memcpyPcPKcj
                                         # -- End function
 	.globl	memcpy                  # -- Begin function memcpy
 	.p2align	1

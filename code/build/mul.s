@@ -1,9 +1,9 @@
 	.text
 	.file	"mul.cpp"
-	.globl	_Z10memcpyCharPcPKcj    # -- Begin function _Z10memcpyCharPcPKcj
+	.globl	_Z6memcpyPcPKcj         # -- Begin function _Z6memcpyPcPKcj
 	.p2align	2
-	.type	_Z10memcpyCharPcPKcj,@function
-_Z10memcpyCharPcPKcj:                   # @_Z10memcpyCharPcPKcj
+	.type	_Z6memcpyPcPKcj,@function
+_Z6memcpyPcPKcj:                        # @_Z6memcpyPcPKcj
 # %bb.0:
 	addi	sp, sp, -32
 	sw	ra, 28(sp)
@@ -39,7 +39,7 @@ _Z10memcpyCharPcPKcj:                   # @_Z10memcpyCharPcPKcj
 	addi	sp, sp, 32
 	ret
 .Lfunc_end0:
-	.size	_Z10memcpyCharPcPKcj, .Lfunc_end0-_Z10memcpyCharPcPKcj
+	.size	_Z6memcpyPcPKcj, .Lfunc_end0-_Z6memcpyPcPKcj
                                         # -- End function
 	.globl	memcpy                  # -- Begin function memcpy
 	.p2align	2
@@ -83,7 +83,7 @@ memcpy:                                 # @memcpy
 	lw	a0, -12(s0)
 	lw	a1, -16(s0)
 	lw	a2, -20(s0)
-	call	_Z10memcpyCharPcPKcj
+	call	_Z6memcpyPcPKcj
 	j	.LBB1_5
 .LBB1_5:
 	lw	s0, 24(sp)
@@ -1070,7 +1070,7 @@ _ZTI17StandardOutStream:
 	.ident	"clang version 10.0.0-4ubuntu1 "
 	.section	".note.GNU-stack","",@progbits
 	.addrsig
-	.addrsig_sym _Z10memcpyCharPcPKcj
+	.addrsig_sym _Z6memcpyPcPKcj
 	.addrsig_sym _Z6malloci
 	.addrsig_sym exit
 	.addrsig_sym _Z4freePv

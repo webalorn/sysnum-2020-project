@@ -123,6 +123,12 @@ def op_srl(rd, rs1, rs2):
     return ['0110011', rd, '101', rs1, rs2, '0000000']
 
 
+@newop('SRA', 'reg', 'reg', 'reg')
+def op_sra(rd, rs1, rs2):
+    """ Arithmetic right shift """
+    return ['0110011', rd, '101', rs1, rs2, '0100000']
+
+
 @newop('SUB', 'reg', 'reg', 'reg')
 def op_sub(rd, rs1, rs2):
     return ['0110011', rd, '000', rs1, rs2, '0100000']

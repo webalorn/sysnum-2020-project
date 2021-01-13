@@ -25,7 +25,7 @@ extern "C" {
 }
 
 
-void memcpyChar(char* dest, const char* src, uint n) {
+void memcpy(char* dest, const char* src, uint n) {
 	while (n) {
 		n--;
 		*dest = *src;
@@ -41,7 +41,7 @@ void memcpy(uint* dest, const uint* src, uint n) {
 		src++;
 	}
 	if (n) {
-		memcpyChar((char*)dest, (char*)src, n);
+		memcpy((char*)dest, (char*)src, n);
 	}
 }
 void memset(char* dest, char src, uint n) {
@@ -52,7 +52,6 @@ void memset(char* dest, char src, uint n) {
 		src += 1;
 	}
 }
-
 
 #ifndef MUL_EXT
 uint __mulsi3(uint a, uint b) {

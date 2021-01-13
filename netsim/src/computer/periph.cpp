@@ -64,7 +64,6 @@ ConsoleOutDevice::ConsoleOutDevice() {
 void ConsoleOutDevice::send(uint value) {
 	if (value) {
 		printUnicode(value);
-		// std::cout << " (" << value << ")\n";
 		hasChar = true;
 	}
 	if (hasChar) {
