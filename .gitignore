@@ -8,6 +8,7 @@
 *.egg-info/
 *.vhdd
 .vscode/
+*.risc
 
 netsim/toplevel
 netsim/run

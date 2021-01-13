@@ -875,9 +875,6 @@ main:                                   # @main
 	lw	a0, -20(s0)
 	lw	a1, -24(s0)
 	call	_Z11show_resultii
-	lw	a0, -20(s0)
-	lw	a1, -24(s0)
-	call	_Z13show_result_ujj
 	mv	a0, zero
 	lw	s0, 24(sp)
 	lw	ra, 28(sp)

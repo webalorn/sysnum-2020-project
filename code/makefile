@@ -26,3 +26,6 @@ build/clock_fast.s: clock.cpp
 
 build/screen_clock.s: screen_clock.cpp $(LIB_HPP)
 	$(CXX) -O2 -S screen_clock.cpp -o build/screen_clock.s
+
+clean:
+	rm -R build

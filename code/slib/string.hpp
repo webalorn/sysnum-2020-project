@@ -68,11 +68,11 @@ string operator + (const string& s1, const string& s2) {
 	return s_final;
 }
 
-string to_string(uint num) {
-	string s;
+void to_string(uint num, string& s) {
 	s.reserve(11);
+	s.resize(0);
 	bool before = false;
-	for (uint i = 10; i < 10; i++) {
+	for (uint i = 0; i < 10; i++) {
 		int cur = 0;
 		while (num >= digits32[i]) {
 			cur += 1;
@@ -83,7 +83,6 @@ string to_string(uint num) {
 			s.push_back('0' + cur);
 		}
 	}
-	return s;
 }
 
 #endif // STRING_HPP

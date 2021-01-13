@@ -111,9 +111,10 @@ void OctoClockDevice::run() {
 
 InitTimeDevice::InitTimeDevice() {
 	std::time_t t = std::time(0);
-	std::tm* now = std::localtime(&t);
-	uint today_secs = now->tm_sec + 60 * (now->tm_min + 60 * now->tm_hour);
-	inQueue.push(today_secs);
+	// std::tm* now = std::localtime(&t);
+	// uint today_secs = now->tm_sec + 60 * (now->tm_min + 60 * now->tm_hour);
+	uint local_secs = t;
+	inQueue.push(local_secs);
 }
 
 void InitTimeDevice::run() {}

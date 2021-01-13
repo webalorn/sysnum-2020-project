@@ -28,5 +28,4 @@ int main() {
 	show_result(-20, 6);
 	show_result(20, -6);
 	show_result(-20, -6);
-	show_result_u(-20, -6);
 }

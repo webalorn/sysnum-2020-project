@@ -52,7 +52,7 @@ void runEditor() {
 			if (blink == 8) {
 				blink = 0;
 			}
-			if (posChar < MAX - 1) {
+			if (posChar < MAX) {
 				if (blink < 4) {
 					text[posChar] = '@';
 				}
